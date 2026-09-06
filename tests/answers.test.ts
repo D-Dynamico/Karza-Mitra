@@ -9,11 +9,11 @@ describe('answers schema', () => {
 
   it('accepts a single figure as a zero-width range', () => {
     const result = parseAnswers({ monthlyIncome: exact(45000) });
-    expect(result).toMatchObject({ ok: true, answers: { monthlyIncome: { low: 45000, high: 45000 } } });
+    expect(result).toMatchObject({ ok: true, answers: { monthlyIncome: { lo: 45000, hi: 45000 } } });
   });
 
   it('rejects an inverted range with a readable message', () => {
-    const result = parseAnswers({ monthlyIncome: { low: 80000, high: 40000 } });
+    const result = parseAnswers({ monthlyIncome: { lo: 80000, hi: 40000 } });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.problems[0]).toContain('monthlyIncome');
   });

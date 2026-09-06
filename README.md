@@ -50,5 +50,9 @@ docs/       architecture, design and session notes
 
 ## Status
 
-Phase 0 (scaffold) is done. The engine lands in phase 1 — until then the app is a
-placeholder screen.
+The engine is built and tested — two amounts, product routing, honest all-in rate, and a
+verdict that will say don't borrow. Run `npx tsx scripts/run-personas.ts` to see what it
+says about three very different borrowers.
+
+The interface is still the phase 0 placeholder; the question flow and results screens land
+in phases 3 and 4.

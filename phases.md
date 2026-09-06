@@ -30,24 +30,24 @@ saved by any UI.
 
 ## Phase 1 — Engine core
 
-- [ ] 1.1 `interval.ts` — `[lo, hi]` add, subtract, multiply, divide, min/max, clamp. Never NaN, never inverted
-- [ ] 1.2 `interval.test.ts` — algebra and invariants, including division by an interval spanning zero
-- [ ] 1.3 `finance.ts` — EMI, tenure tables, APR as IRR of net disbursal vs EMI stream
-- [ ] 1.4 `finance.test.ts` — EMI against three known bank calculator values, APR against a committed spreadsheet XIRR
-- [ ] 1.5 Trace type — every rule returns `{ rule, inputs, output, why }`
-- [ ] 1.6 `rules/income.ts` — recognition per income type, lender vs planning income
-- [ ] 1.7 `rules/affordability.ts` — lender FOIR tiers and borrower safe-outflow tiers, as separate tables
-- [ ] 1.8 `rules/credit.ts` — score bands, unknown-score interval, bounce penalty
-- [ ] 1.9 `rules/products.ts` — product bands and routing signals
-- [ ] 1.10 `rules/stress.ts` — income drop and rate rise, post-stress FOIR
-- [ ] 1.11 `rules/verdict.ts` — don't / borrow less / borrow, each branch with its reason
-- [ ] 1.12 `compute.ts` — answers to outputs, trace and confidence
-- [ ] 1.13 `scripts/run-personas.ts` — run Priya, Ravi, Anita and print the numbers; eyeball before any UI
-- [ ] 1.14 `tests/personas.test.ts` — golden verdicts and range endpoints locked
-- [ ] 1.15 `tests/properties.test.ts` — monotonicity and widening invariants
-- [ ] 1.16 Degenerate inputs — zero income, income below expenses, ask of ₹0, age 70
+- [x] 1.1 `interval.ts` — `[lo, hi]` add, subtract, multiply, divide, min/max, clamp. Never NaN, never inverted
+- [x] 1.2 `interval.test.ts` — algebra and invariants, including division by an interval spanning zero
+- [x] 1.3 `finance.ts` — EMI, tenure tables, APR as IRR of net disbursal vs EMI stream
+- [x] 1.4 `finance.test.ts` — EMI against three known bank calculator values, APR against a committed spreadsheet XIRR
+- [x] 1.5 Trace type — every rule returns `{ rule, inputs, output, why }`
+- [x] 1.6 `rules/income.ts` — recognition per income type, lender vs planning income
+- [x] 1.7 `rules/affordability.ts` — lender FOIR tiers and borrower safe-outflow tiers, as separate tables
+- [x] 1.8 `rules/credit.ts` — score bands, unknown-score interval, bounce penalty
+- [x] 1.9 `rules/products.ts` — product bands and routing signals
+- [x] 1.10 `rules/stress.ts` — income drop and rate rise, post-stress FOIR
+- [x] 1.11 `rules/verdict.ts` — don't / borrow less / borrow, each branch with its reason
+- [x] 1.12 `compute.ts` — answers to outputs, trace and confidence
+- [x] 1.13 `scripts/run-personas.ts` — run Priya, Ravi, Anita and print the numbers; eyeball before any UI
+- [x] 1.14 `tests/personas.test.ts` — golden verdicts and range endpoints locked
+- [x] 1.15 `tests/properties.test.ts` — monotonicity and widening invariants
+- [x] 1.16 Degenerate inputs — zero income, income below expenses, ask of ₹0, age 70
 
-**Exit condition** — the hard gate of the project. Nothing in phases 3+ can rescue a miss here:
+**Exit condition** — the hard gate of the project. **Passed 2026-09-07.** Nothing in phases 3+ can rescue a miss here:
 
 - `npx tsx scripts/run-personas.ts` prints, and the golden tests lock:
   - **Priya** — verdict `borrow less`, and the lender number and the safe number visibly

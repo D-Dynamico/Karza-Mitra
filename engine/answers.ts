@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Interval } from './interval';
 
 /**
  * What the borrower has told us. Everything is optional: skip is always
@@ -10,15 +11,19 @@ import { z } from 'zod';
 
 const rupees = z.number().finite().nonnegative();
 
-/** A stated quantity the borrower may know exactly or only within a range. */
+/**
+ * A stated quantity the borrower may know exactly or only within a range. Same
+ * shape as the engine's Interval, so an answer flows into the arithmetic without
+ * a translation step where a lo and a hi could get swapped.
+ */
 export const statedRange = z
-  .object({ low: rupees, high: rupees })
-  .refine((r) => r.low <= r.high, { message: 'low must not exceed high' });
+  .object({ lo: rupees, hi: rupees })
+  .refine((r) => r.lo <= r.hi, { message: 'lo must not exceed hi' });
 
-export type StatedRange = z.infer<typeof statedRange>;
+export type StatedRange = Interval;
 
 /** A single figure is just a range of zero width, so the rules see one shape. */
-export const exact = (value: number): StatedRange => ({ low: value, high: value });
+export const exact = (value: number): StatedRange => ({ lo: value, hi: value });
 
 export const loanPurpose = z.enum([
   'wedding',
@@ -31,12 +36,16 @@ export const loanPurpose = z.enum([
   'other',
 ]);
 
+export type LoanPurpose = z.infer<typeof loanPurpose>;
+
 export const incomeType = z.enum([
   'salaried',
   'self-employed-itr',
   'self-employed-cash',
   'informal',
 ]);
+
+export type IncomeType = z.infer<typeof incomeType>;
 
 /**
  * Three states, not a nullable number. "Never borrowed" is not a low score —
