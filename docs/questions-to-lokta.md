@@ -1,10 +1,10 @@
-# Questions for Lokta — Borrower Copilot
+# Questions for Lokta — Karza Mitra
 
 Draft. Send as one message.
 
 ---
 
-Subject: Borrower Copilot — time, and six questions
+Subject: Karza Mitra (Borrower Copilot take-home) — time, and six questions
 
 Hello,
 

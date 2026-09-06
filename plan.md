@@ -1,4 +1,4 @@
-# Borrower Copilot: build plan
+# Karza Mitra: build plan
 
 Issued 2 Sep, four-day box, so the clock likely runs out around 6 Sep. If it has, ask for an extension in the same message you ask your brief questions in. The brief says asking is not held against you, and the questions themselves are scored.
 

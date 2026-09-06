@@ -1,8 +1,11 @@
 # Karza Mitra
 
-A borrower-side loan copilot. Answer a handful of questions and it tells you **two different
-numbers** — what a lender will probably sanction, and what you can actually afford to carry —
-routes you to the right product, shows the honest all-in rate with fees and GST folded in,
+Karza — debt. Mitra — friend.
+
+Every lender has a model that decides what a borrower gets. The borrower has nothing. This is
+the borrower's side of that table. Answer a handful of questions and it tells you **two
+different numbers** — what a lender will probably sanction, and what you can actually afford
+to carry — routes you to the right product, shows the honest all-in rate with fees and GST folded in,
 and is willing to tell you not to borrow.
 
 Everything runs in the browser. No account, no server, nothing leaves the device.

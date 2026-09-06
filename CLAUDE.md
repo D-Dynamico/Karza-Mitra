@@ -1,6 +1,7 @@
-# Karza-Mitra — Borrower Copilot
+# Karza Mitra
 
-A borrower-side loan copilot. Given a few answers, it returns two different numbers —
+Karza — debt. Mitra — friend. A borrower's side of the table, in a market where only the
+lender has ever had a model. Given a few answers it returns two different numbers —
 what a lender will sanction and what the borrower can safely carry — routes to the right
 product, shows an honest all-in APR, and is willing to say "don't borrow".
 
