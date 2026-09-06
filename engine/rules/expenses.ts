@@ -22,6 +22,16 @@ export const expenseDefaults = register<Rule<{ base: number; perExtraPerson: num
   ),
 });
 
+export const expenseCityMultiplier = register<Rule<Record<string, number>>>({
+  id: 'expenses.city-multiplier',
+  what: 'Household spending adjustment by city tier',
+  value: { metro: 1.25, 'tier-2': 1, 'tier-3': 0.85, unknown: 1 },
+  why: 'The same shopping list costs noticeably more in Bengaluru than in Hubballi. Tier 2 is the baseline because two of the three borrowers live there.',
+  source: judgement(
+    'Rough relative cost of living. The direction is not in doubt; the exact multipliers are mine.',
+  ),
+});
+
 /** Share of income used as a floor, when income is high enough that a flat figure would understate. */
 export const expenseFloorShare = register<Rule<number>>({
   id: 'expenses.floor-share',
@@ -43,8 +53,13 @@ export function assumedExpenses(answers: Answers, log: TraceLog): ExpenseEstimat
 
   const income = answers.monthlyIncome?.lo ?? 0;
   const people = answers.householdSize ?? 1;
-  const flat =
+  const tier = answers.cityTier ?? 'unknown';
+  const multiplier =
+    expenseCityMultiplier.value[tier] ?? expenseCityMultiplier.value['unknown']!;
+
+  const perHead =
     expenseDefaults.value.base + expenseDefaults.value.perExtraPerson * Math.max(0, people - 1);
+  const flat = perHead * multiplier;
   const share = income * expenseFloorShare.value;
   const value = Math.round(Math.max(flat, share));
 
@@ -54,6 +69,7 @@ export function assumedExpenses(answers: Answers, log: TraceLog): ExpenseEstimat
     inputs: {
       'you did not say': true,
       'people in the household': people,
+      'your city': tier,
       'assumed': value,
     },
     output: value,

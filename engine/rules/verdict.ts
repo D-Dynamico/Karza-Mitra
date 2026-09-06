@@ -55,6 +55,8 @@ export interface VerdictInputs {
   readonly informalIncome: boolean;
   readonly hasAppLoans: boolean;
   readonly stressBreaches: boolean;
+  /** Whether stated earnings from the purchase cover the instalment. */
+  readonly paysForItself: boolean | undefined;
 }
 
 /**
@@ -64,6 +66,24 @@ export interface VerdictInputs {
  */
 export function decide(input: VerdictInputs, log: TraceLog): Verdict {
   const asked = input.answers.amountAsked;
+
+  // A loan ending soon is the most concrete thing a borrower can be told: wait
+  // this many months and the whole instalment comes back to you.
+  const monthsLeft = input.answers.existingEmiMonthsLeft;
+  const waitingIsWorthIt =
+    monthsLeft !== undefined && monthsLeft > 0 && monthsLeft <= 30 && input.existingEmis > 0;
+  const waitingNote = waitingIsWorthIt
+    ? ` Your existing loan has ${monthsLeft} months left. When it ends, the ₹${input.existingEmis.toLocaleString('en-IN')} you pay each month comes back to you, and that alone changes this answer.`
+    : '';
+
+  // A loan that earns more than it costs is a different proposition, and it is
+  // the strongest argument for borrowing that exists.
+  const earnsNote =
+    input.paysForItself === true
+      ? ' What you expect this to earn covers the instalment, so it largely pays for itself.'
+      : input.paysForItself === false
+        ? ' What you expect this to earn does not cover the instalment, so the difference comes out of the rest of your income every month.'
+        : '';
   const emit = (v: Verdict): Verdict => {
     log.record({
       rule: `verdict.${v.kind}`,
@@ -103,9 +123,11 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
       kind: 'dont',
       headline: 'Not right now — clear what you have first.',
       why: `A payment bounced in the last six months. Lenders who see that will decline or price it steeply, and taking on another instalment while one is already slipping is how a difficult month becomes a difficult year.${alsoAppLoans}${alsoNegative}`,
-      nextStep: input.hasAppLoans
-        ? 'Clear the app loans first, highest rate first — that frees the most per month. Three clean months after that changes this answer materially.'
-        : 'Three months of every payment landing on time changes this materially, and costs you nothing but the wait.',
+      nextStep:
+        (input.hasAppLoans
+          ? 'Clear the app loans first, highest rate first — that frees the most per month. Three clean months after that changes this answer materially.'
+          : 'Three months of every payment landing on time changes this materially, and costs you nothing but the wait.') +
+        waitingNote,
     });
   }
 
@@ -117,7 +139,8 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
       headline: 'Your existing loans are the problem to solve first.',
       why: `More than half of what you earn in a slow month already goes to instalments. ${obligationDangerLine.why}`,
       nextStep:
-        'Clear the dearest loan first. Every rupee off that instalment does more for you than a new loan would.',
+        'Clear the dearest loan first. Every rupee off that instalment does more for you than a new loan would.' +
+        waitingNote,
     });
   }
 
@@ -139,7 +162,9 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
     return emit({
       kind: 'dont',
       headline: 'A loan is the wrong tool for this right now.',
-      why: 'Your income cannot be evidenced, there is nothing to pledge, and the money would not earn anything back. Every lender who says yes on those terms will charge a rate that makes the problem worse.',
+      why:
+        'Your income cannot be evidenced, there is nothing to pledge, and the money would not earn anything back. Every lender who says yes on those terms will charge a rate that makes the problem worse.' +
+        earnsNote,
       nextStep:
         'If this is for something that would earn — stock, a vehicle you work with — say so, because that changes the answer.',
     });
@@ -162,16 +187,19 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
     return emit({
       kind: 'borrow-less',
       headline: 'You can borrow, but less than you asked for.',
-      why: `A lender will likely say yes to the full amount. What you can carry without the plan getting fragile is smaller, because your rent counts against you even though lenders leave it out.${stressNote}`,
+      why: `A lender will likely say yes to the full amount. What you can carry without the plan getting fragile is smaller, because your rent counts against you even though lenders leave it out.${stressNote}${earnsNote}`,
       nextStep:
-        'Either trim the amount to the safe figure, or change one of the things below and come back to it.',
+        'Either trim the amount to the safe figure, or change one of the things below and come back to it.' +
+        waitingNote,
     });
   }
 
   return emit({
     kind: 'borrow',
     headline: 'This works, on the terms below.',
-    why: 'The amount fits under all three affordability tests and still holds after a bad month.',
+    why:
+      'The amount fits under all three affordability tests and still holds after a bad month.' +
+      earnsNote,
     nextStep: 'Take the card below to the lender and hold them to the rate band on it.',
   });
 }

@@ -54,6 +54,11 @@ import { TraceLog, type TraceEntry } from './trace';
 import { confidenceThresholds } from './rules/table';
 import { assumedExpenses } from './rules/expenses';
 import { assumedRent } from './rules/rent';
+import {
+  largeExpenseReserve,
+  productiveEarningsCover,
+  stabilityAdjustment,
+} from './rules/stability';
 
 export type Confidence = 'low' | 'medium' | 'high';
 
@@ -167,6 +172,7 @@ export function compute(answers: Answers): Result {
         informalIncome: false,
         hasAppLoans: answers.appOrBnplLoans === true,
         stressBreaches: false,
+        paysForItself: undefined,
       },
       log,
     );
@@ -199,6 +205,7 @@ export function compute(answers: Answers): Result {
     expenses: expenses.value,
     expensesAssumed: expenses.assumed,
     emergencySavingsMonths: answers.emergencySavingsMonths,
+    largeExpenseReserve: largeExpenseReserve(answers, log),
     stressedPlanning: stressed,
   }, log);
 
@@ -212,17 +219,24 @@ export function compute(answers: Answers): Result {
   // narrow band near the bottom, not the whole product range — quoting someone
   // with a 780 score "10.5% to 24%" is useless to them.
   const base = routing.product.rateBand;
+  const stability = stabilityAdjustment(answers, log);
   const rateBand = log.record({
     rule: 'pricing.rate-band',
     label: 'The rate band you should expect',
     inputs: {
       'base band for this product': base,
       'added for your credit standing': credit.ratePremium,
+      'adjusted for how steady your income is': stability,
       'spread between lenders': lenderSpread.value,
     },
     output: iv(
-      Math.min(base.lo + credit.ratePremium.lo, base.hi),
-      Math.min(base.lo + credit.ratePremium.hi + lenderSpread.value, base.hi),
+      // The floor is the product's own, so a discount can move you to the bottom
+      // of the band but never below what the product is written at.
+      Math.min(Math.max(base.lo + credit.ratePremium.lo + stability.lo, base.lo), base.hi),
+      Math.min(
+        Math.max(base.lo + credit.ratePremium.hi + stability.hi + lenderSpread.value, base.lo),
+        base.hi,
+      ),
     ),
     why: `${routing.product.why} Your credit standing places you within that band, and lenders differ by a point or so on top of that.`,
   });
@@ -329,6 +343,12 @@ export function compute(answers: Answers): Result {
     });
   }
 
+  const paysForItself = productiveEarningsCover(
+    answers.expectedMonthlyEarnings,
+    emiAtSafe,
+    log,
+  );
+
   const verdict = decide(
     {
       answers,
@@ -340,7 +360,8 @@ export function compute(answers: Answers): Result {
       recentBounce: credit.recentBounce,
       unsecuredLikelyDeclined: credit.unsecuredLikelyDeclined,
       securedAvailable: routing.product.secured,
-      productive: isProductive(answers),
+      productive: paysForItself ?? isProductive(answers),
+      paysForItself,
       informalIncome:
         answers.incomeType === 'informal' || answers.incomeType === 'self-employed-cash',
       hasAppLoans: answers.appOrBnplLoans === true,

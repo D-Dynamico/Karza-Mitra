@@ -192,6 +192,30 @@ export function route(
     return routing;
   };
 
+  const goldCovers =
+    (answers.goldValue ?? 0) > 0 &&
+    asked > 0 &&
+    asked <= (answers.goldValue ?? 0) * all['gold-loan'].loanToValue!.hi;
+
+  // Gold first when the file itself is the obstacle. A lender writing a vehicle
+  // loan still underwrites the borrower, and a recent bounce or unevidenced
+  // income gets that application declined however good the security is. A gold
+  // loan sidesteps the file entirely — the metal is in their vault — which makes
+  // it the route that is actually available rather than the one that looks best
+  // on paper.
+  if (goldCovers && credit.unsecuredLikelyDeclined) {
+    const ltv = all['gold-loan'].loanToValue!;
+    return record({
+      product: all['gold-loan'],
+      securedCap: iv(answers.goldValue! * ltv.lo, answers.goldValue! * ltv.hi),
+      alternative: {
+        product: answers.purpose === 'vehicle' ? all['vehicle-loan'] : all['personal-loan'],
+        why: 'On paper this would be the usual route, but the lender still has to approve you, and right now your file is what is standing in the way. Gold does not need approving.',
+      },
+      why: 'Household gold covers what you need, and it is the one kind of borrowing your credit history does not stand in the way of. It is also cheap. Repay it and the gold comes back.',
+    });
+  }
+
   // A vehicle, bought with a vehicle loan. Securing the asset being purchased is
   // almost always cheaper than borrowing the money unsecured to buy it.
   if (answers.purpose === 'vehicle') {
@@ -232,7 +256,7 @@ export function route(
   }
 
   // Gold, for something urgent and short.
-  if ((answers.goldValue ?? 0) > 0 && asked > 0 && asked <= (answers.goldValue ?? 0) * 0.75) {
+  if (goldCovers) {
     const ltv = all['gold-loan'].loanToValue!;
     return record({
       product: all['gold-loan'],

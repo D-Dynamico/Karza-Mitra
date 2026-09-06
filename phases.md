@@ -95,14 +95,14 @@ Scored row: **question design** (20). The registry and its moves policy are the 
 screens that render them are phase 5. "Sensible defaults for the unanswered" is part of this
 row, so the assumed-value machinery counts here as well as under honesty.
 
-- [ ] 2.1 Question registry — id, tier, `applies(state)`, `moves[]`, why-we-ask copy
-- [ ] 2.2 The must set of nine
-- [ ] 2.3 Adaptive branches (salaried, self-employed, informal, existing EMIs, vehicle, business, cross-cutting)
-- [ ] 2.4 Household expense defaults by household size and city tier, flagged "assumed"
-- [ ] 2.5 `nextQuestions` — rank by which output range a question would tighten most
-- [ ] 2.6 Moves test — every question must change a declared output for at least one persona; delete those that don't
+- [x] 2.1 Question registry — id, tier, `applies(state)`, `moves[]`, why-we-ask copy
+- [x] 2.2 The must set of nine
+- [x] 2.3 Adaptive branches (salaried, self-employed, informal, existing EMIs, vehicle, business, cross-cutting)
+- [x] 2.4 Household expense defaults by household size and city tier, flagged "assumed"
+- [x] 2.5 `nextQuestions` — rank by which output range a question would tighten most
+- [x] 2.6 Moves test — every question must change a declared output for at least one persona; delete those that don't
 
-**Exit condition:**
+**Exit condition** — passed 2026-09-07:
 
 - The nine must-set answers alone produce a verdict for all three personas, with a rate band
   wide enough to be honest about what is still unknown — wide is correct here, blank is not

@@ -88,10 +88,18 @@ describe('taking on more debt never helps', () => {
 });
 
 describe('answering more never makes us less certain', () => {
-  it('does not widen the rate band when the credit score is supplied', () => {
+  it('does not widen the rate band when a score inside the assumed range is supplied', () => {
+    // Scoped to scores within the band we assume when nobody knows theirs,
+    // [650, 780]. Inside it, telling us can only ever narrow the answer.
+    //
+    // A score BELOW that band is a different thing: the assumption itself was
+    // wrong, and pricing under 650 is genuinely more variable — some lenders
+    // decline, the rest charge five to nine points over. The band there can
+    // legitimately be wider than the one we showed while guessing. The test
+    // below pins what must hold in that case instead.
     for (const a of all) {
       const unknown = compute({ ...a, creditScore: { known: false, everBorrowed: true } });
-      for (const score of [640, 680, 730, 800]) {
+      for (const score of [660, 700, 730, 800]) {
         const known = compute({ ...a, creditScore: { known: true, score } });
         if (!unknown.pricing || !known.pricing) continue;
         expect(
@@ -99,6 +107,16 @@ describe('answering more never makes us less certain', () => {
           `score ${score} widened the band`,
         ).toBeLessThanOrEqual(width(unknown.pricing.rateBand) + 1e-9);
       }
+    }
+  });
+
+  it('shifts the band upward when the score is worse than we had assumed', () => {
+    for (const a of all) {
+      const unknown = compute({ ...a, creditScore: { known: false, everBorrowed: true } });
+      const poor = compute({ ...a, creditScore: { known: true, score: 610 } });
+      if (!unknown.pricing || !poor.pricing) continue;
+      expect(poor.pricing.rateBand.lo).toBeGreaterThanOrEqual(unknown.pricing.rateBand.lo - 1e-9);
+      expect(poor.pricing.rateBand.hi).toBeGreaterThanOrEqual(unknown.pricing.rateBand.hi - 1e-9);
     }
   });
 

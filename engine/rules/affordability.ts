@@ -127,6 +127,8 @@ export function borrowerCeiling(
     expenses: number;
     expensesAssumed: boolean;
     emergencySavingsMonths: number | undefined;
+    /** Monthly reserve against an expense the borrower already knows is coming. */
+    largeExpenseReserve: number;
     stressedPlanning: Interval;
   },
   log: TraceLog,
@@ -176,11 +178,16 @@ export function borrowerCeiling(
     assumed: args.expensesAssumed,
   });
 
+  const reserved = add(setAside, point(args.largeExpenseReserve));
   const fromSurplus = log.record({
     rule: 'affordability.surplus-headroom',
-    label: 'Room left after keeping something back for emergencies',
-    inputs: { 'money left over': surplus, 'held back for emergencies': setAside },
-    output: atLeastZero(sub(surplus, setAside)),
+    label: 'Room left after keeping something back',
+    inputs: {
+      'money left over': surplus,
+      'held back for emergencies': setAside,
+      'held back for what is coming': args.largeExpenseReserve,
+    },
+    output: atLeastZero(sub(surplus, reserved)),
     why: needsBuffer
       ? emergencySavingsRule.why
       : 'You already have a few months put by, so nothing extra is held back here.',

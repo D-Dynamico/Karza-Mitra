@@ -38,9 +38,9 @@ describe('Priya — two numbers, not one', () => {
   });
 
   it('locks the endpoints', () => {
-    expect(r.amounts.safe.lo).toBeCloseTo(89910, NEAR);
+    expect(r.amounts.safe.lo).toBeCloseTo(90940, NEAR);
     expect(r.amounts.safe.hi).toBeCloseTo(93050, NEAR);
-    expect(r.amounts.lender.lo).toBeCloseTo(2090409, NEAR);
+    expect(r.amounts.lender.lo).toBeCloseTo(2114347, NEAR);
     expect(r.amounts.lender.hi).toBeCloseTo(2419291, NEAR);
   });
 
@@ -49,8 +49,10 @@ describe('Priya — two numbers, not one', () => {
   });
 
   it('prices her cleanly, because her score is known and high', () => {
+    // 780 score, five years at a large employer: the bottom of the band, and
+    // narrow. Quoting her the product's full 10.5-24% would be useless to her.
     expect(r.pricing!.rateBand.lo).toBeCloseTo(10.5, 6);
-    expect(r.pricing!.rateBand.hi).toBeCloseTo(12, 6);
+    expect(r.pricing!.rateBand.hi).toBeCloseTo(11.5, 6);
     expect(r.confidence).toBe('high');
   });
 
@@ -92,7 +94,7 @@ describe('Ravi — product routing', () => {
 
   it('locks the endpoints', () => {
     expect(r.amounts.safe.lo).toBeCloseTo(1314244, NEAR);
-    expect(r.amounts.safe.hi).toBeCloseTo(1397491, NEAR);
+    expect(r.amounts.safe.hi).toBeCloseTo(1430664, NEAR);
   });
 
   it('holds after a bad turn', () => {
