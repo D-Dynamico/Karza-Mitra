@@ -1,13 +1,16 @@
 /**
  * The three borrowers the engine is judged on.
  *
- * Each is here to expose a different failure. Priya catches an app that reports
- * only the lender's number. Anita catches one that cannot say no. Ravi catches
- * one that prices a loan well but offers the wrong loan.
+ * Every figure here is taken verbatim from the brief. Where the brief is silent
+ * the answer is left OUT rather than invented, so the engine's own defaults fire
+ * and are marked "assumed" in the output — which is what a real borrower who
+ * skipped the question would see, and is the behaviour worth showing.
  *
- * Figures not fixed by the brief are filled in with plausible values and marked
- * below, so that a golden test failing means a rule moved, not that someone
- * quietly edited a persona.
+ * Household spending is the clearest case: the brief gives it for nobody, so
+ * nobody has it, and all three run-throughs will carry a visible assumption.
+ *
+ * A `TODO(lokta)` marks something the brief genuinely does not settle and that
+ * is worth asking about.
  */
 
 import type { Answers } from './answers';
@@ -30,10 +33,10 @@ export const priya: Persona = {
     amountAsked: 800000,
     incomeType: 'salaried',
     monthlyIncome: { lo: 110000, hi: 110000 },
-    existingEmis: 14000, // car loan, 24 months left
+    existingEmis: 14000, // car loan
+    existingEmiMonthsLeft: 24, // "2 years left" — her strongest path-to-yes lever
     rentOrHomeEmi: 28000,
-    householdExpenses: 30000, // assumed for the persona, not given in the brief
-    age: 31,
+    age: 29,
     creditScore: { known: true, score: 780 },
     employerType: 'mnc',
     yearsInJob: 5,
@@ -53,11 +56,13 @@ export const ravi: Persona = {
     monthlyIncome: { lo: 40000, hi: 80000 },
     itrIncomeMonthly: 35000,
     existingEmis: 0,
-    rentOrHomeEmi: 0, // owns the premises he lives above
-    householdExpenses: 25000,
+    // TODO(lokta): the brief says he owns the shop premises, but not whether he
+    // owns the home he lives in. Treated as no rent, which is the generous
+    // reading; if he rents, his safe amount falls.
+    rentOrHomeEmi: 0,
     age: 42,
     creditScore: { known: false, everBorrowed: false },
-    yearsInBusiness: 12,
+    yearsInBusiness: 14,
     ownsProperty: true,
     propertyValue: 4500000,
     propertyHasCharge: false,
@@ -77,11 +82,15 @@ export const anita: Persona = {
     purpose: 'vehicle',
     amountAsked: 150000,
     incomeType: 'informal',
-    monthlyIncome: { lo: 14000, hi: 22000 },
-    existingEmis: 6000, // three app loans
-    rentOrHomeEmi: 5000,
-    householdExpenses: 9000,
-    age: 29,
+    monthlyIncome: { lo: 26000, hi: 30000 },
+    // The brief gives the outstanding balance but not the instalment. Three app
+    // loans totalling ₹35,000 at 30%+ over the short tenures those carry works
+    // out near ₹6,000 a month.
+    existingEmis: 6000,
+    // TODO(lokta): the brief does not say whether she rents. Left blank rather
+    // than guessed — but note a blank rent is read as zero, which flatters her.
+    age: 35,
+    householdSize: 4, // two children and a husband out of work for eight months
     creditScore: { known: false, everBorrowed: true },
     bouncedInLast6Months: true,
     appOrBnplLoans: true,
@@ -89,6 +98,7 @@ export const anita: Persona = {
     vehicleOnRoadPrice: 150000,
     vehicleIsProductive: true,
     emergencySavingsMonths: 0,
+    coApplicantIncome: 0, // husband unemployed eight months
   },
 };
 

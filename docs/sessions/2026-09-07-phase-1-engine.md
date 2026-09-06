@@ -214,3 +214,95 @@ Exit condition run in full and passed:
 - Phase 2 (questions and adaptivity) is next. Its exit condition wants the must-set rate band
   around 4 points wide — Ravi's is currently 3.5 and Priya's 1.5, so that expectation may need
   restating as "wide enough to be honest" rather than a fixed number.
+
+---
+
+# Addendum — the real brief arrived
+
+The actual Lokta brief and scoring table were supplied after phase 1 was committed. Two
+corrections follow, both material.
+
+## Decision: the rubric in `plan.md` was wrong, and the phase order built on it
+
+- **Choice:** rebuilt the scoring table in `phases.md` from the brief itself.
+- **What was wrong:** `plan.md` read the rubric as 30 domain / 20 questions / 20
+  explainability / 10 engineering, and stated "UI polish is explicitly not scored". The real
+  table is 30 / 20 / 20 / **15 product craft** / 10 engineering / **5 honesty about limits**.
+  Only *pixel perfection* is unscored. Product craft explicitly covers flow, copy, ranges shown
+  as ranges, confidence shown honestly, and working on a phone.
+- **Consequence:** I had recommended building the flow UI last as the cuttable item, on the
+  basis that it was worth nothing. It is worth 15 points. The phase order stays as reordered —
+  generated docs before UI is still right, because they carry 25 points and depend only on the
+  engine — but phase 5 is no longer optional, and `phases.md` now says so.
+- **Also relocated:** the Negotiation Card is named inside the *explainability* row, not
+  product craft. It is worth more than assumed.
+- **Source:** the brief, supplied 2026-09-07.
+
+## Decision: personas now match the brief verbatim; silence is left as silence
+
+- **Choice:** corrected every persona figure against the brief, and **removed** the household
+  spending figures I had invented for all three.
+- **What was wrong:** Anita's income was ₹14,000–22,000 against the brief's **₹26,000–30,000**,
+  nearly 2× off. Her age was 29, not 35. Priya was 31, not 29. Ravi had 12 years in business,
+  not 14.
+- **Why the removals:** the brief gives household spending for nobody. Inventing it hid the
+  behaviour that is actually scored — "sensible defaults for the unanswered" under question
+  design, and "the app says where it is guessing" under honesty. All three run-throughs now
+  carry a visible assumption, which is the honest and the higher-scoring outcome.
+- **Assumes:** the defaults are defensible. Anita's is now ₹24,000 for a household of four,
+  which is at least arguable; ₹12,000 flat was not.
+- **Source:** the brief.
+
+## Two engine problems the corrected personas exposed
+
+Both were invisible with the wrong figures, and both are the kind of thing the domain row is
+looking for.
+
+### A "don't" verdict was being shown beside a safe amount
+
+With her real income, Anita came out `dont` — correctly, on the bounce — while O2 still
+reported a safe amount of **₹1,20,000–₹1,34,487**. A results screen would have put "do not
+borrow" and "you can safely carry ₹1.3 lakh" side by side, and a borrower would believe the
+number. `compute` now zeroes the safe amount whenever the verdict is `dont`, with its own
+trace entry explaining that the arithmetic alone would have allowed something. A property test
+enforces it for every generated borrower.
+
+### The household-spending default ignored household size
+
+The rule table has always carried `perExtraPerson: 4000` and nothing read it. Anita — two
+children and a husband out of work eight months — was assumed to spend ₹12,000, the same as
+someone living alone. With household size wired in she is assumed at ₹24,000, and her surplus
+moves from **+₹5,400 to −₹6,600**, which is both more realistic and a second independent
+reason for the `dont`. Added `householdSize` to the schema for this. Phase 2.4 still owes the
+city-tier half of the default.
+
+## Also added
+
+- `existingEmiMonthsLeft` on the schema, and 24 months on Priya's car loan. The brief calls
+  out "2 years left" and it is her strongest path-to-yes lever — the thing she could act on.
+- `TODO(lokta)` markers on the two things the brief genuinely does not settle: whether Ravi
+  rents the home he lives in, and whether Anita pays rent. Both currently read as zero rent,
+  which flatters them; the second is a real engine gap, since a blank rent is silently
+  treated as nothing owed.
+
+## Verification of the addendum
+
+- `npm test` — **146 tests**, all passing. Priya's and Ravi's golden endpoints did not move,
+  because both are bound by the outflow ceiling rather than the surplus, so removing their
+  invented expenses changed the surplus without changing the answer.
+- Personas re-run: Priya `borrow-less`, surplus ₹40,500. Ravi `borrow`, surplus ₹46,000, still
+  routed to loan against property. Anita `dont`, surplus **−₹6,600**, safe amount **₹0**.
+
+## Open items added
+
+- **The four-day box has expired.** Issued 2 Sep 2026, so it closed around 6 Sep; today is
+  7 Sep. The brief says asking for more time is not held against you, and that good questions
+  about the brief are part of the evaluation. Both should go in one message, soon.
+- **A blank rent is read as zero.** Unlike household spending, rent has no default, so a
+  borrower who skips it is silently treated as paying nothing. That is the wrong direction to
+  be wrong in. Needs either a default or a forced answer in phase 2.
+- **Deliverables must sit at the repo root**: README, RULES.md, the three run-throughs and the
+  walkthrough. Currently only README exists; check the runs directory placement in phase 3.
+- The brief names two-wheeler as its own product band. Anita's scooter currently routes to the
+  generic vehicle loan. Worth splitting, since breadth beyond the three borrowers is not
+  scored but *their* products are.

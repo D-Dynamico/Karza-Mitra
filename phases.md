@@ -12,12 +12,30 @@ Detail for any substep lives in `docs/SYSTEM_DESIGN.md`; `plan.md` has the reaso
 the ordering. Phase 1 comes before everything: wrong numbers for the personas cannot be
 saved by any UI.
 
-**This is a buildathon entry, so the order follows the scoring.** Each phase names the row it
-serves. Domain reasoning, question design and explainability carry the weight; engineering
-carries little and is already well covered; UI polish carries none. Phases 3 and 5 were
-swapped for this reason — the generated documents are worth more than the question screens
-and depend on nothing but the engine, so they are banked first and the unscored flow UI
-becomes the thing that gets cut if the clock runs out.
+## The scoring
+
+This is a buildathon entry, so the build order follows what is marked. From the brief:
+
+| Row | Points | What they said they want |
+|---|---|---|
+| Domain reasoning | 30 | Lender's and borrower's numbers correctly different; "don't borrow" fires; Ravi routed to a secured product; APR honest about fees |
+| Question design | 20 | Tight must-set; extra questions that each move a number; adaptive paths; sensible defaults for the unanswered |
+| Explainability and the Card | 20 | Usable in a branch; every output traceable to answers in one sentence |
+| Product craft | 15 | Flow, copy, ranges shown as ranges, confidence shown honestly, works on a phone |
+| Engineering | 10 | Rules separated from UI, readable, runs first time |
+| Honesty about limits | 5 | RULES.md says what you don't know; the app says where it is guessing |
+
+**Not scored:** pixel perfection, real bureau integration, an ML model, loan products beyond
+what the three borrowers need.
+
+Two things follow. **Product craft is 15 points, so the flow UI is not free to cut** — an
+earlier draft of this file said UI was unscored, which was wrong; only *pixel perfection* is.
+And **engineering is 10 points and already well covered**, so further test or abstraction work
+is the lowest-value thing available.
+
+Phases 3 and 5 are swapped from the original plan because the generated documents are read by
+a judge without running anything, depend only on the engine, and carry both the explainability
+row and the whole honesty row.
 
 ---
 
@@ -73,8 +91,9 @@ against `docs/SYSTEM_DESIGN.md` §2.2 by hand at least once.
 
 ## Phase 2 — Questions and adaptivity
 
-Scored row: **question design**. The registry and its moves policy are the artifact, not the
-screens — those come later and are cuttable.
+Scored row: **question design** (20). The registry and its moves policy are the artifact; the
+screens that render them are phase 5. "Sensible defaults for the unanswered" is part of this
+row, so the assumed-value machinery counts here as well as under honesty.
 
 - [ ] 2.1 Question registry — id, tier, `applies(state)`, `moves[]`, why-we-ask copy
 - [ ] 2.2 The must set of nine
@@ -96,10 +115,10 @@ screens — those come later and are cuttable.
 
 ## Phase 3 — Generators and docs
 
-Scored row: **explainability**. Moved ahead of every UI phase, because these documents are
-generated from the engine and the trace — both of which already exist — and a judge can read
-them without running the app at all. They bank the row independently of how far the interface
-gets.
+Scored rows: **explainability** (20) and the whole of **honesty about limits** (5). Moved
+ahead of every UI phase because these documents are generated from the engine and the trace,
+both of which already exist, and a judge reads them without running the app. RULES.md is
+explicitly "read as carefully as the code".
 
 - [ ] 3.1 **Verify the market bands.** Check every rate, fee and loan-to-value figure in
       `engine/rules/products.ts` against current lender pages. Swap `judgement(...)` for
@@ -122,8 +141,9 @@ gets.
 
 ## Phase 4 — Results and the Card
 
-Scored rows: **explainability** and **domain reasoning**, made visible. This is what a judge
-looks at if they do open the app.
+Scored rows: **explainability and the Card** (20) — the Card is named in that row, not in
+product craft — plus **domain reasoning** made visible. The test the brief sets is whether a
+borrower could actually use this standing in a branch.
 
 - [ ] 4.1 O1–O4 panels — headline range, why generated from the trace, "show working" drawer
 - [ ] 4.2 "Tighten this" buttons per panel, driven by `nextQuestions`
@@ -154,8 +174,10 @@ looks at if they do open the app.
 
 ## Phase 5 — Flow UI
 
-Unscored row. Built last on purpose: it is the one part of the app that can be cut without
-losing points, and by this stage the questions, the rules and the results all already exist.
+Scored row: **product craft**, 15 points — flow, copy, ranges shown as ranges, confidence
+shown honestly, works on a phone. Built after the results screens because by this stage the
+questions, the rules and the outputs all exist, so the flow is only wiring. It is not
+optional.
 
 - [ ] 5.1 One question per screen, mobile layout, numeric keypad, lakh echo
 - [ ] 5.2 Skip, always visible, with its one-line consequence

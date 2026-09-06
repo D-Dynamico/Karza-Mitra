@@ -67,11 +67,15 @@ export const answersSchema = z.object({
   rentOrHomeEmi: rupees.optional(),
   householdExpenses: rupees.optional(),
   age: z.number().int().min(18).max(100).optional(),
+  /** People the income supports. Feeds the household-spending default. */
+  householdSize: z.number().int().min(1).max(20).optional(),
   creditScore: creditScore.optional(),
 
   // Adaptive branches. Each only applies for some profiles; the question
   // registry in phase 2 decides when to ask, the rules decide what to do with
   // a blank.
+  /** Months left on the existing loans — what makes "wait for it to end" concrete. */
+  existingEmiMonthsLeft: z.number().int().min(0).max(600).optional(),
   employerType: z.enum(['mnc', 'psu-govt', 'small-firm', 'other']).optional(),
   yearsInJob: z.number().nonnegative().optional(),
   itrIncomeMonthly: rupees.optional(),

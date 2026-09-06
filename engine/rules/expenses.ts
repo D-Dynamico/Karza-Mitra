@@ -16,7 +16,7 @@ export const expenseDefaults = register<Rule<{ base: number; perExtraPerson: num
   id: 'expenses.default',
   what: 'Assumed monthly household spending when it is not stated',
   value: { base: 12000, perExtraPerson: 4000 },
-  why: 'A working figure for food, power, transport, phone and school costs for a small urban household, so that a blank answer does not read as "spends nothing".',
+  why: 'A working figure for food, power, transport, phone and school costs, rising with each extra person the income has to cover, so that a blank answer does not read as "spends nothing".',
   source: judgement(
     'A round starting figure, not survey data. It is shown to the borrower as an assumption and is meant to be corrected.',
   ),
@@ -42,14 +42,20 @@ export function assumedExpenses(answers: Answers, log: TraceLog): ExpenseEstimat
   }
 
   const income = answers.monthlyIncome?.lo ?? 0;
-  const flat = expenseDefaults.value.base;
+  const people = answers.householdSize ?? 1;
+  const flat =
+    expenseDefaults.value.base + expenseDefaults.value.perExtraPerson * Math.max(0, people - 1);
   const share = income * expenseFloorShare.value;
   const value = Math.round(Math.max(flat, share));
 
   log.record({
     rule: 'expenses.default',
     label: 'Household spending (assumed)',
-    inputs: { 'you did not say': true, 'assumed': value },
+    inputs: {
+      'you did not say': true,
+      'people in the household': people,
+      'assumed': value,
+    },
     output: value,
     why: `${expenseDefaults.why} Correct it if it is wrong — it moves your safe amount directly.`,
     assumed: true,

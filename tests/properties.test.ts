@@ -202,6 +202,32 @@ describe('nothing ever produces a broken number', () => {
     }
   });
 
+  it('never shows an amount beside a do-not-borrow verdict', () => {
+    // The two would contradict each other on the same screen, and a borrower
+    // would believe the number over the sentence.
+    for (const a of all) {
+      const r = compute(a);
+      if (r.verdict.kind !== 'dont') continue;
+      expect(r.amounts.safe.hi).toBe(0);
+    }
+  });
+
+  it('raises assumed household spending as the household grows', () => {
+    const base: Answers = {
+      amountAsked: 200000,
+      incomeType: 'salaried',
+      monthlyIncome: { lo: 40000, hi: 40000 },
+      existingEmis: 0,
+      rentOrHomeEmi: 5000,
+      age: 35,
+      creditScore: { known: true, score: 750 },
+    };
+    const alone = compute({ ...base, householdSize: 1 });
+    const family = compute({ ...base, householdSize: 5 });
+    expect(family.surplus.hi).toBeLessThan(alone.surplus.hi);
+    expect(family.amounts.safe.hi).toBeLessThanOrEqual(alone.amounts.safe.hi);
+  });
+
   it('is deterministic', () => {
     for (const a of all) {
       expect(compute(a).amounts.safe).toEqual(compute(a).amounts.safe);

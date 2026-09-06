@@ -333,6 +333,20 @@ export function compute(answers: Answers): Result {
     log,
   );
 
+  // A "don't" verdict has to mean it. Reporting a safe amount beside it would
+  // put "do not borrow" and "you can carry ₹1.3 lakh" on the same screen, and a
+  // borrower would reasonably read the second and ignore the first.
+  if (verdict.kind === 'dont') {
+    safeAmount = point(0);
+    log.record({
+      rule: 'amounts.safe.withheld',
+      label: 'No amount is safe right now',
+      inputs: { verdict: verdict.kind },
+      output: safeAmount,
+      why: 'The arithmetic alone would allow something, but the answer above is not about arithmetic. Until that is dealt with, there is no amount here worth taking.',
+    });
+  }
+
   const interestRange = iv(
     totalInterest(safeAmount.lo, emiAtSafe.lo, tenure),
     totalInterest(safeAmount.hi, emiAtSafe.hi, tenure),
