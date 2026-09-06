@@ -48,6 +48,7 @@ export const priya: Persona = {
     employerType: 'mnc',
     yearsInJob: 5,
     emergencySavingsMonths: 2,
+    householdSize: 1,
   },
   derived: [
     {
@@ -55,6 +56,7 @@ export const priya: Persona = {
       from: '"one car loan, EMI ₹14,000, 2 years left" — 24 months.',
     },
     { field: 'cityTier', from: 'Bengaluru, so a metro for rent and cost of living.' },
+    { field: 'householdSize', from: 'Not stated; nobody else is mentioned, so one.' },
     { field: 'emergencySavingsMonths', from: 'Not stated. Assumed thin, which is the cautious reading.' },
   ],
 };
@@ -85,11 +87,13 @@ export const ravi: Persona = {
     gstRegistered: true,
     coApplicantIncome: 18000, // wife
     coApplicantPooled: true,
+    householdSize: 2, // himself and his wife; the brief mentions no children
     emergencySavingsMonths: 3,
   },
   derived: [
     { field: 'itrIncomeMonthly', from: '"ITR shows ₹4,20,000/year" — ₹35,000 a month.' },
     { field: 'cityTier', from: 'Mysuru, so tier 2.' },
+    { field: 'householdSize', from: 'A wife is mentioned and no children, so two.' },
     {
       field: 'coApplicantPooled',
       from: 'Not stated. Assumed pooled, since he is borrowing for the family business.',

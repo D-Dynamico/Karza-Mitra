@@ -6,7 +6,11 @@ import { iv } from '../engine/interval';
 import { nothingUnlocksIt, pathToYes, smallestUnlockingCombination } from '../engine/path-to-yes';
 import { anita, priya } from '../engine/personas';
 import { products } from '../engine/rules/products';
-import { STRESS_CEILING_CAP, stressedCeilingFor } from '../engine/rules/affordability';
+import {
+  safeCeilingFor,
+  STRESS_CEILING_CAP,
+  stressedCeilingFor,
+} from '../engine/rules/affordability';
 
 /**
  * The ways this engine could quietly mislead somebody, each pinned by a test.
@@ -151,11 +155,25 @@ describe('the stress case does not lean on money that has not arrived', () => {
 });
 
 describe('savings decide how much of a shock you can take', () => {
-  it('never lets a declared fortune push the ceiling past the cap', () => {
+  it('never lets a declared fortune buy more room than six months would', () => {
+    // Savings are self-reported. Declaring fifty years of them should behave
+    // exactly like declaring six months, not stretch the ceiling further.
     const huge = compute({ ...priya.answers, emergencySavingsMonths: 600 });
     const plenty = compute({ ...priya.answers, emergencySavingsMonths: 6 });
-    expect(stressedCeilingFor(600).hi).toBe(STRESS_CEILING_CAP);
     expect(huge.amounts.safe.hi).toBeCloseTo(plenty.amounts.safe.hi, 0);
+  });
+
+  it('never lets the stressed ceiling pass the hard cap', () => {
+    expect(stressedCeilingFor(600, iv(0.5, 0.5)).hi).toBeLessThanOrEqual(STRESS_CEILING_CAP);
+    expect(stressedCeilingFor(600, iv(0.9, 0.9)).hi).toBe(STRESS_CEILING_CAP);
+  });
+
+  it('gives a bigger earner more room, because what is left is what protects them', () => {
+    // A flat share bound hardest on the borrowers with the most slack. Half of
+    // ₹1.1 lakh still leaves ₹55,000; 40% of ₹25,000 leaves ₹15,000.
+    const modest = safeCeilingFor(iv(25000, 25000));
+    const comfortable = safeCeilingFor(iv(150000, 150000));
+    expect(comfortable.hi).toBeGreaterThan(modest.hi);
   });
 
   it('allows a larger instalment to someone with money put by', () => {

@@ -31,6 +31,7 @@ import {
   borrowerCeiling,
   lenderCeiling,
   outflowRatio,
+  safeCeilingFor,
   stressedCeilingFor,
   totalOutgo,
 } from './rules/affordability';
@@ -356,7 +357,7 @@ export function compute(answers: Answers): Result {
   const stress = stressTest(
     outgoStressed,
     stressed,
-    stressedCeilingFor(answers.emergencySavingsMonths),
+    stressedCeilingFor(answers.emergencySavingsMonths, safeCeilingFor(income.planning)),
     log,
   );
 

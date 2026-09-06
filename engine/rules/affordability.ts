@@ -42,16 +42,51 @@ export const lenderFoirCeiling = register<TieredRule<Interval>>({
   ],
 });
 
-/** What the borrower should let their total fixed outgo reach. */
-export const safeOutflowCeiling = register<Rule<Interval>>({
+/**
+ * What the borrower should let their total fixed outgo reach.
+ *
+ * Tiered by income, in the same direction as the lender table above and for the
+ * same reason: what protects a household is what is left in rupees, not the
+ * ratio. Forty per cent of ₹25,000 leaves ₹15,000 for everything else, which is
+ * tight. Forty per cent of ₹1,10,000 leaves ₹66,000, which is not — and holding
+ * a metro renter on a good salary to the same share as someone on ₹25,000 tells
+ * her she can afford almost nothing while she watches ₹40,000 a month go
+ * unspent. A ceiling that produces an obviously wrong answer is not cautious,
+ * it is just wrong, and a borrower will stop believing the rest of the page.
+ *
+ * Still tighter than any lender ceiling at every tier, and unlike theirs it
+ * counts rent.
+ */
+export const safeOutflowCeiling = register<TieredRule<Interval>>({
   id: 'affordability.safe-outflow',
   what: 'Share of planning income that should go to rent plus all instalments',
-  value: iv(0.4, 0.4),
-  why: 'Beyond about 40% on rent and loans together, an ordinary bad month — a medical bill, a slow fortnight — has to be met by borrowing again.',
+  keyedOn: 'planning monthly income',
   source: judgement(
-    'Deliberately tighter than any lender ceiling, and it counts rent, which lenders do not.',
+    'Mirrors the shape of the FOIR banding lenders use, set a few points tighter at each tier and counting rent, which they do not.',
   ),
+  tiers: [
+    {
+      upTo: 30000,
+      value: iv(0.35, 0.35),
+      why: 'On a smaller income, food, power and school take most of what is left, so very little can be committed to a loan before an ordinary bad month becomes a missed payment.',
+    },
+    {
+      upTo: 100000,
+      value: iv(0.4, 0.4),
+      why: 'Beyond about 40% on rent and loans together, an ordinary setback — a medical bill, a slow fortnight — has to be met by borrowing again.',
+    },
+    {
+      upTo: Infinity,
+      value: iv(0.5, 0.5),
+      why: 'Above a lakh a month, half your income still leaves enough to absorb a bad month, so a higher share is genuinely survivable rather than merely permitted.',
+    },
+  ],
 });
+
+export const safeCeilingFor = (planningIncome: Interval): Interval =>
+  tiersAcross(safeOutflowCeiling, planningIncome)
+    .map((t) => t.value)
+    .reduce(union);
 
 /**
  * The ceiling tested after the stress case, scaled by how long the household
@@ -66,9 +101,15 @@ export const safeOutflowCeiling = register<Rule<Interval>>({
  * spiral starts. The ceiling scales with the buffer because the buffer is what
  * the ceiling is protecting.
  *
+ * It is expressed as extra points ON TOP of that borrower's everyday ceiling
+ * rather than as a figure of its own, so it inherits the income tiering above.
+ * A flat post-stress percentage had the same defect the flat everyday one did:
+ * it bound hardest on the borrowers with the most room to absorb a shock.
+ *
  * Two bounds, both deliberate:
  *
- *  - It stops at 60% however much is declared. Savings are self-reported and
+ *  - The savings allowance stops at twenty points, and the ceiling never passes
+ *    65% of income whatever is declared. Savings are self-reported and
  *    unverifiable, and past a point more of them does not make a heavier
  *    instalment wise — it just means you could survive making a bad decision.
  *  - An unanswered savings question is read as zero months, not as unknown.
@@ -77,9 +118,9 @@ export const safeOutflowCeiling = register<Rule<Interval>>({
  *    protective reading, not the punitive one: assuming a cushion nobody
  *    mentioned would hand out a larger loan on the strength of a guess.
  */
-export const stressedOutflowCeiling = register<TieredRule<Interval>>({
+export const stressedOutflowCeiling = register<TieredRule<number>>({
   id: 'affordability.stressed-outflow',
-  what: 'Share of income fixed outgo may reach after a bad turn, by months of savings',
+  what: 'Extra percentage points of outgo tolerated after a bad turn, by months of savings',
   keyedOn: 'months of expenses saved',
   source: judgement(
     'The 55% mid-point is the common line for where a household becomes fragile. Scaling it by savings is my own rule: the stress case models an income drop, and savings are what determine how long one can be absorbed. Capped at 60% because savings are self-reported.',
@@ -87,36 +128,43 @@ export const stressedOutflowCeiling = register<TieredRule<Interval>>({
   tiers: [
     {
       upTo: 1,
-      value: iv(0.45, 0.45),
-      why: 'With nothing put by, there is no cushion at all. The first bad month has to be met by borrowing again, so the loan has to leave more room.',
+      value: 0.05,
+      why: 'With nothing put by there is no cushion at all, so almost no extra strain is survivable — the first bad month has to be met by borrowing again.',
     },
     {
       upTo: 3,
-      value: iv(0.5, 0.5),
+      value: 0.1,
       why: 'A month or two of savings absorbs a small shock but not a lost quarter.',
     },
     {
       upTo: 6,
-      value: iv(0.55, 0.55),
-      why: 'Three months put by is the usual line for being able to ride out a bad patch without new borrowing.',
+      value: 0.15,
+      why: 'Three months put by is the usual line for riding out a bad patch without new borrowing.',
     },
     {
       upTo: Infinity,
-      value: iv(0.6, 0.6),
+      value: 0.2,
       why: 'With half a year banked you can carry a heavier instalment through a lean spell, because you are not one setback away from missing it.',
     },
   ],
 });
 
 /**
- * The stressed ceiling for this borrower. Unstated savings are read as none, and
- * the result never exceeds 60% however much is declared.
+ * The stressed ceiling for this borrower: their everyday ceiling plus whatever
+ * their savings buy them. Unstated savings are read as none, and the result
+ * never passes 65% of income however much is declared.
  */
-export const STRESS_CEILING_CAP = 0.6;
+export const STRESS_CEILING_CAP = 0.65;
 
-export const stressedCeilingFor = (savedMonths: number | undefined): Interval => {
-  const tier = tierFor(stressedOutflowCeiling, savedMonths ?? 0).value;
-  return iv(Math.min(tier.lo, STRESS_CEILING_CAP), Math.min(tier.hi, STRESS_CEILING_CAP));
+export const stressedCeilingFor = (
+  savedMonths: number | undefined,
+  everyday: Interval,
+): Interval => {
+  const allowance = tierFor(stressedOutflowCeiling, savedMonths ?? 0).value;
+  return iv(
+    Math.min(everyday.lo + allowance, STRESS_CEILING_CAP),
+    Math.min(everyday.hi + allowance, STRESS_CEILING_CAP),
+  );
 };
 
 export const emergencySavingsRule = register<Rule<{ months: number; setAside: Interval }>>({
@@ -201,17 +249,18 @@ export function borrowerCeiling(
   const committed = add(args.rent, point(args.existingEmis));
 
   // 1. The outflow ceiling, counting rent.
-  const outflowCap = mul(planning, safeOutflowCeiling.value);
+  const everydayCeiling = safeCeilingFor(planning);
+  const outflowCap = mul(planning, everydayCeiling);
   const fromOutflow = log.record({
     rule: 'affordability.safe-outflow',
     label: 'Room under your safe outflow ceiling',
     inputs: {
       'income you plan on': planning,
-      'ceiling': safeOutflowCeiling.value,
+      'ceiling': everydayCeiling,
       'rent and loans you already pay': committed,
     },
     output: atLeastZero(sub(outflowCap, committed)),
-    why: `${safeOutflowCeiling.why} Unlike a lender, this counts your rent.`,
+    why: `${tiersAcross(safeOutflowCeiling, planning)[0]!.why} Unlike a lender, this counts your rent.`,
   });
 
   // 2. What is actually left after living costs, and after putting something by.
@@ -253,7 +302,7 @@ export function borrowerCeiling(
   // 3. The same test after a bad turn.
   const stressCap = mul(
     args.stressedPlanning,
-    stressedCeilingFor(args.emergencySavingsMonths),
+    stressedCeilingFor(args.emergencySavingsMonths, everydayCeiling),
   );
   const stressTier = tierFor(stressedOutflowCeiling, args.emergencySavingsMonths ?? 0);
   const fromStress = log.record({
@@ -262,7 +311,7 @@ export function borrowerCeiling(
     inputs: {
       'income after a bad turn': args.stressedPlanning,
       'months you have put by': args.emergencySavingsMonths ?? 'you did not say',
-      'ceiling then': stressTier.value,
+      'ceiling then': stressedCeilingFor(args.emergencySavingsMonths, everydayCeiling),
     },
     output: atLeastZero(sub(stressCap, committed)),
     why: stressTier.why,

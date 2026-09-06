@@ -51,7 +51,7 @@ const fmt = (id: OutputId, answers: Answers): string => {
 };
 
 console.log(`\n${'='.repeat(74)}`);
-console.log(`${persona.name.toUpperCase()} — the questions she is asked`);
+console.log(`${persona.name.toUpperCase()} — the questions actually asked`);
 console.log('='.repeat(74));
 
 // Walk the flow the way the borrower would: must set in order, then whatever the
@@ -119,7 +119,7 @@ for (let i = 0; i < 20; i += 1) {
   if (ranked.length === 0) break;
   const top = ranked[0]!;
   if (answerOf(top.question) === undefined) {
-    // The brief does not say what she would answer, so she skips it. That is a
+    // The brief does not say what they would answer, so they skip it. That is a
     // real outcome rather than a gap: the engine falls back to an assumption and
     // says so. Not offered again.
     declined.add(top.question.id);
@@ -151,7 +151,7 @@ if (final.assumptions.length > 0) {
 }
 
 console.log(`\n${'-'.repeat(74)}`);
-console.log('NEVER ASKED — these do not apply to her:');
+console.log(`NEVER ASKED — these do not apply to ${persona.name}:`);
 for (const q of adaptiveSet) {
   if (!q.applies(persona.answers) && asked[q.field] === undefined) {
     console.log(`  - ${q.prompt}`);

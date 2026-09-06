@@ -282,6 +282,53 @@ describe('what to ask next', () => {
   });
 });
 
+describe('the flow can actually reach the answer', () => {
+  /** Walk the flow the way a borrower would, answering only what is asked. */
+  function walk(full: Answers): Answers {
+    let asked: Answers = {};
+    const declined = new Set<string>();
+    for (let i = 0; i < 60; i += 1) {
+      const ranked = nextQuestions(asked, 12).filter((r) => !declined.has(r.question.id));
+      if (ranked.length === 0) break;
+      const q = ranked[0]!.question;
+      const value = full[q.field];
+      if (value === undefined) {
+        declined.add(q.id);
+        continue;
+      }
+      asked = { ...asked, [q.field]: value };
+    }
+    return asked;
+  }
+
+  it('reaches the same verdict through the questions as with every answer handed over', () => {
+    // This is what caught the co-applicant bug: the flow asked how much a
+    // partner earned but never whether that money was actually shared, so Ravi
+    // silently lost his wife's ₹18,000 and came out a whole verdict worse. A
+    // question that captures one field but not the companion its rule needs is
+    // invisible until you walk the flow.
+    for (const [name, full] of personas) {
+      const viaFlow = compute(walk(full));
+      const viaAll = compute(full);
+      expect(viaFlow.verdict.kind, `${name} answers differently through the flow`).toBe(
+        viaAll.verdict.kind,
+      );
+    }
+  });
+
+  it('gets within a few percent of the same amount', () => {
+    for (const [name, full] of personas) {
+      const viaFlow = compute(walk(full)).amounts.safe.hi;
+      const viaAll = compute(full).amounts.safe.hi;
+      if (viaAll === 0) {
+        expect(viaFlow).toBe(0);
+        continue;
+      }
+      expect(Math.abs(viaFlow - viaAll) / viaAll, `${name}`).toBeLessThan(0.05);
+    }
+  });
+});
+
 describe('skipping is always survivable', () => {
   it('still produces a verdict with any single must-set answer missing', () => {
     for (const [, answers] of personas) {

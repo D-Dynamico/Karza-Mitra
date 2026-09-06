@@ -13,6 +13,7 @@
 
 import type { Answers, LoanPurpose } from '../answers';
 import { iv, type Interval } from '../interval';
+import { inLakh } from '../format';
 import type { TraceLog } from '../trace';
 import { judgement, register, type Rule } from './table';
 
@@ -290,7 +291,7 @@ export function route(
           ? 'Without a credit record, an unsecured loan of this size would be declined or priced near the top of its band. The property changes that entirely, because the lender is no longer relying on your file.'
           : 'An unsecured loan would leave the property untouched, but costs roughly double in interest over the life of the loan.',
       },
-      why: `You own property worth ${value.toLocaleString('en-IN')} with nothing charged against it. Pledging it roughly halves the rate on an amount this size — that is the single biggest lever you have.`,
+      why: `You own property worth ${inLakh(value)} with nothing charged against it. Pledging it roughly halves the rate on an amount this size — that is the single biggest lever you have.`,
     });
   }
 

@@ -29,17 +29,25 @@ describe('Priya — two numbers, not one', () => {
     expect(r.amounts.lender.lo).toBeGreaterThan(priya.answers.amountAsked!);
   });
 
-  it('has a safe amount far below what she asked for — the whole point', () => {
-    expect(r.amounts.safe.hi).toBeLessThan(priya.answers.amountAsked! * 0.2);
+  it('has a safe amount well below what she asked for — the whole point', () => {
+    expect(r.amounts.safe.hi).toBeLessThan(priya.answers.amountAsked! * 0.7);
   });
 
-  it('makes the two numbers diverge by more than an order of magnitude', () => {
-    expect(r.amounts.lender.lo / r.amounts.safe.hi).toBeGreaterThan(10);
+  it('makes the two numbers diverge several times over', () => {
+    expect(r.amounts.lender.lo / r.amounts.safe.hi).toBeGreaterThan(4);
+  });
+
+  it('leaves her an instalment she could actually recognise as affordable', () => {
+    // A borrower with ₹40,500 spare each month should not be handed a ceiling of
+    // ₹2,000. An answer that is obviously wrong is not cautious, it is ignored —
+    // along with everything else on the page.
+    expect(r.repayment!.emiCeiling.hi).toBeGreaterThan(5000);
+    expect(r.repayment!.emiCeiling.hi).toBeLessThan(r.surplus.hi);
   });
 
   it('locks the endpoints', () => {
-    expect(r.amounts.safe.lo).toBeCloseTo(86919, NEAR);
-    expect(r.amounts.safe.hi).toBeCloseTo(88897, NEAR);
+    expect(r.amounts.safe.lo).toBeCloseTo(469364, NEAR);
+    expect(r.amounts.safe.hi).toBeCloseTo(480044, NEAR);
     expect(r.amounts.lender.lo).toBeCloseTo(2114347, NEAR);
     expect(r.amounts.lender.hi).toBeCloseTo(2419291, NEAR);
   });

@@ -242,3 +242,68 @@ Two bounds added:
   have. Do that before phase 3.
 - `AffordabilityResult` and `StressResult.rate` are still dead. Third session running.
 - `whatMoved` still has no caller until the UI.
+
+---
+
+# Addendum — reading Ravi and Priya
+
+Done before phase 3, at the user's prompting. Both had passing golden tests and neither had
+been eyeballed since NBFC routing, minimum tickets and the savings rule landed. Reading the
+output found two things the tests could not.
+
+## Priya's safe amount was arithmetically right and obviously wrong
+
+She has **₹40,500 spare every month** and was being told her instalment ceiling was **₹1,911**,
+giving a safe amount of ₹87,000 against an ₹8 lakh ask. Every rule fired correctly; the answer
+was still not one a borrower would believe.
+
+The cause was a flat 40% ceiling on rent plus instalments. Her rent alone is 25% of income —
+ordinary for a metro — so almost nothing was left under the cap, while ₹40,500 a month sat
+unspent. A ceiling that produces an obviously wrong answer is not cautious; the borrower stops
+believing the rest of the page.
+
+- **Fix:** `safeOutflowCeiling` is now tiered by income the way the lender table already was,
+  and for the same reason — what protects a household is what is left in rupees, not the
+  ratio. 35% under ₹30k, 40% to ₹1 lakh, 50% above. Still tighter than any lender tier, and
+  unlike theirs it counts rent.
+- **The stressed ceiling** became a tolerance *on top of* the everyday one (+5 to +20 points by
+  savings) rather than a figure of its own, so it inherits the tiering. The flat version had
+  the same defect: it bound hardest on the borrowers with the most room to absorb a shock. Hard
+  cap raised to 65%, with the savings allowance capped at twenty points.
+- **Priya now:** safe **₹4.69–4.80 lakh**, instalment ceiling ₹10,318, outgo 48% today and 60%
+  after a bad turn. Lender ₹21.1 lakh against safe ₹4.7 lakh is still a 4.4× divergence — the
+  story survives, and the number is now one she could act on.
+- **Ravi and Anita are unchanged** by the tiering, which is what a targeted fix should look
+  like. Ravi sits in the ₹30k–₹1 lakh tier at 40%; Anita's surplus is negative either way.
+- Added a test asserting her ceiling exceeds ₹5,000 and stays below her surplus.
+
+## The flow could not reach Ravi's own answer
+
+Walking his questions gave `borrow-less` at ₹9.1 lakh; his full answers give `borrow` at
+₹13.1 lakh. The co-applicant question asked how much his wife earns but never whether that
+money is actually shared — and `coApplicantPooled` is what decides whether it counts on the
+borrower's side. A flow user could never say yes, so ₹18,000 a month vanished.
+
+- **Fix:** new `co-applicant-pooled` question, gated on a co-applicant income being present.
+- **Test:** walking the flow must reach the same verdict, and within 5% of the same amount, as
+  handing over every answer at once. This is the general form of the bug — a question that
+  captures one field but not the companion its rule needs is invisible until you walk the flow.
+
+## Smaller
+
+- Ravi's routing said "property worth 45,00,000". Now "₹45 lakh", through `inLakh`.
+- `householdSize` set on all three with derived notes: Priya 1, Ravi 2 (a wife, no children
+  mentioned), Anita 4.
+- `scripts/show-flow.ts` called every borrower "she".
+
+## Verification
+
+- `npm test` — **234 tests**. Typecheck clean, build succeeds.
+- Priya `borrow-less` ₹4.69–4.80L · Ravi `borrow` ₹13.14–14.31L · Anita `dont` ₹0.
+- Ravi's flow and his full answers now agree.
+
+## Still open
+
+- `AffordabilityResult`, `StressResult.rate` — dead, fourth session running.
+- `appLoanOutstanding`, `vehicleIsProductive` and `gstRegistered` are set on personas but no
+  live question fills them and no rule reads the last one. Either wire or remove in phase 3.

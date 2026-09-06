@@ -306,6 +306,21 @@ export const adaptiveSet: readonly Question[] = [
     probes: [{ coApplicantIncome: 0 }, { coApplicantIncome: 30000, coApplicantPooled: true }],
   },
 
+  {
+    id: 'co-applicant-pooled',
+    field: 'coApplicantPooled',
+    tier: 'adaptive',
+    prompt: 'Is that income actually shared with the household?',
+    whyWeAsk:
+      'A lender will count part of it either way. We only count it towards what you can safely carry if it genuinely goes into the same pot — otherwise it is their money, not yours to commit.',
+    skipCost:
+      'We leave their income out of your safe amount, which is the cautious reading and may understate what you can carry.',
+    input: { kind: 'boolean' },
+    moves: ['O2.safe', 'O4.emi'],
+    applies: (a) => (a.coApplicantIncome ?? 0) > 0,
+    probes: [{ coApplicantPooled: false }, { coApplicantPooled: true }],
+  },
+
   // --- Salaried ------------------------------------------------------------
   {
     id: 'employer-type',
