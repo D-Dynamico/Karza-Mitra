@@ -125,10 +125,11 @@ describe('the registry is coherent', () => {
     }
   });
 
-  it('keeps the must set to nine', () => {
-    // The brief asks for eight to ten. Nine, and every one of them is needed to
-    // produce all four outputs.
-    expect(mustSet).toHaveLength(9);
+  it('keeps the must set inside the eight to ten the brief asks for', () => {
+    // Ten. Household size was promoted from the adaptive set: it drives two
+    // defaults, everyone can answer it without thinking, and leaving it out
+    // meant showing a mother of three "we assumed you live alone".
+    expect(mustSet).toHaveLength(10);
     for (const q of mustSet) expect(q.tier).toBe('must');
   });
 

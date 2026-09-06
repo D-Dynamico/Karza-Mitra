@@ -6,6 +6,7 @@ import { iv } from '../engine/interval';
 import { nothingUnlocksIt, pathToYes, smallestUnlockingCombination } from '../engine/path-to-yes';
 import { anita, priya } from '../engine/personas';
 import { products } from '../engine/rules/products';
+import { STRESS_CEILING_CAP, stressedCeilingFor } from '../engine/rules/affordability';
 
 /**
  * The ways this engine could quietly mislead somebody, each pinned by a test.
@@ -123,7 +124,40 @@ describe('what the loan would earn counts for the borrower, never for the lender
   });
 });
 
+describe('the stress case does not lean on money that has not arrived', () => {
+  const withEarnings: Answers = { ...anita.answers, expectedMonthlyEarnings: 12000 };
+  const without: Answers = { ...anita.answers, expectedMonthlyEarnings: undefined };
+
+  it('strips the productive uplift out of the stressed income entirely', () => {
+    // The bad turn being modelled largely *is* the scooter failing to double
+    // her runs. A stress test propped up by the thing under test is no test.
+    const stressed = (a: Answers): number => {
+      const e = compute(a).trace.find((t) => t.rule === 'stress.income');
+      return (e!.output as { hi: number }).hi;
+    };
+    expect(stressed(withEarnings)).toBeCloseTo(stressed(without), 6);
+  });
+
+  it('still counts the uplift in the everyday budget', () => {
+    expect(compute(withEarnings).income!.planning.hi).toBeGreaterThan(
+      compute(without).income!.planning.hi,
+    );
+  });
+
+  it('reports the uplift separately so it can be stripped out', () => {
+    expect(compute(withEarnings).income!.productiveUplift.hi).toBeGreaterThan(0);
+    expect(compute(without).income!.productiveUplift.hi).toBe(0);
+  });
+});
+
 describe('savings decide how much of a shock you can take', () => {
+  it('never lets a declared fortune push the ceiling past the cap', () => {
+    const huge = compute({ ...priya.answers, emergencySavingsMonths: 600 });
+    const plenty = compute({ ...priya.answers, emergencySavingsMonths: 6 });
+    expect(stressedCeilingFor(600).hi).toBe(STRESS_CEILING_CAP);
+    expect(huge.amounts.safe.hi).toBeCloseTo(plenty.amounts.safe.hi, 0);
+  });
+
   it('allows a larger instalment to someone with money put by', () => {
     const none = compute({ ...priya.answers, emergencySavingsMonths: 0 });
     const plenty = compute({ ...priya.answers, emergencySavingsMonths: 12 });
@@ -149,6 +183,23 @@ describe('the way out is shown, and only if it is real', () => {
     expect(combo!.options.length).toBeLessThanOrEqual(3);
     const ids = combo!.options.map((o) => o.id);
     expect(ids).toContain('clear-app-loans');
+  });
+
+  it('says how to close the gap when the unlocked amount is still short', () => {
+    // "Borrow less, ₹1 lakh" against a ₹1.5 lakh scooter reads as "still not
+    // enough" unless the last fifty thousand is accounted for.
+    const combo = smallestUnlockingCombination(anita.answers)!;
+    if (combo.stillShortBy > 0) {
+      expect(combo.waysToCloseTheGap.length).toBeGreaterThan(0);
+      expect(combo.waysToCloseTheGap.join(' ')).toMatch(/subsidy|down|used|up front/i);
+    }
+  });
+
+  it('stays bounded however many options apply', () => {
+    // A phone should not be asked to walk 2^n combinations.
+    const start = Date.now();
+    smallestUnlockingCombination(anita.answers);
+    expect(Date.now() - start).toBeLessThan(3000);
   });
 
   it('offers nothing to a borrower who does not need a way out', () => {

@@ -19,8 +19,14 @@ import { judgement, register, type Rule } from './table';
 export interface IncomeAssessment {
   /** What a lender will count. */
   readonly recognised: Interval;
-  /** What the borrower should plan against. */
+  /** What the borrower should plan against, including any productive uplift. */
   readonly planning: Interval;
+  /**
+   * The part of `planning` that is money the loan is expected to earn but has
+   * not earned yet. Held separately because the stress case must strip it out:
+   * the bad turn being modelled *is* the purchase failing to deliver.
+   */
+  readonly productiveUplift: Interval;
   /** How much of their real income they cannot prove. */
   readonly unprovable: Interval;
 }
@@ -189,11 +195,14 @@ export function assessIncome(answers: Answers, log: TraceLog): IncomeAssessment 
     }
   }
 
+  let productiveUplift: Interval = iv(0, 0);
+
   // Earnings the purchase itself would generate. This is the borrower's side of
   // the productive-loan test: a scooter that doubles delivery runs is a
   // different proposition from a scooter that only costs money. It never touches
   // the lender's number — no bank underwrites income that does not exist yet.
   if ((answers.expectedMonthlyEarnings ?? 0) > 0) {
+    productiveUplift = scale(productiveEarningsShare.value, answers.expectedMonthlyEarnings!);
     planning = log.record({
       rule: 'income.productive-earnings',
       label: 'What the loan itself would earn you',
@@ -201,8 +210,8 @@ export function assessIncome(answers: Answers, log: TraceLog): IncomeAssessment 
         'you expect to earn': answers.expectedMonthlyEarnings,
         'counted': productiveEarningsShare.value,
       },
-      output: add(planning, scale(productiveEarningsShare.value, answers.expectedMonthlyEarnings!)),
-      why: productiveEarningsShare.why,
+      output: add(planning, productiveUplift),
+      why: `${productiveEarningsShare.why} It is also stripped out again when we test what happens if things go badly, because "things go badly" mostly means this income not arriving.`,
       assumed: true,
     });
   }
@@ -218,5 +227,5 @@ export function assessIncome(answers: Answers, log: TraceLog): IncomeAssessment 
     why: 'The part of your income that no lender will see. It does not raise what you can borrow unsecured, but it is why pledging an asset can be worth it.',
   });
 
-  return { recognised, planning, unprovable };
+  return { recognised, planning, productiveUplift, unprovable };
 }

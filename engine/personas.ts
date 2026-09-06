@@ -162,6 +162,7 @@ export function mustSetOnly(answers: Answers): Answers {
     existingEmis: answers.existingEmis,
     rentOrHomeEmi: answers.rentOrHomeEmi,
     householdExpenses: answers.householdExpenses,
+    householdSize: answers.householdSize,
     age: answers.age,
     creditScore: answers.creditScore,
   };

@@ -194,6 +194,20 @@ export const mustSet: readonly Question[] = [
     probes: [{ householdExpenses: 8000 }, { householdExpenses: 40000 }],
   },
   {
+    id: 'household-size',
+    corrects: ['expenses.default'],
+    field: 'householdSize',
+    tier: 'must',
+    prompt: 'How many people does your income support?',
+    whyWeAsk:
+      'The same income supports one person comfortably and four with nothing to spare. It sets what we assume the household spends, and it is the cheapest question here to answer.',
+    skipCost: 'We will assume you are supporting only yourself, which almost certainly understates what the household spends.',
+    input: { kind: 'number', unit: 'people', max: 20 },
+    moves: ['O2.safe', 'O4.emi'],
+    applies: always,
+    probes: [{ householdSize: 1 }, { householdSize: 5 }],
+  },
+  {
     id: 'age',
     field: 'age',
     tier: 'must',
@@ -232,19 +246,6 @@ export const mustSet: readonly Question[] = [
 
 export const adaptiveSet: readonly Question[] = [
   // --- Everyone, once we know where and who they support -------------------
-  {
-    id: 'household-size',
-    corrects: ['expenses.default'],
-    field: 'householdSize',
-    tier: 'adaptive',
-    prompt: 'How many people does your income support?',
-    whyWeAsk: 'It sets what we assume the household spends, if you would rather not work that out yourself.',
-    skipCost: 'We will assume you are supporting only yourself, which understates the spending.',
-    input: { kind: 'number', unit: 'people', max: 20 },
-    moves: ['O2.safe', 'O4.emi'],
-    applies: (a) => !answered(a, 'householdExpenses'),
-    probes: [{ householdSize: 1 }, { householdSize: 5 }],
-  },
   {
     id: 'city-tier',
     corrects: ['expenses.default', 'rent.assumed-by-city'],

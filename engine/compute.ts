@@ -220,7 +220,13 @@ export function compute(answers: Answers): Result {
   }
 
   // Affordability, both rulebooks.
-  const stressed = stressedIncome(income.planning, log);
+  //
+  // The stress case runs on income WITHOUT the productive uplift. Counting money
+  // the purchase has not earned yet as part of a bad-times scenario would be
+  // self-defeating: the bad turn being modelled is largely the purchase failing
+  // to deliver. A stress test flattered by the thing under test is not a test.
+  const incomeWithoutUplift = atLeastZero(sub(income.planning, income.productiveUplift));
+  const stressed = stressedIncome(incomeWithoutUplift, log);
   const lenderEmiHeadroom = lenderCeiling(income.recognised, existingEmis, log);
   const borrower = borrowerCeiling(income.planning, {
     rent,

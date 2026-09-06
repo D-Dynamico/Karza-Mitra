@@ -54,22 +54,35 @@ export const safeOutflowCeiling = register<Rule<Interval>>({
 });
 
 /**
- * The ceiling tested after the stress case, and how much of it you get depends on
- * what you have put by.
+ * The ceiling tested after the stress case, scaled by how long the household
+ * could survive without income.
  *
- * Savings are not a nicety here; they are the whole difference between a bad
- * month and a missed payment. A household with six months banked can absorb a
- * lost quarter and carry on paying. One with nothing has to borrow again the
- * first time anything goes wrong — which is how the app-loan spiral starts. So
- * the same stressed outgo that is survivable for one borrower is not for
- * another, and the ceiling moves with it.
+ * The stress case models an income drop lasting some months. Savings are exactly
+ * the thing that decides how long a household can absorb such a drop before it
+ * has to borrow again — so the post-stress outgo that is tolerable is not a
+ * single number for everybody. Six months of expenses banked means a lost
+ * quarter is survivable and the instalment keeps being paid. Nothing banked
+ * means the first bad month becomes another loan, which is how the app-loan
+ * spiral starts. The ceiling scales with the buffer because the buffer is what
+ * the ceiling is protecting.
+ *
+ * Two bounds, both deliberate:
+ *
+ *  - It stops at 60% however much is declared. Savings are self-reported and
+ *    unverifiable, and past a point more of them does not make a heavier
+ *    instalment wise — it just means you could survive making a bad decision.
+ *  - An unanswered savings question is read as zero months, not as unknown.
+ *    "Unknown is never zero" is about not *penalising* a borrower for what they
+ *    cannot prove — a credit score they have never seen. Here the zero is the
+ *    protective reading, not the punitive one: assuming a cushion nobody
+ *    mentioned would hand out a larger loan on the strength of a guess.
  */
 export const stressedOutflowCeiling = register<TieredRule<Interval>>({
   id: 'affordability.stressed-outflow',
   what: 'Share of income fixed outgo may reach after a bad turn, by months of savings',
   keyedOn: 'months of expenses saved',
   source: judgement(
-    'The 55% mid-point is the common line for where a household becomes fragile. Moving it with savings is my own rule, and it is the honest consequence of asking the question at all.',
+    'The 55% mid-point is the common line for where a household becomes fragile. Scaling it by savings is my own rule: the stress case models an income drop, and savings are what determine how long one can be absorbed. Capped at 60% because savings are self-reported.',
   ),
   tiers: [
     {
@@ -95,9 +108,16 @@ export const stressedOutflowCeiling = register<TieredRule<Interval>>({
   ],
 });
 
-/** The stressed ceiling for this borrower. Unstated savings are read as none. */
-export const stressedCeilingFor = (savedMonths: number | undefined): Interval =>
-  tierFor(stressedOutflowCeiling, savedMonths ?? 0).value;
+/**
+ * The stressed ceiling for this borrower. Unstated savings are read as none, and
+ * the result never exceeds 60% however much is declared.
+ */
+export const STRESS_CEILING_CAP = 0.6;
+
+export const stressedCeilingFor = (savedMonths: number | undefined): Interval => {
+  const tier = tierFor(stressedOutflowCeiling, savedMonths ?? 0).value;
+  return iv(Math.min(tier.lo, STRESS_CEILING_CAP), Math.min(tier.hi, STRESS_CEILING_CAP));
+};
 
 export const emergencySavingsRule = register<Rule<{ months: number; setAside: Interval }>>({
   id: 'affordability.emergency-savings',

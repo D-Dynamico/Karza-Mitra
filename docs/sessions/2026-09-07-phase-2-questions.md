@@ -170,3 +170,75 @@ Exit condition run in full and passed:
 - The gold-first routing means a borrower with gold and a bad file never sees the vehicle
   loan option at all. It appears as the rejected alternative, which is probably right, but
   worth a second look when the results panels are built.
+
+---
+
+# Addendum — review round two
+
+Four items raised on review, all accepted and done.
+
+## The stress case was leaning on income that has not arrived
+
+- **What was wrong:** half of Anita's expected scooter earnings were counted in planning
+  income, and the stress case ran on planning income. So the bad-turn test was propped up by
+  ₹6,000 a month from the very thing being stressed — the scenario is largely "the scooter
+  does not double her runs".
+- **Fix:** `IncomeAssessment` now reports `productiveUplift` separately, and `compute` strips
+  it out before calling `stressedIncome`. Verified directly: planning income is ₹29,400 with
+  the uplift and ₹23,400 without, while stressed income is **₹18,720 either way**.
+- **Test:** `tests/honesty.test.ts` — "strips the productive uplift out of the stressed income
+  entirely", plus one asserting it still counts in the everyday budget.
+
+## The unlocking search is bounded, and the shortfall is now explained
+
+- **Bounded:** options are capped at eight before combining, and the walk is pairs then
+  triples only. Worst case is 28 + 56 `compute` calls, and a test asserts it finishes well
+  inside three seconds.
+- **The gap:** unlocking gets Anita to ₹1,00,766 against a ₹1,50,000 scooter — short by
+  ₹49,234. Left there it reads as "still not enough". A `gapClosers` rule now supplies ways to
+  close it that are not more borrowing: a down payment of 15–25% (which platform financiers
+  expect anyway and which lowers the rate), the electric two-wheeler subsidy applied at the
+  dealer, or a model one step down. Per purpose, so a wedding gets "the date is negotiable in
+  a way an instalment is not" and a stock line gets supplier credit.
+
+## Household size promoted to the must set
+
+- Now ten must questions, inside the brief's eight-to-ten. It drives two defaults, everyone
+  can answer it without thinking, and leaving it adaptive meant showing a woman supporting
+  three other people "we assumed you live alone".
+- The always-offerable rule for assumption-correcting questions is kept, because it is still
+  right for rent.
+
+## The savings rule, defended on its own terms
+
+The reviewer's point stands: making a rule so a question survives is a smell. The
+justification is now written out in `engine/rules/affordability.ts` and will go into RULES.md
+verbatim:
+
+> The stress case models an income drop lasting some months. Savings are exactly the thing
+> that decides how long a household can absorb such a drop before it has to borrow again — so
+> the post-stress outgo that is tolerable is not a single number for everybody.
+
+Two bounds added:
+
+- **Capped at 60%** however much is declared. Savings are self-reported and unverifiable, and
+  past a point more of them does not make a heavier instalment wise. `STRESS_CEILING_CAP`,
+  with a test that 600 months declared behaves exactly like 6.
+- **Unanswered savings read as zero months.** "Unknown is never zero" is about not
+  *penalising* a borrower for what they cannot prove; here zero is the protective reading, not
+  the punitive one, since assuming a cushion nobody mentioned hands out a bigger loan on a
+  guess. Stated in the rule's own comment so the distinction is on the record.
+
+## Verification
+
+- `npm test` — **228 tests**, all passing. `npm run typecheck` clean, `npm run build` succeeds.
+- Anita's unlock: clear the app loans + three clean months → borrow-less at ₹1,00,766, short
+  by ₹49,234, with three ways to close it.
+
+## Still open
+
+- Ravi and Priya have not been re-read since the NBFC routing, minimum-ticket and savings
+  rules landed. Their goldens pass, but the outputs have not been eyeballed the way Anita's
+  have. Do that before phase 3.
+- `AffordabilityResult` and `StressResult.rate` are still dead. Third session running.
+- `whatMoved` still has no caller until the UI.

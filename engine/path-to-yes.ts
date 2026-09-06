@@ -17,7 +17,15 @@
 
 import type { Answers } from './answers';
 import { compute, type Result } from './compute';
+import { judgement, register, type Rule } from './rules/table';
 import type { VerdictKind } from './rules/verdict';
+
+/**
+ * The most options the search will combine over. Well above what any real
+ * borrower triggers, and it keeps the pair-and-triple walk bounded rather than
+ * growing with every option added later.
+ */
+const MAX_OPTIONS_CONSIDERED = 8;
 
 export interface Option {
   readonly id: string;
@@ -152,7 +160,42 @@ export interface Combination {
   readonly verdict: VerdictKind;
   readonly headline: string;
   readonly safeAmount: Result['amounts']['safe'];
+  /** How far the unlocked amount still falls short of the ask, if it does. */
+  readonly stillShortBy: number;
+  /** Ways to close that gap that are not more borrowing. */
+  readonly waysToCloseTheGap: readonly string[];
 }
+
+/**
+ * Ways to close a gap that do not involve borrowing more.
+ *
+ * A combination that unlocks ₹1 lakh against a ₹1.5 lakh scooter reads as "still
+ * not enough" unless the last fifty thousand is accounted for. It usually can
+ * be, and none of the ways involve a bigger loan.
+ */
+export const gapClosers = register<Rule<Record<string, readonly string[]>>>({
+  id: 'path.gap-closers',
+  what: 'Ways to bridge a shortfall without borrowing more',
+  value: {
+    vehicle: [
+      'Put down the difference yourself. Platform finance partners commonly expect 15 to 25% up front, and the loan is cheaper for it.',
+      'Check the subsidy on the sticker price before you agree a figure — electric two-wheelers carry central and state support that is applied at the dealer.',
+      'A model one step down, or a good used one, closes most gaps this size on its own.',
+    ],
+    'business-stock': [
+      'Buy the stock in two rounds rather than one, and let the first round pay for the second.',
+      'Ask your supplier for credit terms. Thirty days from a supplier costs nothing and is the cheapest working capital there is.',
+    ],
+    wedding: [
+      'The date is negotiable in a way an instalment is not. A few months of saving closes a gap this size without any lender involved.',
+    ],
+    medical: [
+      'Ask the hospital about instalments directly, and check any scheme you are covered by before borrowing.',
+    ],
+  },
+  why: 'A shortfall is not automatically a reason to borrow more. Putting part down, taking a subsidy, or buying in stages closes most gaps at a lower cost than the extra lending would.',
+  source: judgement('Practical options rather than lending rules. The subsidy point is specific to electric two-wheelers.'),
+});
 
 /**
  * The smallest set of changes that actually gets to a yes.
@@ -168,18 +211,23 @@ export interface Combination {
  * is not a plan.
  */
 export function smallestUnlockingCombination(answers: Answers): Combination | undefined {
-  const applicable = options.filter((o) => o.applies(answers));
+  const applicable = options.filter((o) => o.applies(answers)).slice(0, MAX_OPTIONS_CONSIDERED);
+  const asked = answers.amountAsked ?? 0;
+  const closers = gapClosers.value[answers.purpose ?? ''] ?? [];
 
   const tryThese = (chosen: Option[]): Combination | undefined => {
     let merged: Answers = { ...answers };
     for (const o of chosen) merged = { ...merged, ...changeFor(o, answers) };
     const r = compute(merged);
     if (r.verdict.kind !== 'borrow' && r.verdict.kind !== 'borrow-less') return undefined;
+    const short = Math.max(0, asked - r.amounts.safe.hi);
     return {
       options: chosen,
       verdict: r.verdict.kind,
       headline: r.verdict.headline,
       safeAmount: r.amounts.safe,
+      stillShortBy: short,
+      waysToCloseTheGap: short > 0 ? closers : [],
     };
   };
 
