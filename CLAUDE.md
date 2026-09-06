@@ -57,7 +57,7 @@ Domain reasoning and explainability, not UI polish. Four things must work:
 - At session end: make sure that note is complete (scope, changes, every decision, verification,
   open items), update any doc whose behaviour changed (`README.md`, `docs/ARCHITECTURE.md`,
   `docs/SYSTEM_DESIGN.md`), and add to the `MEMORY.md` index if something durable was learned.
-- Follow `phases.md`: commit after every substep.
+- Follow `phases.md`: commit once per phase, when the phase is done, not per substep.
 
 ## Commit style
 

@@ -1,7 +1,7 @@
 # Build phases
 
-Work top to bottom. **Commit after every substep** — small title, few plain lines on what
-changed and why. Tick the box when the substep is committed.
+Work top to bottom. **Commit once per phase**, when the phase is done — short title, a few
+plain lines on what changed and why. Tick each substep as it lands.
 
 Detail for any substep lives in `docs/SYSTEM_DESIGN.md`; `plan.md` has the reasoning behind
 the ordering. Phase 1 comes before everything: wrong numbers for the personas cannot be
@@ -11,10 +11,10 @@ saved by any UI.
 
 ## Phase 0 — Scaffold
 
-- [ ] 0.1 Vite + React + TypeScript project, folder skeleton (`engine/`, `ui/`, `scripts/`, `tests/`)
-- [ ] 0.2 Vitest wired up, one trivial passing test, `npm test` green
-- [ ] 0.3 zod added, `Answers` type and schema stubbed
-- [ ] 0.4 README with install/run/test/gen commands
+- [x] 0.1 Vite + React + TypeScript project, folder skeleton (`engine/`, `ui/`, `scripts/`, `tests/`)
+- [x] 0.2 Vitest wired up, one trivial passing test, `npm test` green
+- [x] 0.3 zod added, `Answers` type and schema stubbed
+- [x] 0.4 README with install/run/test/gen commands
 
 ## Phase 1 — Engine core
 
