@@ -122,7 +122,7 @@ export function lenderCeiling(
 export function borrowerCeiling(
   planning: Interval,
   args: {
-    rent: number;
+    rent: Interval;
     existingEmis: number;
     expenses: number;
     expensesAssumed: boolean;
@@ -136,7 +136,10 @@ export function borrowerCeiling(
   fromStress: Interval;
   surplus: Interval;
 } {
-  const committed = point(args.rent + args.existingEmis);
+  // Rent may itself be a range when the borrower did not state it, so the
+  // committed total is an interval and the uncertainty flows onward rather than
+  // being resolved into a single flattering figure.
+  const committed = add(args.rent, point(args.existingEmis));
 
   // 1. The outflow ceiling, counting rent.
   const outflowCap = mul(planning, safeOutflowCeiling.value);
@@ -146,7 +149,7 @@ export function borrowerCeiling(
     inputs: {
       'income you plan on': planning,
       'ceiling': safeOutflowCeiling.value,
-      'rent and loans you already pay': args.rent + args.existingEmis,
+      'rent and loans you already pay': committed,
     },
     output: atLeastZero(sub(outflowCap, committed)),
     why: `${safeOutflowCeiling.why} Unlike a lender, this counts your rent.`,
@@ -219,5 +222,5 @@ export const outflowRatio = (outgo: Interval, income: Interval): Interval =>
     : maxOf(point(0), iv(outgo.lo / income.hi, outgo.hi / Math.max(income.lo, 1)));
 
 /** Total fixed outgo once a new instalment is added. */
-export const totalOutgo = (rent: number, existingEmis: number, newEmi: Interval): Interval =>
-  add(point(rent + existingEmis), newEmi);
+export const totalOutgo = (rent: Interval, existingEmis: number, newEmi: Interval): Interval =>
+  add(add(rent, point(existingEmis)), newEmi);

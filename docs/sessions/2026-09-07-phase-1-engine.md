@@ -306,3 +306,69 @@ city-tier half of the default.
 - The brief names two-wheeler as its own product band. Anita's scooter currently routes to the
   generic vehicle loan. Worth splitting, since breadth beyond the three borrowers is not
   scored but *their* products are.
+
+---
+
+# Addendum 2 — review corrections
+
+Three corrections raised on review, all accepted.
+
+## Decision: withhold the safe-carry figure, not the whole answer
+
+- **Choice:** on a `dont`, `amounts.safe` goes to zero and `amounts.lender` stays. The
+  affordability arithmetic is preserved as `amounts.safeOnAffordabilityAlone`.
+- **Why:** my first fix zeroed the amount at compute level, which was too blunt on two counts.
+  The brief asks O2 for *two* numbers, and on a "don't" the lender-side one is the more useful
+  of the pair — "an NBFC will still hand you ₹1.4 lakh, and that is the problem" is the
+  sentence that protects Anita from the next app loan. Discarding the arithmetic would also
+  have left the path-to-yes toggles in phase 4.7 with no number to move, since every toggle is
+  a re-run whose whole point is watching the safe amount change.
+- **Rejected:** withholding at display level only, which would put the responsibility on every
+  renderer to remember. The engine now returns both, clearly named, and the recommendation is
+  the one that carries the verdict.
+- **Would be wrong if:** a caller reads `safeOnAffordabilityAlone` and presents it as a
+  recommendation. The field name and its doc comment are the guard.
+- **Source:** review feedback.
+
+## Decision: an unanswered rent is a conservative range, not zero
+
+- **Choice:** new `engine/rules/rent.ts`. An unstated rent becomes a band by city tier — metro
+  ₹8,000–20,000, tier-2 ₹4,000–10,000, tier-3 ₹3,000–7,000, unknown city ₹3,000–20,000 —
+  flagged assumed. Owning property is the one honest zero, also flagged.
+- **Why:** "unknown is never zero" is stated in the brief about credit scores but it is a
+  principle, and a blank rent read as zero was the same mistake in a different field — worse,
+  because it resolved in the borrower's favour. A product whose entire pitch is that lenders
+  have been flattering borrowers for years cannot flatter them itself. Unknowns now resolve
+  conservatively, show the assumption, and widen the range.
+- **Rejected:** requiring rent as a must-set answer with no skip. Skip has to stay available.
+- **Assumes:** the city bands are roughly right for a modest home. They are wide on purpose.
+- **Consequence:** rent had to become an `Interval` through `borrowerCeiling` and `totalOutgo`.
+  Anita's surplus is now a range, −₹16,600 to −₹10,600, rather than a single −₹6,600 — the
+  uncertainty is visible instead of hidden.
+- **Source:** review feedback.
+
+## Added: verdict thresholds pinned to the numbers
+
+Two property tests, matching the shape of the "don't" one:
+
+- `borrow-less` ⇒ safe amount strictly below the asked amount.
+- `borrow` ⇒ safe amount at or above 80% of the asked amount.
+
+Plus two more on the withholding: the lender amount survives a `dont`, and
+`safeOnAffordabilityAlone` is never below the recommended figure.
+
+## Also
+
+- Removed `repayment.emiAtSafeAmount`, which had become an exact duplicate of `emiCeiling`
+  once the correlated pairing landed.
+- City tiers set on all three personas: Bengaluru metro, Mysuru and Hubballi tier-2.
+- Drafted `docs/questions-to-lokta.md` — extension request plus the six questions, each
+  stating what was assumed pending an answer, with a table pointing at where each one bites in
+  the code.
+
+## Verification
+
+- `npm test` — **149 tests**, all passing. `npm run typecheck` clean.
+- Personas: Priya `borrow-less` (unchanged endpoints). Ravi `borrow`, rent assumed nil and
+  flagged. Anita `dont`, safe carry **₹0**, lender still **₹10,314–₹1,42,500**, surplus
+  **−₹16,600 to −₹10,600**, four assumptions listed on screen.

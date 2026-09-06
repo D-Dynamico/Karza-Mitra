@@ -37,6 +37,7 @@ export const priya: Persona = {
     existingEmiMonthsLeft: 24, // "2 years left" — her strongest path-to-yes lever
     rentOrHomeEmi: 28000,
     age: 29,
+    cityTier: 'metro', // Bengaluru
     creditScore: { known: true, score: 780 },
     employerType: 'mnc',
     yearsInJob: 5,
@@ -57,10 +58,11 @@ export const ravi: Persona = {
     itrIncomeMonthly: 35000,
     existingEmis: 0,
     // TODO(lokta): the brief says he owns the shop premises, but not whether he
-    // owns the home he lives in. Treated as no rent, which is the generous
-    // reading; if he rents, his safe amount falls.
-    rentOrHomeEmi: 0,
+    // owns the home he lives in. Left unanswered, so the engine's own rule
+    // applies — a shopkeeper who owns his premises usually lives above or beside
+    // them, so it assumes no rent and flags the assumption.
     age: 42,
+    cityTier: 'tier-2', // Mysuru
     creditScore: { known: false, everBorrowed: false },
     yearsInBusiness: 14,
     ownsProperty: true,
@@ -87,9 +89,11 @@ export const anita: Persona = {
     // loans totalling ₹35,000 at 30%+ over the short tenures those carry works
     // out near ₹6,000 a month.
     existingEmis: 6000,
-    // TODO(lokta): the brief does not say whether she rents. Left blank rather
-    // than guessed — but note a blank rent is read as zero, which flatters her.
+    // TODO(lokta): the brief does not say whether she rents. Left unanswered, so
+    // the engine assumes a range for her city and widens the answer rather than
+    // handing her a surplus she may not have.
     age: 35,
+    cityTier: 'tier-2', // Hubballi
     householdSize: 4, // two children and a husband out of work for eight months
     creditScore: { known: false, everBorrowed: true },
     bouncedInLast6Months: true,

@@ -69,6 +69,8 @@ export const answersSchema = z.object({
   age: z.number().int().min(18).max(100).optional(),
   /** People the income supports. Feeds the household-spending default. */
   householdSize: z.number().int().min(1).max(20).optional(),
+  /** Where they live. Feeds the rent and household-spending defaults. */
+  cityTier: z.enum(['metro', 'tier-2', 'tier-3']).optional(),
   creditScore: creditScore.optional(),
 
   // Adaptive branches. Each only applies for some profiles; the question

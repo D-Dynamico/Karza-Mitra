@@ -53,6 +53,7 @@ import { decide, type Verdict } from './rules/verdict';
 import { TraceLog, type TraceEntry } from './trace';
 import { confidenceThresholds } from './rules/table';
 import { assumedExpenses } from './rules/expenses';
+import { assumedRent } from './rules/rent';
 
 export type Confidence = 'low' | 'medium' | 'high';
 
@@ -60,8 +61,15 @@ export interface Result {
   readonly verdict: Verdict;
   /** O1: what a lender will likely sanction, and what is actually safe. */
   readonly amounts: {
+    /** What a lender will likely sanction. Shown even on a "don't" — the fact
+     *  that someone will still lend is part of what the borrower is up against. */
     readonly lender: Interval;
+    /** What the borrower should act on. Zero when the verdict is "don't". */
     readonly safe: Interval;
+    /** What affordability alone allows, before the verdict is applied. Kept so
+     *  the path-to-yes toggles have a number to move, and so the working stays
+     *  readable on a "don't". */
+    readonly safeOnAffordabilityAlone: Interval;
     readonly asked: number | undefined;
   };
   /** O2: the product this borrower should be asking for. */
@@ -78,8 +86,8 @@ export interface Result {
   /** O4: what it costs each month, and what the bad turn does to that. */
   readonly repayment:
     | {
+        /** The instalment the affordability ceiling allows. */
         readonly emiCeiling: Interval;
-        readonly emiAtSafeAmount: Interval;
         readonly totalInterest: Interval;
         readonly outflowRatioNow: Interval;
         readonly outflowRatioStressed: Interval;
@@ -133,7 +141,10 @@ export function compute(answers: Answers): Result {
   const credit = assessCredit(answers, log);
   const income = assessIncome(answers, log);
   const existingEmis = answers.existingEmis ?? 0;
-  const rent = answers.rentOrHomeEmi ?? 0;
+  // Never a bare `?? 0`. An unanswered rent becomes a conservative range that
+  // widens the answer, not a zero that quietly improves it.
+  const rentEstimate = assumedRent(answers, log);
+  const rent = rentEstimate.value;
 
   // Household expenses are the one answer we will fill in for the borrower,
   // because leaving it blank silently overstates what they can afford. It is
@@ -161,7 +172,12 @@ export function compute(answers: Answers): Result {
     );
     return {
       verdict,
-      amounts: { lender: point(0), safe: point(0), asked: answers.amountAsked },
+      amounts: {
+        lender: point(0),
+        safe: point(0),
+        safeOnAffordabilityAlone: point(0),
+        asked: answers.amountAsked,
+      },
       routing: undefined,
       pricing: undefined,
       repayment: undefined,
@@ -333,17 +349,25 @@ export function compute(answers: Answers): Result {
     log,
   );
 
-  // A "don't" verdict has to mean it. Reporting a safe amount beside it would
-  // put "do not borrow" and "you can carry ₹1.3 lakh" on the same screen, and a
-  // borrower would reasonably read the second and ignore the first.
+  // A "don't" verdict has to mean it, so the safe-carry figure goes to zero.
+  // The lender-likely figure stays, because on a "don't" it is the more useful
+  // of the two: somebody will still lend Anita this money, and knowing that is
+  // what protects her from taking it.
+  //
+  // The affordability arithmetic is kept intact alongside, not discarded — the
+  // path-to-yes toggles need a number to move, and the working drawer needs
+  // something to show.
+  const recommended = verdict.kind === 'dont' ? point(0) : safeAmount;
   if (verdict.kind === 'dont') {
-    safeAmount = point(0);
     log.record({
       rule: 'amounts.safe.withheld',
-      label: 'No amount is safe right now',
-      inputs: { verdict: verdict.kind },
-      output: safeAmount,
-      why: 'The arithmetic alone would allow something, but the answer above is not about arithmetic. Until that is dealt with, there is no amount here worth taking.',
+      label: 'Nothing here is safe to take on',
+      inputs: {
+        'what affordability alone would allow': safeAmount,
+        'what a lender might still offer': lenderAmount,
+      },
+      output: point(0),
+      why: 'The sums on their own would stretch to something, and a lender may well offer it. That is the danger rather than the opportunity: the reason above has not gone away, and borrowing into it makes it worse.',
     });
   }
 
@@ -354,12 +378,16 @@ export function compute(answers: Answers): Result {
 
   return {
     verdict,
-    amounts: { lender: lenderAmount, safe: safeAmount, asked: answers.amountAsked },
+    amounts: {
+      lender: lenderAmount,
+      safe: recommended,
+      safeOnAffordabilityAlone: safeAmount,
+      asked: answers.amountAsked,
+    },
     routing,
     pricing: { rateBand, feeBand, aprBand, tenureMonths: tenure },
     repayment: {
       emiCeiling: emiAtSafe,
-      emiAtSafeAmount: emiAtSafe,
       totalInterest: interestRange,
       outflowRatioNow: outflowRatio(outgoNow, income.planning),
       outflowRatioStressed: stress.outflowRatio,

@@ -166,7 +166,7 @@ describe('nothing ever produces a broken number', () => {
       const r = compute(a);
       const ranges = [r.amounts.safe, r.amounts.lender, r.surplus];
       if (r.pricing) ranges.push(r.pricing.rateBand, r.pricing.aprBand, r.pricing.feeBand);
-      if (r.repayment) ranges.push(r.repayment.emiAtSafeAmount, r.repayment.totalInterest);
+      if (r.repayment) ranges.push(r.repayment.emiCeiling, r.repayment.totalInterest);
       for (const range of ranges) {
         expect(Number.isFinite(range.lo)).toBe(true);
         expect(Number.isFinite(range.hi)).toBe(true);
@@ -202,13 +202,33 @@ describe('nothing ever produces a broken number', () => {
     }
   });
 
-  it('never shows an amount beside a do-not-borrow verdict', () => {
+  it('sets safe carry to zero on a do-not-borrow verdict', () => {
     // The two would contradict each other on the same screen, and a borrower
     // would believe the number over the sentence.
     for (const a of all) {
       const r = compute(a);
       if (r.verdict.kind !== 'dont') continue;
       expect(r.amounts.safe.hi).toBe(0);
+    }
+  });
+
+  it('still reports the lender-likely amount on a do-not-borrow verdict', () => {
+    // Knowing somebody will still lend it to you is the point, not a detail.
+    // It is also what the next app loan is counting on you not knowing.
+    for (const a of all) {
+      const r = compute(a);
+      if (r.verdict.kind !== 'dont') continue;
+      expect(r.amounts.lender.hi).toBeGreaterThanOrEqual(0);
+      expect(Number.isFinite(r.amounts.lender.hi)).toBe(true);
+    }
+  });
+
+  it('keeps the affordability arithmetic alive behind a withheld amount', () => {
+    // The path-to-yes toggles need a number to move. Discarding it at compute
+    // time would leave them nothing to work with.
+    for (const a of all) {
+      const r = compute(a);
+      expect(r.amounts.safeOnAffordabilityAlone.hi).toBeGreaterThanOrEqual(r.amounts.safe.hi);
     }
   });
 
@@ -226,6 +246,25 @@ describe('nothing ever produces a broken number', () => {
     const family = compute({ ...base, householdSize: 5 });
     expect(family.surplus.hi).toBeLessThan(alone.surplus.hi);
     expect(family.amounts.safe.hi).toBeLessThanOrEqual(alone.amounts.safe.hi);
+  });
+
+  it('pins each verdict to the numbers it claims', () => {
+    // The thresholds are only meaningful if the amounts actually respect them.
+    for (const a of all) {
+      const r = compute(a);
+      const asked = r.amounts.asked;
+      if (asked === undefined || asked <= 0) continue;
+
+      if (r.verdict.kind === 'borrow-less') {
+        expect(r.amounts.safe.hi, 'borrow less must mean less').toBeLessThan(asked);
+      }
+      if (r.verdict.kind === 'borrow') {
+        expect(
+          r.amounts.safe.hi,
+          'borrow must mean most of what was asked for',
+        ).toBeGreaterThanOrEqual(asked * 0.8 - 1e-6);
+      }
+    }
   });
 
   it('is deterministic', () => {

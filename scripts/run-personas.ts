@@ -36,6 +36,9 @@ function report(name: string, tests: string, r: Result): void {
   console.log(`  asked            ${r.amounts.asked ? rupees(r.amounts.asked) : '—'}`);
   console.log(`  lender sanctions ${money(r.amounts.lender)}`);
   console.log(`  safe to carry    ${money(r.amounts.safe)}`);
+  if (r.amounts.safe.hi !== r.amounts.safeOnAffordabilityAlone.hi) {
+    console.log(`  (sums alone would allow ${money(r.amounts.safeOnAffordabilityAlone)})`);
+  }
 
   if (r.income) {
     console.log(`\nINCOME`);
@@ -63,7 +66,6 @@ function report(name: string, tests: string, r: Result): void {
   if (r.repayment) {
     console.log(`\nREPAYMENT`);
     console.log(`  instalment ceiling ${money(r.repayment.emiCeiling)}`);
-    console.log(`  EMI at safe amount ${money(r.repayment.emiAtSafeAmount)}`);
     console.log(`  outgo now          ${ratio(r.repayment.outflowRatioNow)}`);
     console.log(`  outgo after a bad turn ${ratio(r.repayment.outflowRatioStressed)}${r.repayment.stressBreaches ? '  ** breaches **' : ''}`);
   }
