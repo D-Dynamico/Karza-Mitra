@@ -197,12 +197,19 @@ describe('what to ask next', () => {
   });
 
   it('never offers to correct a guess the app is not actually making', () => {
-    // Priya stated her rent and her score, so nothing should be offered to her
-    // on the grounds of replacing an assumption about them.
-    const offered = nextQuestions(priya.answers, 10);
-    for (const r of offered.filter((x) => x.onlyCorrectsAGuess === true)) {
-      const stillGuessing = compute(priya.answers).assumptions.length > 0;
-      expect(stillGuessing).toBe(true);
+    // Every question offered on those grounds must point at a rule that really
+    // did fill something in for this borrower.
+    for (const [name, answers] of states) {
+      const guessing = new Set(
+        compute(answers)
+          .trace.filter((e) => e.assumption !== undefined)
+          .map((e) => e.rule),
+      );
+      for (const r of nextQuestions(answers, 10)) {
+        if (r.onlyCorrectsAGuess !== true) continue;
+        const points = (r.question.corrects ?? []).some((rule) => guessing.has(rule));
+        expect(points, `${name}: ${r.question.id} corrects nothing`).toBe(true);
+      }
     }
   });
 
