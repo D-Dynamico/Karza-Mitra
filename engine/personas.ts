@@ -21,6 +21,12 @@ export interface Persona {
   /** What this persona is in the set to catch. */
   readonly tests: string;
   readonly answers: Answers;
+  /**
+   * Answers the brief implies but does not state, and how they were arrived at.
+   * Printed in the run-throughs so a reader can tell what came from Lokta and
+   * what came from me.
+   */
+  readonly derived?: ReadonlyArray<{ field: keyof Answers; from: string }>;
 }
 
 export const priya: Persona = {
@@ -43,6 +49,14 @@ export const priya: Persona = {
     yearsInJob: 5,
     emergencySavingsMonths: 2,
   },
+  derived: [
+    {
+      field: 'existingEmiMonthsLeft',
+      from: '"one car loan, EMI ₹14,000, 2 years left" — 24 months.',
+    },
+    { field: 'cityTier', from: 'Bengaluru, so a metro for rent and cost of living.' },
+    { field: 'emergencySavingsMonths', from: 'Not stated. Assumed thin, which is the cautious reading.' },
+  ],
 };
 
 export const ravi: Persona = {
@@ -73,6 +87,15 @@ export const ravi: Persona = {
     coApplicantPooled: true,
     emergencySavingsMonths: 3,
   },
+  derived: [
+    { field: 'itrIncomeMonthly', from: '"ITR shows ₹4,20,000/year" — ₹35,000 a month.' },
+    { field: 'cityTier', from: 'Mysuru, so tier 2.' },
+    {
+      field: 'coApplicantPooled',
+      from: 'Not stated. Assumed pooled, since he is borrowing for the family business.',
+    },
+    { field: 'emergencySavingsMonths', from: 'Not stated. Assumed three months for an established trader.' },
+  ],
 };
 
 export const anita: Persona = {
@@ -101,9 +124,27 @@ export const anita: Persona = {
     appLoanOutstanding: 35000,
     vehicleOnRoadPrice: 150000,
     vehicleIsProductive: true,
+    // "to double delivery runs". The brief gives the intent but not the figure,
+    // so this is derived: her delivery work is roughly half of ₹26,000–₹30,000,
+    // and doubling those runs adds something like ₹12,000 a month. Deliberately
+    // on the optimistic side — if the answer is still "don't" with a generous
+    // uplift counted, that is a far stronger refusal than one that ignored it.
+    expectedMonthlyEarnings: 12000,
     emergencySavingsMonths: 0,
     coApplicantIncome: 0, // husband unemployed eight months
   },
+  derived: [
+    {
+      field: 'existingEmis',
+      from: '"three app loans, ₹35,000 outstanding at 30%+". The instalment is not given; ₹6,000 a month is what that balance costs over the short tenures those loans run.',
+    },
+    { field: 'householdSize', from: '"two children, husband unemployed" — four people.' },
+    { field: 'cityTier', from: 'Hubballi, so tier 2.' },
+    {
+      field: 'expectedMonthlyEarnings',
+      from: '"to double delivery runs". Derived at ₹12,000 a month, deliberately generous.',
+    },
+  ],
 };
 
 export const personas: readonly Persona[] = [priya, ravi, anita];

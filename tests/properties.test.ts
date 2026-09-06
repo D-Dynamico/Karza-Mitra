@@ -132,13 +132,21 @@ describe('answering more never makes us less certain', () => {
     }
   });
 
-  it('marks an answer as assumed only when it was not given', () => {
+  it('marks an answer as assumed only when it was not given, and says what it assumed', () => {
+    const mentions = (r: { assumptions: readonly string[] }, label: string): string | undefined =>
+      r.assumptions.find((s) => s.startsWith(label));
+
     for (const a of all) {
       const stated = compute({ ...a, householdExpenses: 15000 });
-      expect(stated.assumptions).not.toContain('Household spending (assumed)');
+      expect(mentions(stated, 'Household spending')).toBeUndefined();
+
       const blank = { ...a };
       delete blank.householdExpenses;
-      expect(compute(blank).assumptions).toContain('Household spending (assumed)');
+      const assumed = mentions(compute(blank), 'Household spending');
+      expect(assumed).toBeDefined();
+      // Naming the assumption is not enough — a borrower can only correct a
+      // figure they can see.
+      expect(assumed).toContain('₹');
     }
   });
 });

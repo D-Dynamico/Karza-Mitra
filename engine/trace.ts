@@ -25,6 +25,13 @@ export interface TraceEntry {
   readonly why: string;
   /** Set when the rule leaned on an assumption rather than a stated answer. */
   readonly assumed?: boolean;
+  /**
+   * The assumption in the borrower's words, with the value we used — "Rent:
+   * ₹4,000 to ₹10,000 a month, guessed from your city". Only rules that filled
+   * something in on the borrower's behalf set this, so the list shown on screen
+   * is what they could correct, not everything downstream that inherited it.
+   */
+  readonly assumption?: string;
 }
 
 /** A value carrying the reasoning that produced it. */

@@ -8,16 +8,18 @@
 import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
 import { nextQuestions } from '../engine/next-questions';
-import { OUTPUT_LABELS, readOutput, type OutputId } from '../engine/outputs';
+import { factsChanged, OUTPUT_LABELS, readOutput, type OutputId } from '../engine/outputs';
 import { personas } from '../engine/personas';
+import { money, rate as rateText } from '../engine/format';
 import { adaptiveSet, allQuestions, mustSet, type Question } from '../engine/questions';
 
 const name = (process.argv[2] ?? 'anita').toLowerCase();
-const persona = personas.find((p) => p.id === name);
-if (!persona) {
+const found = personas.find((p) => p.id === name);
+if (!found) {
   console.error(`No such borrower. Try: ${personas.map((p) => p.id).join(', ')}`);
   process.exit(1);
 }
+const persona = found;
 
 const rupees = (n: number): string => `₹${Math.round(n).toLocaleString('en-IN')}`;
 
@@ -84,6 +86,13 @@ function ask(q: Question, why: string): void {
     }
   }
 
+  // Words as well as numbers: choosing a purpose picks the product, and saying
+  // how you earn decides which month we budget against. Both happen before any
+  // amount exists to move, so a banner watching only numbers reports nothing.
+  for (const fact of factsChanged(compute(asked), compute(after))) {
+    changed.unshift(`      ${fact}`);
+  }
+
   console.log(`\n${String(step).padStart(2)}. ${q.prompt}`);
   console.log(`    ${persona.name} answers: ${show(value)}`);
   if (why) console.log(`    asked because: ${why}`);
@@ -125,13 +134,20 @@ console.log(`\n${'-'.repeat(74)}`);
 console.log(`FINAL: ${final.verdict.kind} — ${final.verdict.headline}`);
 console.log(`  ${final.verdict.why}`);
 if (final.verdict.nextStep) console.log(`  next: ${final.verdict.nextStep}`);
-console.log(`\n  a lender would sanction  ${fmt('O2.lender', asked)}`);
-console.log(`  safe for her to carry    ${fmt('O2.safe', asked)}`);
-console.log(`  rate band                ${fmt('O3.rate', asked)}`);
-console.log(`  all-in rate              ${fmt('O3.apr', asked)}`);
+// The final figures use the display formatting: rounded outward, in lakh, and
+// in words where the bottom of a range is effectively nothing. The rupee-exact
+// values above are for reading the mechanism, not for showing a borrower.
+console.log(`\n  a lender would sanction  ${money(final.amounts.lender, { asLender: true })}`);
+console.log(`  safe for you to carry    ${money(final.amounts.safe)}`);
+if (final.pricing) {
+  console.log(`  rate band                ${rateText(final.pricing.rateBand)}`);
+  console.log(`  all-in rate              ${rateText(final.pricing.aprBand)}`);
+}
 console.log(`  confidence               ${final.confidence}`);
 if (final.assumptions.length > 0) {
-  console.log(`  assumed, not told:       ${final.assumptions.join('; ')}`);
+  console.log(`
+  WHERE WE GUESSED:`);
+  for (const a of final.assumptions) console.log(`    - ${a}`);
 }
 
 console.log(`\n${'-'.repeat(74)}`);

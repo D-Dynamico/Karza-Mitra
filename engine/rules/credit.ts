@@ -145,6 +145,8 @@ export function assessCredit(answers: Answers, log: TraceLog): CreditAssessment 
       output: iv(atBest.lo, atWorst.hi),
       why: `${unknownScoreBand.why} Your rate band stays wide until you do.`,
       assumed: true,
+      assumption:
+        'Credit score: not known, so we worked across 650 to 780 rather than guessing a number. Checking it is free and narrows your rate straight away.',
     });
   }
 

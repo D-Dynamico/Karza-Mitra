@@ -57,6 +57,7 @@ export function assumedRent(answers: Answers, log: TraceLog): RentEstimate {
       output: point(0),
       why: 'You own property and did not tell us about rent, so we have assumed you are not paying any. Say so if you rent the home you live in — it lowers what you can safely carry.',
       assumed: true,
+      assumption: 'Rent: we assumed none, because you own property. If you rent the home you live in, say so — it lowers what you can safely carry.',
     });
     return { value: point(0), assumed: true };
   }
@@ -71,6 +72,7 @@ export function assumedRent(answers: Answers, log: TraceLog): RentEstimate {
     output: band,
     why: `${assumedRentByCity.why} Telling us the real figure will narrow every number below.`,
     assumed: true,
+    assumption: `Rent: we assumed ₹${band.lo.toLocaleString('en-IN')} to ₹${band.hi.toLocaleString('en-IN')} a month${tier === 'unknown' ? ', not knowing your city' : ` for your city`}. Your real figure narrows every number here.`,
   });
 
   return { value: band, assumed: true };

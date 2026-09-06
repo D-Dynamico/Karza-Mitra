@@ -22,7 +22,8 @@ export type ProductId =
   | 'vehicle-loan'
   | 'gold-loan'
   | 'business-loan'
-  | 'mfi-loan';
+  | 'mfi-loan'
+  | 'nbfc-vehicle-loan';
 
 export interface Product {
   readonly id: ProductId;
@@ -36,6 +37,11 @@ export interface Product {
   readonly tenureMonths: Interval;
   /** Share of the pledged asset's value that can be borrowed. */
   readonly loanToValue?: Interval;
+  /**
+   * The smallest loan anybody actually writes in this product. Below it there is
+   * no loan to be had, however the affordability arithmetic comes out.
+   */
+  readonly minTicket: number;
   readonly why: string;
 }
 
@@ -49,6 +55,7 @@ export const products = register<Rule<Record<ProductId, Product>>>({
   value: {
     'personal-loan': {
       id: 'personal-loan',
+      minTicket: 50000,
       name: 'Personal loan',
       secured: false,
       rateBand: iv(10.5, 24),
@@ -58,6 +65,7 @@ export const products = register<Rule<Record<ProductId, Product>>>({
     },
     'loan-against-property': {
       id: 'loan-against-property',
+      minTicket: 500000,
       name: 'Loan against property',
       secured: true,
       rateBand: iv(9, 12),
@@ -68,6 +76,7 @@ export const products = register<Rule<Record<ProductId, Product>>>({
     },
     'vehicle-loan': {
       id: 'vehicle-loan',
+      minTicket: 30000,
       name: 'Vehicle loan',
       secured: true,
       rateBand: iv(9, 14),
@@ -78,6 +87,7 @@ export const products = register<Rule<Record<ProductId, Product>>>({
     },
     'gold-loan': {
       id: 'gold-loan',
+      minTicket: 10000,
       name: 'Gold loan',
       secured: true,
       rateBand: iv(8.5, 14),
@@ -88,6 +98,7 @@ export const products = register<Rule<Record<ProductId, Product>>>({
     },
     'business-loan': {
       id: 'business-loan',
+      minTicket: 50000,
       name: 'Business loan',
       secured: false,
       rateBand: iv(9, 24),
@@ -95,8 +106,20 @@ export const products = register<Rule<Record<ProductId, Product>>>({
       tenureMonths: iv(12, 60),
       why: 'Government-backed schemes sit at the bottom of this band and unsecured lenders at the top, so which door you walk through matters more than the product name.',
     },
+    'nbfc-vehicle-loan': {
+      id: 'nbfc-vehicle-loan',
+      name: 'Two-wheeler loan from an NBFC or platform financier',
+      secured: true,
+      rateBand: iv(18, 26),
+      feeBand: iv(2, 4),
+      tenureMonths: iv(18, 48),
+      loanToValue: iv(0.7, 0.85),
+      minTicket: 25000,
+      why: 'A bank will not write this loan for someone whose income cannot be evidenced, whatever the vehicle is worth. The lenders who will — NBFCs and the finance arms attached to delivery platforms — charge a great deal more for taking the risk a bank would not.',
+    },
     'mfi-loan': {
       id: 'mfi-loan',
+      minTicket: 15000,
       name: 'Microfinance or SHG loan',
       secured: false,
       rateBand: iv(20, 26),
@@ -216,23 +239,39 @@ export function route(
     });
   }
 
-  // A vehicle, bought with a vehicle loan. Securing the asset being purchased is
-  // almost always cheaper than borrowing the money unsecured to buy it.
+  // A vehicle, bought with a vehicle loan. But *which* vehicle loan depends on
+  // who will actually write it. A bank prices a two-wheeler cheaply because it
+  // is lending to a salaried borrower it can verify; the security is only half
+  // the story. Where the income cannot be evidenced, the bank is not an option
+  // at any price, and quoting a bank's rate to someone who cannot get it is the
+  // most misleading thing this app could do.
   if (answers.purpose === 'vehicle') {
-    const cap = answers.vehicleOnRoadPrice !== undefined
-      ? iv(
-          answers.vehicleOnRoadPrice * all['vehicle-loan'].loanToValue!.lo,
-          answers.vehicleOnRoadPrice * all['vehicle-loan'].loanToValue!.hi,
-        )
-      : undefined;
+    const bankWillNotWriteIt =
+      answers.incomeType === 'informal' ||
+      answers.incomeType === 'self-employed-cash' ||
+      credit.unsecuredLikelyDeclined;
+    const product = bankWillNotWriteIt ? all['nbfc-vehicle-loan'] : all['vehicle-loan'];
+    const ltv = product.loanToValue!;
+    const cap =
+      answers.vehicleOnRoadPrice !== undefined
+        ? iv(answers.vehicleOnRoadPrice * ltv.lo, answers.vehicleOnRoadPrice * ltv.hi)
+        : undefined;
+
     return record({
-      product: all['vehicle-loan'],
+      product,
       securedCap: cap,
-      alternative: {
-        product: all['personal-loan'],
-        why: 'A personal loan would leave the vehicle unpledged, but costs several points more for the same money. Not worth it unless a lender refuses the vehicle loan.',
-      },
-      why: 'The vehicle secures the loan, which is what makes it cheap. Borrowing the same amount unsecured to buy it would cost you several points more.',
+      alternative: bankWillNotWriteIt
+        ? {
+            product: all['vehicle-loan'],
+            why: 'This is what a bank charges for the same loan, and it is what you should be aiming at. Getting there means evidenced income and a clean twelve months — it is not available to you today, at any branch.',
+          }
+        : {
+            product: all['personal-loan'],
+            why: 'A personal loan would leave the vehicle unpledged, but costs several points more for the same money. Not worth it unless a lender refuses the vehicle loan.',
+          },
+      why: bankWillNotWriteIt
+        ? 'The vehicle secures the loan, but the lender still has to accept you, and a bank will not on income it cannot verify. This is the rate the lenders who will say yes actually charge. It is high because they are taking a risk a bank declined.'
+        : 'The vehicle secures the loan, which is what makes it cheap. Borrowing the same amount unsecured to buy it would cost you several points more.',
     });
   }
 

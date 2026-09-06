@@ -15,10 +15,10 @@ import { judgement, register, type Rule } from './table';
 export const expenseDefaults = register<Rule<{ base: number; perExtraPerson: number }>>({
   id: 'expenses.default',
   what: 'Assumed monthly household spending when it is not stated',
-  value: { base: 12000, perExtraPerson: 4000 },
+  value: { base: 9000, perExtraPerson: 3500 },
   why: 'A working figure for food, power, transport, phone and school costs, rising with each extra person the income has to cover, so that a blank answer does not read as "spends nothing".',
   source: judgement(
-    'A round starting figure, not survey data. It is shown to the borrower as an assumption and is meant to be corrected.',
+    'A round starting figure, not survey data. It is shown to the borrower as an assumption and is meant to be corrected. Known simplification: it charges the same for a child as for an adult, and ignores that a larger household shares costs.',
   ),
 });
 
@@ -75,6 +75,7 @@ export function assumedExpenses(answers: Answers, log: TraceLog): ExpenseEstimat
     output: value,
     why: `${expenseDefaults.why} Correct it if it is wrong — it moves your safe amount directly.`,
     assumed: true,
+    assumption: `Household spending: we assumed ₹${value.toLocaleString('en-IN')} a month for ${people} ${people === 1 ? 'person' : 'people'}. Your own figure would be better.`,
   });
 
   return { value, assumed: true };

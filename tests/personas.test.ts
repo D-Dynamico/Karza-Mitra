@@ -38,8 +38,8 @@ describe('Priya — two numbers, not one', () => {
   });
 
   it('locks the endpoints', () => {
-    expect(r.amounts.safe.lo).toBeCloseTo(90940, NEAR);
-    expect(r.amounts.safe.hi).toBeCloseTo(93050, NEAR);
+    expect(r.amounts.safe.lo).toBeCloseTo(86919, NEAR);
+    expect(r.amounts.safe.hi).toBeCloseTo(88897, NEAR);
     expect(r.amounts.lender.lo).toBeCloseTo(2114347, NEAR);
     expect(r.amounts.lender.hi).toBeCloseTo(2419291, NEAR);
   });

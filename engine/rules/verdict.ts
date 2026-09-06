@@ -57,6 +57,9 @@ export interface VerdictInputs {
   readonly stressBreaches: boolean;
   /** Whether stated earnings from the purchase cover the instalment. */
   readonly paysForItself: boolean | undefined;
+  /** The smallest loan this product is actually written for. */
+  readonly minTicket: number;
+  readonly productName: string;
 }
 
 /**
@@ -176,6 +179,22 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
       headline: 'Nothing you could take on now would be safe.',
       why: 'Every one of the three affordability tests comes out at zero: the outflow ceiling, what is left over, and what happens after a bad month.',
       nextStep: 'The path-to-yes options below show what would have to change, and by how much.',
+    });
+  }
+
+  // 5. Affordable in principle, but only for an amount nobody lends.
+  //
+  // Without this the engine says "borrow less" and quotes a few thousand rupees,
+  // as though a ₹3,000 two-wheeler loan were a thing you could walk in and ask
+  // for. It is not a smaller version of the loan; it is no loan. Saying so is
+  // both more honest and more useful than a number that cannot be acted on.
+  if (input.safeAmount.hi < input.minTicket) {
+    return emit({
+      kind: 'dont',
+      headline: 'Not at any amount you could actually get.',
+      why: `What you can safely carry works out below ₹${input.minTicket.toLocaleString('en-IN')}, and no lender writes a ${input.productName.toLowerCase()} smaller than that. This is not a case of borrowing less — there is no loan here to take.`,
+      nextStep:
+        'The options below show what would have to change to bring a real loan within reach.',
     });
   }
 

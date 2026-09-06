@@ -178,12 +178,31 @@ describe('the flow adapts', () => {
 });
 
 describe('what to ask next', () => {
-  it('offers nothing that would not change the answer', () => {
-    for (const [, answers] of states) {
+  it('offers nothing that neither moves a number nor corrects a visible guess', () => {
+    for (const [name, answers] of states) {
       for (const ranked of nextQuestions(answers)) {
-        expect(ranked.wouldMove.length).toBeGreaterThan(0);
+        if (ranked.onlyCorrectsAGuess === true) {
+          // Allowed to move nothing, but only if it replaces something the
+          // borrower can currently see the app guessing at.
+          expect(ranked.question.corrects ?? [], `${name}/${ranked.question.id}`).not.toHaveLength(
+            0,
+          );
+          expect(ranked.promise).toContain('guess');
+        } else {
+          expect(ranked.wouldMove.length, `${name}/${ranked.question.id}`).toBeGreaterThan(0);
+        }
         expect(ranked.promise).not.toContain('will not change');
       }
+    }
+  });
+
+  it('never offers to correct a guess the app is not actually making', () => {
+    // Priya stated her rent and her score, so nothing should be offered to her
+    // on the grounds of replacing an assumption about them.
+    const offered = nextQuestions(priya.answers, 10);
+    for (const r of offered.filter((x) => x.onlyCorrectsAGuess === true)) {
+      const stillGuessing = compute(priya.answers).assumptions.length > 0;
+      expect(stillGuessing).toBe(true);
     }
   });
 

@@ -91,6 +91,16 @@ export const coApplicantRule = register<Rule<Interval>>({
   source: judgement('Common practice; banks vary between half and all of a spouse\'s income.'),
 });
 
+export const productiveEarningsShare = register<Rule<Interval>>({
+  id: 'income.productive-earnings',
+  what: 'Share of expected earnings from the purchase counted in the borrower budget',
+  value: iv(0.5, 0.5),
+  why: 'If the loan buys something that earns — a delivery vehicle, stock for the shop — that income is real and should count. But it has not happened yet, projections disappoint, and it takes time to build up, so only half of it is counted. No lender will count any of it.',
+  source: judgement(
+    'Halving a projection is my own line. The principle that a lender counts none of it is standard: they underwrite what you earn now.',
+  ),
+});
+
 /**
  * Assess income. Returns undefined when the borrower has told us nothing about
  * what they earn — the engine says so rather than inventing a figure, because
@@ -177,6 +187,24 @@ export function assessIncome(answers: Answers, log: TraceLog): IncomeAssessment 
         why: 'A lender will count their income, but we have left it out of what you can safely carry because you have not said it is pooled. That is deliberately the cautious reading.',
       });
     }
+  }
+
+  // Earnings the purchase itself would generate. This is the borrower's side of
+  // the productive-loan test: a scooter that doubles delivery runs is a
+  // different proposition from a scooter that only costs money. It never touches
+  // the lender's number — no bank underwrites income that does not exist yet.
+  if ((answers.expectedMonthlyEarnings ?? 0) > 0) {
+    planning = log.record({
+      rule: 'income.productive-earnings',
+      label: 'What the loan itself would earn you',
+      inputs: {
+        'you expect to earn': answers.expectedMonthlyEarnings,
+        'counted': productiveEarningsShare.value,
+      },
+      output: add(planning, scale(productiveEarningsShare.value, answers.expectedMonthlyEarnings!)),
+      why: productiveEarningsShare.why,
+      assumed: true,
+    });
   }
 
   const unprovable = log.record({

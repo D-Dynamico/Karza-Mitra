@@ -13,7 +13,7 @@
 
 import { add, atLeastZero, iv, maxOf, mul, point, sub, union, type Interval } from '../interval';
 import type { TraceLog } from '../trace';
-import { judgement, register, tiersAcross, type Rule, type TieredRule } from './table';
+import { judgement, register, tierFor, tiersAcross, type Rule, type TieredRule } from './table';
 
 /** Lender ceilings on the share of verified income that may go to instalments. */
 export const lenderFoirCeiling = register<TieredRule<Interval>>({
@@ -53,14 +53,51 @@ export const safeOutflowCeiling = register<Rule<Interval>>({
   ),
 });
 
-/** The same ceiling, tested after the stress case in stress.ts. */
-export const stressedOutflowCeiling = register<Rule<Interval>>({
+/**
+ * The ceiling tested after the stress case, and how much of it you get depends on
+ * what you have put by.
+ *
+ * Savings are not a nicety here; they are the whole difference between a bad
+ * month and a missed payment. A household with six months banked can absorb a
+ * lost quarter and carry on paying. One with nothing has to borrow again the
+ * first time anything goes wrong — which is how the app-loan spiral starts. So
+ * the same stressed outgo that is survivable for one borrower is not for
+ * another, and the ceiling moves with it.
+ */
+export const stressedOutflowCeiling = register<TieredRule<Interval>>({
   id: 'affordability.stressed-outflow',
-  what: 'Share of income that fixed outgo may reach after a bad turn',
-  value: iv(0.55, 0.55),
-  why: 'A loan has to survive a lean patch, not just today. Crossing this after a 20% income drop means the plan only works while nothing goes wrong.',
-  source: judgement('Chosen as the point where a household is one setback from missing a payment.'),
+  what: 'Share of income fixed outgo may reach after a bad turn, by months of savings',
+  keyedOn: 'months of expenses saved',
+  source: judgement(
+    'The 55% mid-point is the common line for where a household becomes fragile. Moving it with savings is my own rule, and it is the honest consequence of asking the question at all.',
+  ),
+  tiers: [
+    {
+      upTo: 1,
+      value: iv(0.45, 0.45),
+      why: 'With nothing put by, there is no cushion at all. The first bad month has to be met by borrowing again, so the loan has to leave more room.',
+    },
+    {
+      upTo: 3,
+      value: iv(0.5, 0.5),
+      why: 'A month or two of savings absorbs a small shock but not a lost quarter.',
+    },
+    {
+      upTo: 6,
+      value: iv(0.55, 0.55),
+      why: 'Three months put by is the usual line for being able to ride out a bad patch without new borrowing.',
+    },
+    {
+      upTo: Infinity,
+      value: iv(0.6, 0.6),
+      why: 'With half a year banked you can carry a heavier instalment through a lean spell, because you are not one setback away from missing it.',
+    },
+  ],
 });
+
+/** The stressed ceiling for this borrower. Unstated savings are read as none. */
+export const stressedCeilingFor = (savedMonths: number | undefined): Interval =>
+  tierFor(stressedOutflowCeiling, savedMonths ?? 0).value;
 
 export const emergencySavingsRule = register<Rule<{ months: number; setAside: Interval }>>({
   id: 'affordability.emergency-savings',
@@ -194,13 +231,22 @@ export function borrowerCeiling(
   });
 
   // 3. The same test after a bad turn.
-  const stressCap = mul(args.stressedPlanning, stressedOutflowCeiling.value);
+  const stressCap = mul(
+    args.stressedPlanning,
+    stressedCeilingFor(args.emergencySavingsMonths),
+  );
+  const stressTier = tierFor(stressedOutflowCeiling, args.emergencySavingsMonths ?? 0);
   const fromStress = log.record({
     rule: 'affordability.stress-headroom',
     label: 'Room that still holds after a bad turn',
-    inputs: { 'income after a bad turn': args.stressedPlanning, 'ceiling then': stressedOutflowCeiling.value },
+    inputs: {
+      'income after a bad turn': args.stressedPlanning,
+      'months you have put by': args.emergencySavingsMonths ?? 'you did not say',
+      'ceiling then': stressTier.value,
+    },
     output: atLeastZero(sub(stressCap, committed)),
-    why: stressedOutflowCeiling.why,
+    why: stressTier.why,
+    assumed: args.emergencySavingsMonths === undefined,
   });
 
   // The three caps are deliberately returned separately rather than combined

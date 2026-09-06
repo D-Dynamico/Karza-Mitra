@@ -19,6 +19,8 @@ import { unansweredApplicable, type Question } from './questions';
 
 export interface RankedQuestion {
   readonly question: Question;
+  /** True when this only replaces a visible guess, without moving a number. */
+  readonly onlyCorrectsAGuess?: boolean;
   /** How much this would move or narrow the outputs. Higher is more useful. */
   readonly worth: number;
   /** The outputs it actually moved on this borrower's answers. */
@@ -99,12 +101,33 @@ function byPriority(a: RankedQuestion, b: RankedQuestion): number {
  */
 export function nextQuestions(answers: Answers, limit = 5): RankedQuestion[] {
   const baseline = compute(answers);
+  const guessedRules = new Set(
+    baseline.trace.filter((e) => e.assumption !== undefined).map((e) => e.rule),
+  );
 
-  return unansweredApplicable(answers)
-    .map((question) => scoreQuestion(baseline, answers, question))
-    .filter((ranked) => ranked.wouldMove.length > 0)
-    .sort(byPriority)
-    .slice(0, limit);
+  const ranked = unansweredApplicable(answers).map((question) =>
+    scoreQuestion(baseline, answers, question),
+  );
+
+  const moving = ranked.filter((r) => r.wouldMove.length > 0).sort(byPriority);
+
+  // Questions that change no number but would replace an assumption the
+  // borrower can see on screen. Offered after everything useful, never dropped:
+  // "we assumed you live alone" is worth correcting even when the arithmetic
+  // comes out the same either way.
+  const correcting = ranked
+    .filter(
+      (r) =>
+        r.wouldMove.length === 0 &&
+        (r.question.corrects ?? []).some((rule) => guessedRules.has(rule)),
+    )
+    .map((r) => ({
+      ...r,
+      onlyCorrectsAGuess: true,
+      promise: 'Replaces something we had to guess at.',
+    }));
+
+  return [...moving, ...correcting].slice(0, limit);
 }
 
 /**

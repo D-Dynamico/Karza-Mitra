@@ -45,6 +45,15 @@ export interface Question {
   /** Whether the question makes sense given what we already know. */
   readonly applies: (a: Answers) => boolean;
   /**
+   * Rules whose assumption this question would replace with a real answer.
+   *
+   * A question can be worth asking even when it moves no number: if the app is
+   * showing "we assumed you live alone" to a woman supporting three other
+   * people, she should be able to correct it. Being visibly wrong about
+   * something the borrower can see costs more trust than the arithmetic gains.
+   */
+  readonly corrects?: readonly string[];
+  /**
    * Two or three answers a real borrower might give. Used to measure what the
    * question is worth before it is asked, and by the moves test.
    */
@@ -157,6 +166,7 @@ export const mustSet: readonly Question[] = [
   },
   {
     id: 'rent',
+    corrects: ['rent.assumed-by-city', 'rent.owns-premises'],
     field: 'rentOrHomeEmi',
     tier: 'must',
     prompt: 'What do you pay for rent, or on a home loan?',
@@ -170,6 +180,7 @@ export const mustSet: readonly Question[] = [
   },
   {
     id: 'household-expenses',
+    corrects: ['expenses.default'],
     field: 'householdExpenses',
     tier: 'must',
     prompt: 'Roughly what does the household spend in a month, apart from rent and loans?',
@@ -197,6 +208,7 @@ export const mustSet: readonly Question[] = [
   },
   {
     id: 'credit-score',
+    corrects: ['credit.unknown-score'],
     field: 'creditScore',
     tier: 'must',
     prompt: 'Do you know your credit score?',
@@ -222,6 +234,7 @@ export const adaptiveSet: readonly Question[] = [
   // --- Everyone, once we know where and who they support -------------------
   {
     id: 'household-size',
+    corrects: ['expenses.default'],
     field: 'householdSize',
     tier: 'adaptive',
     prompt: 'How many people does your income support?',
@@ -234,6 +247,7 @@ export const adaptiveSet: readonly Question[] = [
   },
   {
     id: 'city-tier',
+    corrects: ['expenses.default', 'rent.assumed-by-city'],
     field: 'cityTier',
     tier: 'adaptive',
     prompt: 'What kind of place do you live in?',

@@ -102,6 +102,46 @@ export function compareOutputs(before: Result, after: Result): OutputChange[] {
   });
 }
 
+/**
+ * The parts of an answer that are words rather than numbers.
+ *
+ * Choosing a purpose picks the product; saying how you earn decides whether we
+ * plan on your good month or your slow one. Both are real changes a borrower
+ * should see, and both happen before there is any income figure for a number to
+ * move — so a banner that only watches numbers reports "nothing changed" on the
+ * two questions that set up everything else.
+ */
+export interface StateFacts {
+  readonly product: string | undefined;
+  readonly incomeBasis: string | undefined;
+}
+
+export function readFacts(result: Result): StateFacts {
+  return {
+    product: result.routing?.product.name,
+    incomeBasis: (result.trace.find((e) => e.rule === 'income.planning')?.inputs['basis'] ??
+      result.trace.find((e) => e.rule === 'income.basis')?.output) as string | undefined,
+  };
+}
+
+/** Plain sentences for the facts that changed between two results. */
+export function factsChanged(before: Result, after: Result): string[] {
+  const a = readFacts(before);
+  const b = readFacts(after);
+  const out: string[] = [];
+  if (b.product !== undefined && a.product !== b.product) {
+    out.push(
+      a.product === undefined
+        ? `the loan you should be asking for: ${b.product}`
+        : `the loan you should be asking for: ${a.product} → ${b.product}`,
+    );
+  }
+  if (b.incomeBasis !== undefined && a.incomeBasis !== b.incomeBasis) {
+    out.push(`what we budget against: ${b.incomeBasis}`);
+  }
+  return out;
+}
+
 /** Whether an output moved enough to be worth a borrower's attention. */
 export const MATERIAL = 0.01;
 

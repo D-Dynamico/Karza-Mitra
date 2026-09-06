@@ -31,7 +31,7 @@ import {
   borrowerCeiling,
   lenderCeiling,
   outflowRatio,
-  stressedOutflowCeiling,
+  stressedCeilingFor,
   totalOutgo,
 } from './rules/affordability';
 import {
@@ -151,10 +151,31 @@ export function compute(answers: Answers): Result {
   const rentEstimate = assumedRent(answers, log);
   const rent = rentEstimate.value;
 
-  // Household expenses are the one answer we will fill in for the borrower,
+  // Household expenses are one of the few answers we fill in for the borrower,
   // because leaving it blank silently overstates what they can afford. It is
   // marked as assumed everywhere it appears.
   const expenses = assumedExpenses(answers, log);
+
+  // Routing and the budgeting basis do not need an income figure, and they are
+  // the two things the first questions actually settle. Working them out before
+  // the income guard means the app can already say "you should be asking for a
+  // two-wheeler loan, and we will budget on your slow month" after two answers,
+  // instead of reporting that nothing has changed.
+  const routing = route(answers, credit, log);
+  if (answers.incomeType !== undefined) {
+    const worstMonth =
+      answers.incomeType !== 'salaried' ? 'your slow month' : 'your monthly income';
+    log.record({
+      rule: 'income.basis',
+      label: 'What we will budget against',
+      inputs: { 'how you earn': answers.incomeType },
+      output: worstMonth,
+      why:
+        worstMonth === 'your slow month'
+          ? 'Your income moves, so the safe plan is built on a bad month rather than a good one.'
+          : 'Your pay is the same every month, so what you earn is what you can plan against.',
+    });
+  }
 
   if (!income) {
     const verdict = decide(
@@ -173,6 +194,8 @@ export function compute(answers: Answers): Result {
         hasAppLoans: answers.appOrBnplLoans === true,
         stressBreaches: false,
         paysForItself: undefined,
+        minTicket: 0,
+        productName: 'loan',
       },
       log,
     );
@@ -184,7 +207,7 @@ export function compute(answers: Answers): Result {
         safeOnAffordabilityAlone: point(0),
         asked: answers.amountAsked,
       },
-      routing: undefined,
+      routing,
       pricing: undefined,
       repayment: undefined,
       income: undefined,
@@ -209,9 +232,8 @@ export function compute(answers: Answers): Result {
     stressedPlanning: stressed,
   }, log);
 
-  // Product, then price, then amount — in that order, because the product sets
-  // the rate band and the rate band sets what an instalment will support.
-  const routing = route(answers, credit, log);
+  // Price, then amount — the product is already chosen above, and it is what
+  // sets the rate band, which in turn sets what an instalment will support.
   const tenure = headlineTenure(routing, answers);
 
   // Credit standing places the borrower *within* the product's band rather than
@@ -220,6 +242,7 @@ export function compute(answers: Answers): Result {
   // with a 780 score "10.5% to 24%" is useless to them.
   const base = routing.product.rateBand;
   const stability = stabilityAdjustment(answers, log);
+  const pricedOutsideTheBand = credit.recentBounce || credit.unsecuredLikelyDeclined;
   const rateBand = log.record({
     rule: 'pricing.rate-band',
     label: 'The rate band you should expect',
@@ -229,14 +252,24 @@ export function compute(answers: Answers): Result {
       'adjusted for how steady your income is': stability,
       'spread between lenders': lenderSpread.value,
     },
+    // The floor is the product's own: a discount can move you to the bottom of
+    // the band but never below what the product is written at.
+    //
+    // The ceiling is NOT capped for a borrower with adverse credit. Capping it
+    // was making bad news *narrow* the band — a bounce pushed the top against
+    // the product's ceiling and the range collapsed, so the engine looked more
+    // confident about someone it knew less about. That is backwards. A borrower
+    // outside the mainstream is priced outside the mainstream band, by lenders
+    // who specialise in exactly that, and the honest thing is to let the range
+    // widen upward and say so.
     output: iv(
-      // The floor is the product's own, so a discount can move you to the bottom
-      // of the band but never below what the product is written at.
       Math.min(Math.max(base.lo + credit.ratePremium.lo + stability.lo, base.lo), base.hi),
-      Math.min(
-        Math.max(base.lo + credit.ratePremium.hi + stability.hi + lenderSpread.value, base.lo),
-        base.hi,
-      ),
+      pricedOutsideTheBand
+        ? Math.max(base.lo + credit.ratePremium.hi + stability.hi + lenderSpread.value, base.hi)
+        : Math.min(
+            Math.max(base.lo + credit.ratePremium.hi + stability.hi + lenderSpread.value, base.lo),
+            base.hi,
+          ),
     ),
     why: `${routing.product.why} Your credit standing places you within that band, and lenders differ by a point or so on top of that.`,
   });
@@ -314,7 +347,12 @@ export function compute(answers: Answers): Result {
   // going out. Testing them separately would understate it.
   const emiAfterRateRise = emiRangeCorrelated(safeAmount, stressedRate(rateBand), tenure);
   const outgoStressed = totalOutgo(rent, existingEmis, emiAfterRateRise);
-  const stress = stressTest(outgoStressed, stressed, stressedOutflowCeiling.value, log);
+  const stress = stressTest(
+    outgoStressed,
+    stressed,
+    stressedCeilingFor(answers.emergencySavingsMonths),
+    log,
+  );
 
   // The all-in rate barely moves with the size of the loan, but it needs some
   // amount to be computed on. Where nothing is safe to borrow we price what they
@@ -366,6 +404,8 @@ export function compute(answers: Answers): Result {
         answers.incomeType === 'informal' || answers.incomeType === 'self-employed-cash',
       hasAppLoans: answers.appOrBnplLoans === true,
       stressBreaches: stress.breaches,
+      minTicket: routing.product.minTicket,
+      productName: routing.product.name,
     },
     log,
   );
@@ -423,8 +463,16 @@ export function compute(answers: Answers): Result {
   };
 }
 
+/**
+ * What the engine filled in for itself, in words the borrower could act on.
+ *
+ * Only rules that actually guessed something appear. Figures that merely
+ * inherited an assumption — a surplus computed from a guessed rent — are not
+ * listed: they are consequences, and listing them makes the app look like it is
+ * guessing at everything rather than at three specific things.
+ */
 const collectAssumptions = (trace: readonly TraceEntry[]): readonly string[] =>
-  trace.filter((e) => e.assumed === true).map((e) => e.label);
+  trace.filter((e) => e.assumption !== undefined).map((e) => e.assumption!);
 
 /** Re-run with one answer changed. The whole "path to yes" feature, in one line. */
 export const computeWith = (answers: Answers, change: Partial<Answers>): Result =>
