@@ -909,3 +909,8 @@ details[open] > summary::before {
   text-align: right;
   white-space: nowrap;
 }
+
+/* Before there is an answer to be narrow or wide. */
+.confidence.none .meter span {
+  background: var(--line);
+}

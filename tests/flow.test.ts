@@ -99,3 +99,38 @@ describe('walking the questions gets to the same place as answering them all at 
     expect(r.verdict.nextStep).toBeTruthy();
   });
 });
+
+describe('the screen never reports a number it does not have', () => {
+  it('has no safe amount to show until an income is given', () => {
+    // The confidence meter under every question printed "safe to carry nothing"
+    // for the first four screens, because a missing answer and a real zero are
+    // the same value. They are not the same statement: one means "we do not
+    // know yet" and the other means "you can carry nothing". A borrower who
+    // reads the second on question one has been told something false.
+    const partial: Answers[] = [
+      {},
+      { purpose: 'wedding' },
+      { purpose: 'wedding', amountAsked: 300000 },
+      { purpose: 'wedding', amountAsked: 300000, incomeType: 'salaried' },
+    ];
+    for (const answers of partial) {
+      const r = compute(answers);
+      expect(r.verdict.kind, JSON.stringify(answers)).toBe('need-more-info');
+      // Whatever the screen says here, it must not be a figure. The verdict
+      // carries the sentence to show instead, and a next step to act on.
+      expect(r.verdict.why.length).toBeGreaterThan(10);
+      expect(r.verdict.nextStep).toBeTruthy();
+    }
+  });
+
+  it('starts reporting an amount as soon as there is an income to report it from', () => {
+    const r = compute({
+      purpose: 'wedding',
+      amountAsked: 300000,
+      incomeType: 'salaried',
+      monthlyIncome: { lo: 50000, hi: 50000 },
+    });
+    expect(r.verdict.kind).not.toBe('need-more-info');
+    expect(r.amounts.safe.hi).toBeGreaterThan(0);
+  });
+});

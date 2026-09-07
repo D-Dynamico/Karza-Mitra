@@ -9,6 +9,14 @@
  *
  * The thresholds live in `confidence.thresholds` in the rule tables, so this
  * component only draws what the engine decided.
+ *
+ * There is one state before any of that applies. Until an income is given the
+ * engine returns `need-more-info` and a safe amount of zero — a real zero,
+ * meaning "no answer yet", not "you can carry nothing". Printing it read as
+ * **"safe to carry nothing"** on the first four screens of the flow, which is
+ * not a cautious answer, it is a wrong one, and a borrower who reads one absurd
+ * number stops believing the rest of the page. So while there is no answer, this
+ * says there is no answer.
  */
 
 import type { Result } from '../engine/compute';
@@ -30,6 +38,23 @@ const COPY: Record<string, { label: string; why: string }> = {
 };
 
 export function Confidence({ result }: { readonly result: Result }) {
+  // No answer yet. Say that, rather than reporting a zero as though it were one.
+  if (result.verdict.kind === 'need-more-info') {
+    return (
+      <section className="confidence none">
+        <div className="crow">
+          <span className="label">How narrow the answer is</span>
+          <strong>Nothing to narrow yet</strong>
+        </div>
+        <div className="meter">
+          <span style={{ width: '0%' }} />
+        </div>
+        <p className="muted">{result.verdict.why}</p>
+        {result.verdict.nextStep ? <p className="muted">{result.verdict.nextStep}</p> : null}
+      </section>
+    );
+  }
+
   const copy = COPY[result.confidence] ?? COPY.low!;
   const width = result.confidence === 'high' ? 100 : result.confidence === 'medium' ? 62 : 28;
 
