@@ -125,7 +125,7 @@ export function Results({
           ) : null}
           {pricing ? (
             <>
-              <dt>Rate</dt>
+              <dt>Your rate</dt>
               <dd>{rateText(pricing.rateBand)}</dd>
               <dt>All-in, fees included</dt>
               <dd>{rateText(pricing.aprBand)}</dd>
@@ -171,7 +171,7 @@ export function Results({
                     </thead>
                     <tbody>
                       <tr>
-                        <th>Rate</th>
+                        <th>Typical rate</th>
                         <td>{rateText(routing.product.rateBand)}</td>
                         <td>{rateText(routing.alternative.product.rateBand)}</td>
                       </tr>
@@ -195,6 +195,18 @@ export function Results({
                     </tbody>
                   </table>
                 </div>
+                {/* Two rate bands used to sit on this page both labelled
+                    "Rate": the borrower's adjusted band above and the product's
+                    base band here. On adverse credit they read as a flat
+                    contradiction — 13.75–19.25% above, 8.75–14% here — for the
+                    same loan. Labelling them is enough; the table's job is
+                    product against product, so the base band is the right one
+                    to show in it. */}
+                <p className="muted">
+                  These are the bands lenders publish for each product, before anything is
+                  adjusted for you.
+                  {pricing ? ` Your own band is ${rateText(pricing.rateBand)}.` : ''}
+                </p>
               </>
             ) : null}
             {routing.securedCap ? (

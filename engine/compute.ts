@@ -109,8 +109,17 @@ export interface Result {
   readonly assumptions: readonly string[];
 }
 
-/** Tenure used for the headline figures, before the borrower moves the slider. */
-function headlineTenure(routing: Routing, answers: Answers): number {
+/**
+ * Tenure used for the headline figures, before the borrower moves the slider.
+ *
+ * The retirement cap and the product's minimum term can disagree, and the
+ * minimum wins — deliberately. A lender does not write a twelve-month loan
+ * against property, so shortening the term to fit a 59-year-old's working life
+ * would quote a loan nobody offers. The honest move is to keep the term the
+ * product is actually written for and say plainly that it runs past the age we
+ * assumed they stop earning, because nothing here models income after that.
+ */
+function headlineTenure(routing: Routing, answers: Answers, log: TraceLog): number {
   const band = routing.product.tenureMonths;
   const policy = tenurePolicy.value;
   const monthsToRetirement =
@@ -120,7 +129,27 @@ function headlineTenure(routing: Routing, answers: Answers): number {
   const preferred = routing.product.secured
     ? Math.min(band.hi, policy.securedPreferredMonths)
     : policy.unsecuredPreferredMonths;
-  return Math.max(band.lo, Math.min(preferred, monthsToRetirement));
+  const capped = Math.min(preferred, monthsToRetirement);
+  const tenure = Math.max(band.lo, capped);
+
+  if (answers.age !== undefined && tenure > capped) {
+    const overrunYears = Math.round(((tenure - monthsToRetirement) / 12) * 10) / 10;
+    log.record({
+      rule: 'pricing.tenure-past-retirement',
+      label: 'This loan runs past the age we assumed you stop earning',
+      inputs: {
+        'your age now': answers.age,
+        'shortest term this product is written for': band.lo,
+        'months until you stop earning': monthsToRetirement,
+      },
+      output: tenure,
+      why: `A ${routing.product.name.toLowerCase()} is not written for less than ${band.lo} months, so the term cannot be shortened to end at ${policy.retirementAge}. It runs about ${overrunYears} years past that, and nothing here models what you earn after you stop working.`,
+      assumed: true,
+      assumption: `Repayment past retirement: this loan runs roughly ${overrunYears} years beyond age ${policy.retirementAge}, and we have assumed you can still meet it. If your income drops when you stop working, ask about a shorter term or a co-applicant who will still be earning.`,
+    });
+  }
+
+  return tenure;
 }
 
 /**
@@ -141,7 +170,16 @@ function confidenceFrom(safe: Interval, rateBand: Interval | undefined): Confide
   return 'low';
 }
 
-export function compute(answers: Answers): Result {
+/**
+ * Internal switches. Not part of the public shape: a caller asks for a result,
+ * not for a mode. The one flag stops a counterfactual from running its own
+ * counterfactual, which is what keeps the re-run below at depth one.
+ */
+interface ComputeOptions {
+  readonly insideCounterfactual?: boolean;
+}
+
+export function compute(answers: Answers, options: ComputeOptions = {}): Result {
   const log = new TraceLog();
 
   const credit = assessCredit(answers, log);
@@ -194,6 +232,9 @@ export function compute(answers: Answers): Result {
         informalIncome: false,
         hasAppLoans: answers.appOrBnplLoans === true,
         stressBreaches: false,
+        rentCounted: false,
+        collateralBindsBoth: false,
+        verdictIfExistingEmisCleared: undefined,
         paysForItself: undefined,
         minTicket: 0,
         productName: 'loan',
@@ -241,7 +282,7 @@ export function compute(answers: Answers): Result {
 
   // Price, then amount — the product is already chosen above, and it is what
   // sets the rate band, which in turn sets what an instalment will support.
-  const tenure = headlineTenure(routing, answers);
+  const tenure = headlineTenure(routing, answers, log);
 
   // Credit standing places the borrower *within* the product's band rather than
   // merely raising its floor. A clean file at the top of the range should see a
@@ -318,6 +359,12 @@ export function compute(answers: Answers): Result {
   });
 
   // A secured product cannot exceed what the asset supports.
+  //
+  // Whether the cap actually bit is worth keeping, not just the capped figure:
+  // when it holds down both numbers, income was never the constraint, and any
+  // copy that blames income is describing a different borrower.
+  const safeBeforeCap = safeAmount;
+  const lenderBeforeCap = lenderAmount;
   if (routing.securedCap) {
     lenderAmount = minOf(lenderAmount, routing.securedCap);
     safeAmount = minOf(safeAmount, routing.securedCap);
@@ -394,6 +441,24 @@ export function compute(answers: Answers): Result {
     log,
   );
 
+  const collateralBindsBoth =
+    routing.securedCap !== undefined &&
+    routing.securedCap.hi < safeBeforeCap.hi &&
+    routing.securedCap.hi < lenderBeforeCap.hi;
+
+  // Verified rather than asserted. The "wait for your loan to end" line used to
+  // claim the wait changes the answer without ever running it — and for a
+  // borrower held down by collateral it does not. One more pass of the engine
+  // settles it; `insideCounterfactual` stops that pass doing the same again, so
+  // the recursion is one deep and no more.
+  const verdictIfExistingEmisCleared =
+    options.insideCounterfactual || existingEmis <= 0
+      ? undefined
+      : compute(
+          { ...answers, existingEmis: 0, existingEmiMonthsLeft: 0 },
+          { insideCounterfactual: true },
+        ).verdict.kind;
+
   const verdict = decide(
     {
       answers,
@@ -411,6 +476,9 @@ export function compute(answers: Answers): Result {
         answers.incomeType === 'informal' || answers.incomeType === 'self-employed-cash',
       hasAppLoans: answers.appOrBnplLoans === true,
       stressBreaches: stress.breaches,
+      rentCounted: rent.hi > 0,
+      collateralBindsBoth,
+      verdictIfExistingEmisCleared,
       minTicket: routing.product.minTicket,
       productName: routing.product.name,
     },

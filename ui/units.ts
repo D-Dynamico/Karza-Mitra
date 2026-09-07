@@ -47,6 +47,7 @@ const OUTPUT_UNITS: Readonly<Record<string, Unit>> = {
   'pricing.apr': 'percent',
   'products.routing.alternative': 'percent',
   'stress.outflow': 'percentAlready',
+  'pricing.tenure-past-retirement': 'plain',
 };
 
 /** Units for named inputs, keyed by `rule::input name`. */
@@ -69,6 +70,9 @@ const INPUT_UNITS: Readonly<Record<string, Unit>> = {
   'pricing.rate-band::spread between lenders': 'points',
   'pricing.apr::processing fee': 'percent',
   'pricing.apr::quoted rate': 'percent',
+  'pricing.tenure-past-retirement::your age now': 'plain',
+  'pricing.tenure-past-retirement::shortest term this product is written for': 'plain',
+  'pricing.tenure-past-retirement::months until you stop earning': 'plain',
 };
 
 /** Rules whose output is an instalment rather than a lump sum. */

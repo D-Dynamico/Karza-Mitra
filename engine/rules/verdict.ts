@@ -56,6 +56,20 @@ export interface VerdictInputs {
   readonly informalIncome: boolean;
   readonly hasAppLoans: boolean;
   readonly stressBreaches: boolean;
+  /** Whether the borrower actually pays rent or a home loan. */
+  readonly rentCounted: boolean;
+  /**
+   * True when the asset being pledged, not income, is what holds both numbers
+   * down. Without this the "borrow less" copy blames income in a case where
+   * income was never the constraint.
+   */
+  readonly collateralBindsBoth: boolean;
+  /**
+   * The verdict this borrower would get with the existing instalment gone.
+   * Undefined when there was nothing to clear. It is the engine re-run on a
+   * changed answer, not a guess — see the note on `waitingNote` below.
+   */
+  readonly verdictIfExistingEmisCleared: VerdictKind | undefined;
   /** Whether stated earnings from the purchase cover the instalment. */
   readonly paysForItself: boolean | undefined;
   /** The smallest loan this product is actually written for. */
@@ -76,9 +90,20 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
   const monthsLeft = input.answers.existingEmiMonthsLeft;
   const waitingIsWorthIt =
     monthsLeft !== undefined && monthsLeft > 0 && monthsLeft <= 30 && input.existingEmis > 0;
-  const waitingNote = waitingIsWorthIt
-    ? ` Your existing loan has ${monthsLeft} months left. When it ends, the ₹${input.existingEmis.toLocaleString('en-IN')} you pay each month comes back to you, and that alone changes this answer.`
-    : '';
+  // The old version of this sentence ended "and that alone changes this answer"
+  // unconditionally, having never checked. For a borrower capped by collateral
+  // it is simply false: the instalment comes back and the verdict does not move.
+  // `clearingExistingEmisChangesVerdict` is the same change actually run through
+  // the engine, so the claim is only made when it holds.
+  const freed = ` Your existing loan has ${monthsLeft} months left. When it ends, the ₹${input.existingEmis.toLocaleString('en-IN')} you pay each month comes back to you`;
+  const waitingNote = (kind: VerdictKind): string => {
+    if (!waitingIsWorthIt) return '';
+    const then = input.verdictIfExistingEmisCleared;
+    if (then === undefined) return `${freed}.`;
+    return then !== kind
+      ? `${freed}, and that alone changes this answer.`
+      : `${freed} — though on its own that does not change this answer, so it is worth doing for its own sake rather than as a route to this loan.`;
+  };
 
   // A loan that earns more than it costs is a different proposition, and it is
   // the strongest argument for borrowing that exists.
@@ -131,7 +156,7 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
         (input.hasAppLoans
           ? 'Clear the app loans first, highest rate first — that frees the most per month. Three clean months after that changes this answer materially.'
           : 'Three months of every payment landing on time changes this materially, and costs you nothing but the wait.') +
-        waitingNote,
+        waitingNote('dont'),
     });
   }
 
@@ -144,7 +169,7 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
       why: `More than half of what you earn in a slow month already goes to instalments. ${obligationDangerLine.why}`,
       nextStep:
         'Clear the dearest loan first. Every rupee off that instalment does more for you than a new loan would.' +
-        waitingNote,
+        waitingNote('dont'),
     });
   }
 
@@ -204,13 +229,28 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
     const stressNote = input.stressBreaches
       ? ' The binding constraint is what happens after a bad month, not today.'
       : '';
+
+    // Three separate things in this sentence used to be asserted rather than
+    // read off the numbers, and all three could be false at once: that a lender
+    // would fund the full ask, that rent is why our figure is smaller, and that
+    // income is the constraint at all. Each is now checked.
+    const lenderWouldFund = input.lenderAmount.hi >= asked!;
+    const lead = lenderWouldFund
+      ? 'A lender will likely say yes to the full amount.'
+      : `A lender will not go to the full amount either — their own arithmetic stops at ${money(input.lenderAmount)}.`;
+    const reason = input.collateralBindsBoth
+      ? 'Both figures are held down by what the asset you would pledge is worth, not by what you earn.'
+      : input.rentCounted
+        ? 'What you can carry without the plan getting fragile is smaller, because your rent counts against you even though lenders leave it out.'
+        : 'What you can carry without the plan getting fragile is smaller, because we count what the household spends and what a bad month would do, and lenders leave both out.';
+
     return emit({
       kind: 'borrow-less',
       headline: 'You can borrow, but less than you asked for.',
-      why: `A lender will likely say yes to the full amount. What you can carry without the plan getting fragile is smaller, because your rent counts against you even though lenders leave it out.${stressNote}${earnsNote}`,
+      why: `${lead} ${reason}${stressNote}${earnsNote}`,
       nextStep:
         'Either trim the amount to the safe figure, or change one of the things below and come back to it.' +
-        waitingNote,
+        waitingNote('borrow-less'),
     });
   }
 
