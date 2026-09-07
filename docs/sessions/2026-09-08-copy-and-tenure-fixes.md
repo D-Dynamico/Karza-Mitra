@@ -10,6 +10,11 @@ All four were reproduced against the engine before anything was changed. Three o
 the same defect class as the five before: **the engine's number was right and the screen
 said something false about it.**
 
+Then three more, from the user reading further: an invented co-applicant income ranked first
+in Anita's "what would change the answer"; the expected-earnings question phrased so "this"
+had no referent; and — found while regenerating — two rules that had never reached RULES.md
+at all.
+
 Phase 5's outstanding exit check (375px walk-through) is untouched and still open.
 
 ## Changes
@@ -26,6 +31,12 @@ Phase 5's outstanding exit check (375px walk-through) is untouched and still ope
 - The two rate bands on the results page are labelled — "Your rate" for the borrower's
   adjusted band, "Typical rate" for the product's published band, with a line saying which
   is which.
+- The co-applicant what-if now prints the income it assumes, is phrased as a condition rather
+  than an event, and no longer outranks something the borrower could do this week.
+- The expected-earnings question asks "Once you have it, how much more would you earn in a
+  month?", with a hint on what counts and a note that only half of it is used.
+- `RULES.md` gained the two rules registered in `path-to-yes.ts`, which the generator had
+  never imported. 31 rules → 33.
 
 ## Decisions
 
@@ -183,6 +194,73 @@ Phase 5's outstanding exit check (375px walk-through) is untouched and still ope
 Not verified: anything in a browser. Phase 5's 375px walk-through remains outstanding and is
 the user's to run.
 
+### An invented co-applicant income was ranked first for Anita
+
+- **Choice:** the ₹15,000 literal in `path-to-yes.ts` became a registered rule,
+  `path.assumed-co-applicant-income`; the option's label prints the figure ("If someone else
+  in the household earned ₹15,000 a month") instead of hiding it; its `kind` moved from
+  *takes time* to *if it is true*; and options carrying a number the borrower never supplied
+  now sort **below** anything that actually moves the arithmetic and above the ones that move
+  nothing.
+- **Why:** the user asked how the engine could offer +₹1 lakh from a household earner when
+  nobody had said anyone earns. Reproduced: for Anita it ranked **first** at **+₹1,32,926**,
+  ahead of "clear the app loans" at **+₹1,07,173** — which is real and actionable this week.
+  The option's `applies` predicate fires when `coApplicantIncome` is 0, so it appears
+  *precisely because* she answered that nobody else earns. An invented figure outranking a
+  real action, on the strength of an answer that said the opposite, is the exact failure this
+  tool exists to avoid.
+- **Rejected:** *Deleting the option* — a second wage genuinely is a way out for Anita, and
+  removing it would leave her a worse list. *Keeping it unlabelled but demoted* — the
+  ranking would be fixed and the invented number still invisible. *Demoting it below every
+  other option* — tried first, and it pushed a ₹1.3L option below three zero-delta ones and
+  off the five-item list entirely, which is the opposite error.
+- **Assumes:** ₹15,000 is a defensible illustration of part-time or entry-level pay in these
+  cities. It is now a rule with a `why` and a `judgement` source, so it appears in RULES.md
+  and can be argued with rather than found by reading the code.
+- **Would be wrong if:** borrowers read the option as a suggestion that someone in their house
+  ought to go and earn. The conditional phrasing is doing that work and is worth watching.
+- **Source:** my judgement, 2026-09-08.
+
+### The expected-earnings question said "because of this"
+
+- **Choice:** *"How much more do you expect to earn each month because of this?"* became
+  *"Once you have it, how much more would you earn in a month?"*, with a new hint saying it
+  means money kept after fuel, stock or repairs rather than extra business done, and the
+  `whyWeAsk` now discloses that only half of the figure is counted.
+- **Why:** "because of this" has no referent on a one-question-per-screen flow — the loan, the
+  purchase, the answer before it. "Once you have it" anchors it to the thing being bought,
+  which is what the rule actually models. The engine halves the answer
+  (`income.productive-earnings`), and a borrower who is told that gives a straighter number
+  than one who suspects it.
+- **Rejected:** *Naming the purchase in the prompt* — the question applies to vehicles, shop
+  stock and any purpose flagged productive, so it would need three variants for a small gain.
+  *Leaving the halving undisclosed* — it is exactly the kind of quiet discount the honesty row
+  is about.
+- **Assumes:** borrowers can separate takings from earnings. The hint is there because that
+  assumption is thin.
+- **Would be wrong if:** answers come back looking like revenue rather than profit, which
+  would show up as implausibly large uplifts.
+- **Source:** my judgement, 2026-09-08.
+
+### Rules registered in `path-to-yes.ts` were missing from RULES.md entirely
+
+- **Choice:** `scripts/gen-rules-md.ts` now imports `../engine/path-to-yes` alongside
+  `../engine/compute`, and `path` has a named section, "What would change the answer".
+- **Why:** the generator's comment claimed importing the engine "pulls in every module that
+  registers a rule". It does not: `path-to-yes` imports `compute`, not the reverse, so nothing
+  in the generator's import graph ever loaded it. `path.gap-closers` has been missing from
+  RULES.md since it was written, and the new co-applicant rule would have been too. RULES.md
+  went from 31 rules to 33.
+- **Rejected:** *Relying on the leftover-prefix catch-all at the end of `main()`* — it is
+  already there and did not help, because the rules were never registered at all; the guard
+  protects against an unnamed prefix, not an unimported module. *Auto-importing every file
+  under `engine/`* — a glob import in a generator is a worse trade than one explicit line.
+- **Assumes:** someone adding a rule in a new file outside `engine/rules/` will notice the
+  rule count in the generator's output line. That is thin, and is the real open item.
+- **Would be wrong if:** a third such file appears and nobody counts. A test asserting every
+  `register()` call site is reachable from the generator would close it properly.
+- **Source:** found while regenerating, 2026-09-08.
+
 ## Open items
 
 - **Phase 5 exit condition still open** — walk Priya's flow at 375px, confirm no horizontal
@@ -198,3 +276,20 @@ the user's to run.
   and overstates what a lender would sanction. Unchanged, and still the largest known
   correctness issue.
 - `AffordabilityResult` and `StressResult.rate` remain dead.
+- **`runs/anita.md` never mentions the `large-expense` question.** It passes `applies()` for
+  Anita but `nextQuestions` only surfaces questions that move a number or correct a visible
+  guess, and for her it does neither — her safe carry is already ₹0, so a future expense
+  cannot lower it. It therefore appears in neither the asked list nor "Never asked", and the
+  document's own footer does not reconcile: *"28 questions exist. Anita sees 17 of them"*,
+  against 17 asked + 8 never-asked + 2 offered-and-skipped = 27. Priya and Ravi are complete;
+  Anita is the only gap. The fix is a third category in `scripts/gen-runs.ts` — "applies, but
+  never worth asking" — which would also be the section that shows the ranking is doing real
+  work. Not done; agreed as a separate decision.
+- **`appLoanOutstanding` is asked by nothing.** It is in the schema, set on one persona, and
+  written by `path-to-yes`, but no question collects it and no rule reads it.
+- **Existing loans carry no rate, and no split.** `existingEmis` is a single total. That is
+  correct for both ceilings — FOIR and surplus both count the instalment, not its rate — but
+  it means "clear the dearest loan first" is advice the engine cannot check, and
+  `path-to-yes`'s `clear-app-loans` zeroes *all* existing EMIs rather than the app-loan share,
+  overstating what clearing them frees. Same shape as the `rentOrHomeEmi` problem: one field
+  standing for two things that behave differently.
