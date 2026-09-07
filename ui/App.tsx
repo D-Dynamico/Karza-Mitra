@@ -22,7 +22,7 @@ import { Flow } from './Flow';
 import { Results } from './Results';
 import './styles.css';
 
-type View = 'start' | 'flow' | 'results' | 'card';
+type View = 'start' | 'flow' | 'review' | 'results' | 'card';
 
 export function App() {
   const [view, setView] = useState<View>('start');
@@ -96,8 +96,13 @@ export function App() {
               </div>
             </div>
           </section>
-        ) : view === 'flow' ? (
-          <Flow answers={answers} setAnswers={setAnswers} onDone={() => setView('results')} />
+        ) : view === 'flow' || view === 'review' ? (
+          <Flow
+            answers={answers}
+            setAnswers={setAnswers}
+            onDone={() => setView('results')}
+            startOnReview={view === 'review'}
+          />
         ) : view === 'card' ? (
           <>
             <button type="button" className="back no-print" onClick={() => setView('results')}>
@@ -119,14 +124,22 @@ export function App() {
             <button type="button" className="btn wide no-print" onClick={() => setView('card')}>
               If you borrow anyway, take this with you →
             </button>
+            <button type="button" className="back no-print" onClick={() => setView('review')}>
+              ← See or change your answers
+            </button>
           </>
         ) : (
-          <Results
-            result={result}
-            answers={answers}
-            onTighten={() => setView('flow')}
-            onOpenCard={() => setView('card')}
-          />
+          <>
+            <Results
+              result={result}
+              answers={answers}
+              onTighten={() => setView('review')}
+              onOpenCard={() => setView('card')}
+            />
+            <button type="button" className="back no-print" onClick={() => setView('review')}>
+              ← See or change your answers
+            </button>
+          </>
         )}
       </ErrorBoundary>
     </main>

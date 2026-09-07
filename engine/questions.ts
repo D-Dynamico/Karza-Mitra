@@ -23,6 +23,13 @@ export type QuestionTier = 'must' | 'adaptive';
 export type InputKind =
   | { kind: 'money' }
   | { kind: 'money-range' }
+  /**
+   * An amount that is very often nothing. Asking "does anyone else earn?" with
+   * a bare money box makes the common answer — no — the hardest one to give:
+   * the borrower has to work out that zero is what we want. So the "no" is a
+   * button, and the box only appears if they say yes.
+   */
+  | { kind: 'money-optional'; noLabel: string; yesLabel: string }
   | { kind: 'number'; unit: string; max?: number }
   | { kind: 'boolean' }
   | { kind: 'choice'; options: ReadonlyArray<{ value: string; label: string }> }
@@ -37,6 +44,12 @@ export interface Question {
   readonly prompt: string;
   /** One sentence behind the "why are you asking?" link. */
   readonly whyWeAsk: string;
+  /**
+   * A few words explaining a term the borrower may not know, behind a "?" on
+   * the question itself. Distinct from `whyWeAsk`, which justifies the question;
+   * this one just says what a word means. Only set where there is jargon.
+   */
+  readonly hint?: string;
   /** What the borrower loses by skipping. Shown next to the skip button. */
   readonly skipCost: string;
   readonly input: InputKind;
@@ -145,6 +158,7 @@ export const mustSet: readonly Question[] = [
     tier: 'must',
     prompt: 'What do you take home in a month?',
     whyWeAsk: 'Both of your numbers are built on it. If it varies, give us the low and the high.',
+    hint: 'What actually reaches your account each month, after deductions — not your CTC or the figure on your offer letter.',
     skipCost: 'We cannot answer at all without this one.',
     input: { kind: 'money-range' },
     moves: ['O1.verdict', 'O2.lender', 'O2.safe', 'O4.emi'],
@@ -300,7 +314,11 @@ export const adaptiveSet: readonly Question[] = [
     whyWeAsk:
       'A lender will count part of their income towards what you can borrow. We only count it towards what you can safely carry if you tell us it is genuinely shared.',
     skipCost: 'We treat you as the only earner, which is the cautious reading.',
-    input: { kind: 'money' },
+    input: {
+      kind: 'money-optional',
+      noLabel: 'No, I am the only earner',
+      yesLabel: 'Yes — and they take home',
+    },
     moves: ['O2.lender', 'O2.safe'],
     applies: always,
     probes: [{ coApplicantIncome: 0 }, { coApplicantIncome: 30000, coApplicantPooled: true }],
@@ -487,6 +505,7 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'What is the on-road price?',
     whyWeAsk: 'A vehicle loan is capped at a share of the price, so this sets the ceiling as much as your income does.',
+    hint: 'The total you actually pay the dealer — the showroom price plus registration, road tax and insurance. It is the number on the final invoice, not the price on the advertisement.',
     skipCost: 'We cannot cap the loan at what the vehicle supports.',
     input: { kind: 'money' },
     moves: ['O2.lender', 'O2.safe'],

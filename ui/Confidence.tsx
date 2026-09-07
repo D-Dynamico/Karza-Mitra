@@ -37,7 +37,22 @@ const COPY: Record<string, { label: string; why: string }> = {
   },
 };
 
-export function Confidence({ result }: { readonly result: Result }) {
+export function Confidence({
+  result,
+  showAmount = true,
+}: {
+  readonly result: Result;
+  /**
+   * Whether to print the actual amount, or only how wide it is.
+   *
+   * Mid-flow, before the essential questions are done, the engine has a real
+   * number but it rests on half the facts. Showing it invites anchoring on a
+   * figure that is about to move a long way, which is a worse failure than
+   * showing nothing — so until the must set is complete this reports movement
+   * and width only, and the amount arrives when it has been earned.
+   */
+  readonly showAmount?: boolean;
+}) {
   // No answer yet. Say that, rather than reporting a zero as though it were one.
   if (result.verdict.kind === 'need-more-info') {
     return (
@@ -68,10 +83,17 @@ export function Confidence({ result }: { readonly result: Result }) {
         <span style={{ width: `${width}%` }} />
       </div>
       <p className="muted">{copy.why}</p>
-      <p className="muted">
-        Right now: safe to carry {money(result.amounts.safe)}
-        {result.pricing ? `, at ${rateText(result.pricing.rateBand)}` : ''}.
-      </p>
+      {showAmount ? (
+        <p className="muted">
+          Right now: safe to carry {money(result.amounts.safe)}
+          {result.pricing ? `, at ${rateText(result.pricing.rateBand)}` : ''}.
+        </p>
+      ) : (
+        <p className="muted">
+          The figures arrive once the essential questions are done. Until then this only shows
+          how wide the answer would be.
+        </p>
+      )}
     </section>
   );
 }

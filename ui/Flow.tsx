@@ -42,15 +42,27 @@ export function Flow({
   answers,
   setAnswers,
   onDone,
+  startOnReview = false,
 }: {
   readonly answers: Answers;
   readonly setAnswers: (next: Answers) => void;
   readonly onDone: () => void;
+  /** Entered from the answer screen to check or change what was said. */
+  readonly startOnReview?: boolean;
 }) {
   const [skipped, setSkipped] = useState<readonly string[]>([]);
   const [moved, setMoved] = useState<readonly Movement[]>([]);
   const [showWhy, setShowWhy] = useState(false);
-  const [reviewing, setReviewing] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [reviewing, setReviewing] = useState(startOnReview);
+  /**
+   * Every previous state, so Back is a real undo rather than a guess at which
+   * question came before. The ordering is recomputed after each answer, so the
+   * only reliable way back is to restore the state we were actually in.
+   */
+  const [history, setHistory] = useState<
+    readonly { answers: Answers; skipped: readonly string[] }[]
+  >([]);
 
   const result = useMemo(() => compute(answers), [answers]);
 
@@ -69,19 +81,37 @@ export function Flow({
     (q) => answers[q.field] !== undefined || skipped.includes(q.id),
   ).length;
 
+  const remember = (): void =>
+    setHistory((prev) => [...prev, { answers, skipped }]);
+
   const commit = (value: Answers[keyof Answers]): void => {
     if (!question) return;
     const after: Answers = { ...answers, [question.field]: value };
+    remember();
     setMoved(whatMoved(compute(answers), compute(after), fmt));
     setAnswers(after);
     setShowWhy(false);
+    setShowHint(false);
   };
 
   const skip = (): void => {
     if (!question) return;
+    remember();
     setSkipped((prev) => [...prev, question.id]);
     setMoved([]);
     setShowWhy(false);
+    setShowHint(false);
+  };
+
+  const back = (): void => {
+    const previous = history[history.length - 1];
+    if (!previous) return;
+    setHistory((prev) => prev.slice(0, -1));
+    setAnswers(previous.answers);
+    setSkipped(previous.skipped);
+    setMoved([]);
+    setShowWhy(false);
+    setShowHint(false);
   };
 
   if (reviewing || !question) {
@@ -92,6 +122,15 @@ export function Flow({
         skipped={skipped}
         onFix={(id) => {
           setSkipped((prev) => prev.filter((x) => x !== id));
+          setReviewing(false);
+        }}
+        onChange={(field) => {
+          // Clearing the answer puts the question back in the queue, which is
+          // the same path as never having answered it — so there is one way a
+          // question gets asked, not two.
+          const { [field]: _dropped, ...rest } = answers;
+          setAnswers(rest as Answers);
+          setMoved([]);
           setReviewing(false);
         }}
         onDone={onDone}
@@ -128,7 +167,22 @@ export function Flow({
       ) : null}
 
       <section className="ask">
-        <h2>{question.prompt}</h2>
+        <h2>
+          {question.prompt}
+          {question.hint ? (
+            <button
+              type="button"
+              className="hintdot"
+              aria-label={`What does this mean? ${question.hint}`}
+              title={question.hint}
+              aria-expanded={showHint}
+              onClick={() => setShowHint((v) => !v)}
+            >
+              ?
+            </button>
+          ) : null}
+        </h2>
+        {showHint && question.hint ? <p className="why-box">{question.hint}</p> : null}
 
         <button type="button" className="whylink" onClick={() => setShowWhy((v) => !v)}>
           {showWhy ? 'Hide' : 'Why are you asking?'}
@@ -138,7 +192,12 @@ export function Flow({
         {/* Keyed by question id so a text field never carries its value into
             the next question — two money questions in a row would otherwise
             reuse the same component instance and keep the previous answer. */}
-        <Field key={question.id} input={question.input} onCommit={commit} />
+        <Field
+          key={question.id}
+          input={question.input}
+          onCommit={commit}
+          varies={answers.incomeType !== undefined && answers.incomeType !== 'salaried'}
+        />
 
         <div className="skip">
           <button type="button" className="skipbtn" onClick={skip}>
@@ -148,7 +207,13 @@ export function Flow({
         </div>
       </section>
 
-      <Confidence result={result} />
+      {history.length > 0 ? (
+        <button type="button" className="back" onClick={back}>
+          ← Back to the last question
+        </button>
+      ) : null}
+
+      <Confidence result={result} showAmount={mustDone >= mustSet.length} />
 
       {mustDone >= mustSet.length ? (
         <button type="button" className="btn wide" onClick={() => setReviewing(true)}>
@@ -171,6 +236,7 @@ function Review({
   result,
   skipped,
   onFix,
+  onChange,
   onDone,
   onBack,
 }: {
@@ -178,6 +244,7 @@ function Review({
   readonly result: Result;
   readonly skipped: readonly string[];
   readonly onFix: (questionId: string) => void;
+  readonly onChange: (field: keyof Answers) => void;
   readonly onDone: () => void;
   readonly onBack: (() => void) | undefined;
 }) {
@@ -198,7 +265,12 @@ function Review({
           {asked.map((q) => (
             <li key={q.id}>
               <span>{q.prompt}</span>
-              <strong>{describe(answers[q.field])}</strong>
+              <span className="answer">
+                <strong>{describe(answers[q.field])}</strong>
+                <button type="button" className="changebtn" onClick={() => onChange(q.field)}>
+                  Change
+                </button>
+              </span>
             </li>
           ))}
         </ul>
@@ -236,7 +308,7 @@ function Review({
         </p>
       ) : null}
 
-      <Confidence result={result} />
+      <Confidence result={result} showAmount />
 
       <button type="button" className="btn primary wide" onClick={onDone}>
         Show me the answer →

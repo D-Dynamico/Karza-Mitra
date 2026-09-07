@@ -18,7 +18,7 @@ import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
 import { nextQuestions } from '../engine/next-questions';
 import { personas } from '../engine/personas';
-import { mustSet, type Question } from '../engine/questions';
+import { allQuestions, mustSet, type Question } from '../engine/questions';
 
 /** Exactly the selection `ui/Flow.tsx` performs, kept in step by hand. */
 function nextToAsk(answers: Answers, skipped: ReadonlySet<string>): Question | undefined {
@@ -132,5 +132,65 @@ describe('the screen never reports a number it does not have', () => {
     });
     expect(r.verdict.kind).not.toBe('need-more-info');
     expect(r.amounts.safe.hi).toBeGreaterThan(0);
+  });
+});
+
+describe('changing an answer puts the question back in the queue', () => {
+  it('re-asks a must question whose answer was cleared', () => {
+    // "Change" on the review screen deletes the answer rather than opening a
+    // separate edit screen, so a question is only ever asked one way.
+    const full = personas[0]!.answers;
+    const answered: Answers = { ...full };
+    const target = mustSet.find((q) => answered[q.field] !== undefined)!;
+
+    const { [target.field]: _cleared, ...without } = answered;
+    const asked = nextToAsk(without as Answers, new Set());
+
+    expect(asked?.id).toBe(target.id);
+  });
+
+  it('never offers a question that is already answered', () => {
+    // The real claim. Priya does not answer every must field, so something may
+    // still be pending — but it must never be one she has already given.
+    for (const persona of personas) {
+      const asked = nextToAsk(persona.answers, new Set());
+      if (asked) {
+        expect(persona.answers[asked.field], `${persona.id} re-asked ${asked.id}`).toBeUndefined();
+      }
+    }
+  });
+});
+
+describe('an amount whose usual answer is none', () => {
+  it('lets "nobody else earns" be a real answer, not a blank', () => {
+    // Zero here is an answer: it says there is no second earner. Skipping is a
+    // different thing, and the engine treats them differently — so the screen
+    // has to offer both.
+    const q = allQuestions.find((x) => x.field === 'coApplicantIncome')!;
+    expect(q.input.kind).toBe('money-optional');
+
+    const none = compute({ ...personas[0]!.answers, coApplicantIncome: 0 });
+    expect(none.verdict.kind).toBeTruthy();
+    expect(none.amounts.safe.hi).toBeGreaterThanOrEqual(0);
+  });
+
+  it('counts a second earner when there is one', () => {
+    const base: Answers = { ...personas[0]!.answers, coApplicantIncome: 0 };
+    const withEarner: Answers = {
+      ...personas[0]!.answers,
+      coApplicantIncome: 25000,
+      coApplicantPooled: true,
+    };
+    expect(compute(withEarner).amounts.lender.hi).toBeGreaterThan(
+      compute(base).amounts.lender.hi,
+    );
+  });
+});
+
+describe('terms a borrower may not know carry an explanation', () => {
+  it('explains on-road price', () => {
+    const q = allQuestions.find((x) => x.field === 'vehicleOnRoadPrice')!;
+    expect(q.hint).toBeTruthy();
+    expect(q.hint!.toLowerCase()).toContain('registration');
   });
 });
