@@ -140,6 +140,10 @@ none of them can say something the arithmetic does not support.
 - **Two-wheeler as a fully separate product from vehicle loans.** They share a band, split only
   by whether a bank or an NBFC would write it — which is the distinction that actually changes
   Anita's answer.
+- **Saving the Negotiation Card as an image.** It prints, and prints to a single A4 page, which
+  is what the Card is for — a page carried into a branch. Rendering the same page to a PNG in
+  the browser means an SVG `foreignObject` route that fails silently when it fails, and a
+  button that sometimes produces a blank image is worse than no button.
 - **Regional lenders entirely** — cooperative banks, chit funds, moneylenders. They are a real
   part of this market, particularly for the borrowers this tool would help most, and none of
   them are modelled. That is the largest single gap in the product table, and

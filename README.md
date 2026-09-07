@@ -61,5 +61,6 @@ verdict that will say don't borrow. Every product band is now cited and dated. R
 `npx tsx scripts/run-personas.ts` to see what it says about three very different borrowers,
 or read `runs/` for the same thing written out.
 
-The interface is still the phase 0 placeholder; the results screens and the question flow
-land in phases 4 and 5.
+The interface is built: a question flow that asks one thing at a time and shows what each
+answer moved, results screens with the working behind every number, and a Negotiation Card
+that prints to one page.

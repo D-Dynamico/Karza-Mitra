@@ -145,17 +145,18 @@ Scored rows: **explainability and the Card** (20) — the Card is named in that 
 product craft — plus **domain reasoning** made visible. The test the brief sets is whether a
 borrower could actually use this standing in a branch.
 
-- [ ] 4.1 O1–O4 panels — headline range, why generated from the trace, "show working" drawer
-- [ ] 4.2 "Tighten this" buttons per panel, driven by `nextQuestions`
-- [ ] 4.3 Negotiation Card, KFS row order and vocabulary
-- [ ] 4.4 Lender quote input — places the quote on the band, computes its all-in rate
-- [ ] 4.5 Nudge on out-of-band quote or over-ceiling EMI — one red line, "proceed anyway", never a modal
-- [ ] 4.6 "Don't" screen — surplus anchor with working, debt-first ordering, consolidation option
-- [ ] 4.7 Path-to-yes toggles, on "don't" and "borrow less", ranked, time vs action today
-- [ ] 4.8 Alternatives to borrowing, one line each on why it beats the loan for this profile
-- [ ] 4.9 Unsecured vs secured cost comparison (Ravi's routing made legible)
-- [ ] 4.10 Card save as image and print stylesheet, A4 and phone
-- [ ] 4.11 Error boundary around results that still shows the trace
+- [x] 4.1 O1–O4 panels — headline range, why generated from the trace, "show working" drawer
+- [x] 4.2 "Tighten this" buttons per panel, driven by `nextQuestions`
+- [x] 4.3 Negotiation Card, KFS row order and vocabulary
+- [x] 4.4 Lender quote input — places the quote on the band, computes its all-in rate
+- [x] 4.5 Nudge on out-of-band quote or over-ceiling EMI — one red line, "proceed anyway", never a modal
+- [x] 4.6 "Don't" screen — surplus anchor with working, debt-first ordering, consolidation option
+- [x] 4.7 Path-to-yes toggles, on "don't" and "borrow less", ranked, time vs action today
+- [x] 4.8 Alternatives to borrowing, one line each on why it beats the loan for this profile
+- [x] 4.9 Unsecured vs secured cost comparison (Ravi's routing made legible)
+- [x] 4.10 Card print stylesheet, A4 and phone. **Save-as-image cut 2026-09-07** — see the
+      session note; print-to-PDF covers carrying the card, and the canvas route fails silently
+- [x] 4.11 Error boundary around results that still shows the trace
 
 **Exit condition:**
 
@@ -169,7 +170,8 @@ borrower could actually use this standing in a branch.
 - Typing a lender quote places it on the band and computes an all-in rate that differs from
   the headline rate by roughly the fee plus its GST
 - An out-of-band quote fires the nudge, and "proceed anyway" still works
-- The Card prints to one A4 page and saves as an image
+- The Card prints to one A4 page. ~~and saves as an image~~ — **amended 2026-09-07**: the
+  image export was cut deliberately, not skipped. Reasoning in the phase 4 session note.
 - `npm run build` succeeds, `npm test` green
 
 ## Phase 5 — Flow UI
@@ -179,12 +181,12 @@ shown honestly, works on a phone. Built after the results screens because by thi
 questions, the rules and the outputs all exist, so the flow is only wiring. It is not
 optional.
 
-- [ ] 5.1 One question per screen, mobile layout, numeric keypad, lakh echo
-- [ ] 5.2 Skip, always visible, with its one-line consequence
-- [ ] 5.3 "What moved" banner after each answer
-- [ ] 5.4 Confidence meter derived from range width, with the copy that explains it
-- [ ] 5.5 "Why are you asking?" on every question
-- [ ] 5.6 Review screen before results — every answer, assumed defaults marked, blanks tap-to-fill
+- [x] 5.1 One question per screen, mobile layout, numeric keypad, lakh echo
+- [x] 5.2 Skip, always visible, with its one-line consequence
+- [x] 5.3 "What moved" banner after each answer
+- [x] 5.4 Confidence meter derived from range width, with the copy that explains it
+- [x] 5.5 "Why are you asking?" on every question
+- [x] 5.6 Review screen before results — every answer, assumed defaults marked, blanks tap-to-fill
 
 **Exit condition:**
 
