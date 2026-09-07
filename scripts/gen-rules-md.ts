@@ -17,10 +17,13 @@ import { allRules, type Rule, type Source, type TieredRule } from '../engine/rul
 import { products, type Product } from '../engine/rules/products';
 import type { Interval } from '../engine/interval';
 
-// Importing the engine pulls in every module that registers a rule. Without
-// this, a rule defined in a file nothing else imports would silently vanish
-// from the document — the one way the tables and the doc can fall out of step.
+// Every module that registers a rule has to be imported here, or its rules
+// silently vanish from the document — the one way the tables and the doc can
+// fall out of step. `compute` covers everything under `engine/rules/`, but only
+// what it actually imports: `path-to-yes` imports `compute` rather than the
+// other way round, so its two rules went unlisted until someone counted them.
 import '../engine/compute';
+import '../engine/path-to-yes';
 
 type AnyRule = Rule<unknown> | TieredRule<unknown>;
 
@@ -106,6 +109,12 @@ const SECTIONS: readonly { prefix: string; title: string; blurb: string }[] = [
     prefix: 'stability',
     title: 'How steady the income is',
     blurb: 'Employer and tenure, which move the rate rather than the amount.',
+  },
+  {
+    prefix: 'path',
+    title: 'What would change the answer',
+    blurb:
+      'The figures behind the what-if options shown after a refusal. The co-applicant income is the one number on that screen the borrower did not supply, so the option prints it rather than folding it into the arithmetic.',
   },
   {
     prefix: 'confidence',

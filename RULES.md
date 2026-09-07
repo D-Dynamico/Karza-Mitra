@@ -152,6 +152,15 @@ Employer and tenure, which move the rate rather than the amount.
 | `stability.employer` | Rate adjustment for the kind of employer | **mnc**: -1 – -0.5<br>**psu-govt**: -1.5 – -0.75<br>**small-firm**: 0 – 0.75<br>**other**: 0 | A government or large-company payslip is the strongest evidence of a steady income a lender can see, and several will shave the rate for it. A small employer carries the risk that the job goes before the loan does. | My judgement — Employer categories are a standard underwriting input. The sizes of the adjustments are mine. | — |
 | `stability.years-in-work` | Rate adjustment for time in the job or the business<br>*keyed on years in the current job or business* | below 1: 1 – 2.5<br>below 3: 0 – 1<br>above that: -0.75 – 0 | Under a year, many lenders decline outright and the rest price for the chance you do not stay. Past the first year the file reads normally, but you are not yet getting the best of the band. Several years in the same work is exactly what a lender wants to see, and it is worth asking for a better rate on the strength of it. | My judgement — Reflects the probation and vintage rules most lenders apply. | — |
 
+## What would change the answer
+
+The figures behind the what-if options shown after a refusal. The co-applicant income is the one number on that screen the borrower did not supply, so the option prints it rather than folding it into the arithmetic.
+
+| Rule | What it sets | Value | Why | Source | Checked |
+|---|---|---|---|---|---|
+| `path.assumed-co-applicant-income` | Second household income assumed when showing what another earner would change | 15,000 | A figure has to be picked to show what a second income is worth at all, and this is roughly what part-time or entry-level work pays in the cities these borrowers live in. It is an illustration, not a prediction — which is why the amount is printed in the option itself rather than hidden inside the arithmetic. | My judgement — My own round figure, chosen to be modest rather than flattering. | — |
+| `path.gap-closers` | Ways to bridge a shortfall without borrowing more | **vehicle**: Put down the difference yourself. Platform finance partners commonly expect 15 to 25% up front, and the loan is cheaper for it.; Check the subsidy on the sticker price before you agree a figure — electric two-wheelers carry central and state support that is applied at the dealer.; A model one step down, or a good used one, closes most gaps this size on its own.<br>**business-stock**: Buy the stock in two rounds rather than one, and let the first round pay for the second.; Ask your supplier for credit terms. Thirty days from a supplier costs nothing and is the cheapest working capital there is.<br>**wedding**: The date is negotiable in a way an instalment is not. A few months of saving closes a gap this size without any lender involved.<br>**medical**: Ask the hospital about instalments directly, and check any scheme you are covered by before borrowing. | A shortfall is not automatically a reason to borrow more. Putting part down, taking a subsidy, or buying in stages closes most gaps at a lower cost than the extra lending would. | My judgement — Practical options rather than lending rules. The subsidy point is specific to electric two-wheelers. | — |
+
 ## Confidence
 
 How narrow an answer has to be before it is worth acting on. Confidence describes the width of the answer, not the number of questions asked.
@@ -220,6 +229,8 @@ would be an invented one — but they are the rows to argue with first.
 - `income.productive-earnings`
 - `income.recognition`
 - `income.unknown-type`
+- `path.assumed-co-applicant-income`
+- `path.gap-closers`
 - `products.lap-threshold`
 - `products.notional-amount`
 - `products.tenure-policy`
@@ -232,7 +243,7 @@ would be an invented one — but they are the rows to argue with first.
 - `verdict.productive-coverage`
 - `products.bands → gold-loan`
 
-That is 30 of 38 rows.
+That is 32 of 40 rows.
 
 ## Which questions get asked, and why
 
