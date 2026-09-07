@@ -46,6 +46,9 @@ docs/       architecture, design and session notes
 
 ## Where to read next
 
+- `WALKTHROUGH.md` — one borrower end to end, then what is next and what was cut
+- `RULES.md` — every rule, its value, its reasoning and where the number came from (generated)
+- `runs/priya.md`, `runs/ravi.md`, `runs/anita.md` — the three borrowers, question by question (generated)
 - `CLAUDE.md` — short orientation, guiding rules, working agreement
 - `docs/SYSTEM_DESIGN.md` — architecture and the lending rules in detail
 - `phases.md` — build order and current progress
@@ -54,8 +57,9 @@ docs/       architecture, design and session notes
 ## Status
 
 The engine is built and tested — two amounts, product routing, honest all-in rate, and a
-verdict that will say don't borrow. Run `npx tsx scripts/run-personas.ts` to see what it
-says about three very different borrowers.
+verdict that will say don't borrow. Every product band is now cited and dated. Run
+`npx tsx scripts/run-personas.ts` to see what it says about three very different borrowers,
+or read `runs/` for the same thing written out.
 
-The interface is still the phase 0 placeholder; the question flow and results screens land
-in phases 3 and 4.
+The interface is still the phase 0 placeholder; the results screens and the question flow
+land in phases 4 and 5.

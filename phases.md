@@ -120,14 +120,14 @@ ahead of every UI phase because these documents are generated from the engine an
 both of which already exist, and a judge reads them without running the app. RULES.md is
 explicitly "read as carefully as the code".
 
-- [ ] 3.1 **Verify the market bands.** Check every rate, fee and loan-to-value figure in
+- [x] 3.1 **Verify the market bands.** Check every rate, fee and loan-to-value figure in
       `engine/rules/products.ts` against current lender pages. Swap `judgement(...)` for
       `{ kind: 'market', cite, checked }` with the date. Expect golden tests to move; read
       what moved and update them deliberately
-- [ ] 3.2 `scripts/gen-rules-md.ts` — walks the rule tables, emits RULES.md with what · value · why · source · date
-- [ ] 3.3 RULES.md "What I do not know" section and the question-inclusion policy
-- [ ] 3.4 `runs/priya.md`, `ravi.md`, `anita.md` — questions asked in order, answers, four outputs with why lines, card
-- [ ] 3.5 WALKTHROUGH.md — one borrower end to end, then "what's next" and "what I cut"
+- [x] 3.2 `scripts/gen-rules-md.ts` — walks the rule tables, emits RULES.md with what · value · why · source · date
+- [x] 3.3 RULES.md "What I do not know" section and the question-inclusion policy
+- [x] 3.4 `runs/priya.md`, `ravi.md`, `anita.md` — questions asked in order, answers, four outputs with why lines, card
+- [x] 3.5 WALKTHROUGH.md — one borrower end to end, then "what's next" and "what I cut"
 
 **Exit condition:**
 

@@ -1,6 +1,6 @@
 # Karza Mitra: build plan
 
-Issued 2 Sep, four-day box, so the clock likely runs out around 6 Sep. If it has, ask for an extension in the same message you ask your brief questions in. The brief says asking is not held against you, and the questions themselves are scored.
+Received 4 Sep, four-day box, so the clock runs out on 8 Sep. Ask the brief questions in time to be answered; the questions themselves are scored, and the brief says asking is not held against you. Only ask for an extension if the 8th is genuinely out of reach.
 
 ## 0. What the brief is actually testing
 

@@ -106,11 +106,12 @@ function ask(q: Question, why: string): void {
   void before;
 }
 
-console.log('\n--- THE MUST SET: everyone answers these nine ---');
+console.log(`
+--- THE MUST SET: everyone answers these ${mustSet.length} ---`);
 for (const q of mustSet) ask(q, '');
 
 const afterMust = compute(asked);
-console.log(`\n  >> After nine questions: ${afterMust.verdict.kind}, confidence ${afterMust.confidence}`);
+console.log(`\n  >> After ${mustSet.length} questions: ${afterMust.verdict.kind}, confidence ${afterMust.confidence}`);
 console.log(`     safe to carry ${fmt('O2.safe', asked)}   rate ${fmt('O3.rate', asked)}`);
 
 console.log('\n--- THEN, WHATEVER THE ENGINE RANKS HIGHEST, ONE AT A TIME ---');

@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
+import { negotiationCard } from '../engine/card';
 import { money, moneyRange, perMonth, rate } from '../engine/format';
 import { iv } from '../engine/interval';
 import { nothingUnlocksIt, pathToYes, smallestUnlockingCombination } from '../engine/path-to-yes';
-import { anita, priya } from '../engine/personas';
-import { products } from '../engine/rules/products';
+import { anita, priya, ravi } from '../engine/personas';
+import { goldLtvFor, products } from '../engine/rules/products';
+import { allRules } from '../engine/rules/table';
 import {
   safeCeilingFor,
   STRESS_CEILING_CAP,
@@ -252,5 +254,120 @@ describe('numbers are shown as honestly as they are known', () => {
   it('speaks in lakh for anything a borrower would call a lakh', () => {
     expect(money(iv(1500000, 1500000))).toBe('₹15 lakh');
     expect(money(iv(88897, 88897))).toContain('₹');
+  });
+});
+
+describe('what a rule claims about where it came from', () => {
+  it('gives every product its own source', () => {
+    // One source note across the whole table was wrong about at least one row:
+    // a two-wheeler NBFC and a public sector bank are not the same market.
+    for (const p of Object.values(products.value)) {
+      expect(p.source, p.id).toBeDefined();
+      if (p.source.kind === 'judgement') {
+        expect(p.source.note.length, p.id).toBeGreaterThan(20);
+      } else {
+        expect(p.source.cite.length, p.id).toBeGreaterThan(20);
+        expect(p.source.checked, p.id).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      }
+    }
+  });
+
+  it('leaves no row still admitting it has not been checked', () => {
+    // Phase 3's exit condition, as a test rather than a promise. "My judgement"
+    // is a legitimate source; "must be checked before this is published" is a
+    // placeholder that should never survive into a published RULES.md.
+    const placeholder = /not yet verified|must be checked|before RULES\.md/i;
+    for (const rule of allRules()) {
+      const src = rule.source;
+      const text = src.kind === 'judgement' ? src.note : src.cite;
+      expect(text, rule.id).not.toMatch(placeholder);
+    }
+    for (const p of Object.values(products.value)) {
+      const text = p.source.kind === 'judgement' ? p.source.note : p.source.cite;
+      expect(text, p.id).not.toMatch(placeholder);
+    }
+  });
+});
+
+describe('gold loan-to-value follows the RBI tiers, not a flat cap', () => {
+  it('is most generous on the smallest loans', () => {
+    // RBI, from 1 Apr 2026: 85% up to 2.5L, 80% to 5L, 75% above.
+    expect(goldLtvFor(100000).hi).toBeCloseTo(0.85, 6);
+    expect(goldLtvFor(300000).hi).toBeCloseTo(0.8, 6);
+    expect(goldLtvFor(600000).hi).toBeCloseTo(0.75, 6);
+  });
+
+  it('never promises more than the tier below it', () => {
+    const amounts = [50000, 249999, 250000, 499999, 500000, 2000000];
+    for (let i = 1; i < amounts.length; i += 1) {
+      expect(goldLtvFor(amounts[i]!).hi).toBeLessThanOrEqual(goldLtvFor(amounts[i - 1]!).hi);
+    }
+  });
+
+  it('starts every band at what lenders actually still write, not at the ceiling', () => {
+    // The spread between 75% and the RBI ceiling is the honest answer: quoting
+    // only the ceiling promises money a branch may not hand over, and quoting
+    // only 75% can push a borrower to microfinance at three times the rate.
+    for (const amount of [100000, 300000, 600000]) {
+      expect(goldLtvFor(amount).lo).toBeCloseTo(0.75, 6);
+    }
+  });
+
+  it('raises the cap on a small gold loan, so gold beats microfinance more often', () => {
+    const cap = (v: number, asked: number) => v * goldLtvFor(asked).hi;
+    // 2 lakh of household gold now supports 1.7L, where the old flat 75% cap
+    // stopped at 1.5L. That difference is exactly the range where the
+    // alternative is a microfinance or app loan.
+    expect(cap(200000, 150000)).toBeCloseTo(170000, 0);
+  });
+});
+
+describe('a "borrow" verdict does not claim a fit it never tested', () => {
+  it('tells Ravi he is asking slightly above his safe ceiling', () => {
+    // He asks 15L against a safe ceiling of about 14.42L. `borrow-less` only
+    // fires below four fifths of the ask, so he lands on `borrow` — but the
+    // old copy then told him "the amount fits under all three affordability
+    // tests", which was false by about ₹58,000.
+    const r = compute(ravi.answers);
+    expect(r.verdict.kind).toBe('borrow');
+    expect(ravi.answers.amountAsked!).toBeGreaterThan(r.amounts.safe.hi);
+    expect(r.verdict.why).not.toContain('fits under all three');
+    expect(r.verdict.nextStep).toMatch(/Ask for/);
+  });
+
+  it('still says a plain yes to someone asking for less than they can carry', () => {
+    const modest: Answers = { ...ravi.answers, amountAsked: 800000 };
+    const r = compute(modest);
+    expect(r.verdict.kind).toBe('borrow');
+    expect(r.amounts.safe.lo).toBeGreaterThanOrEqual(800000);
+    expect(r.verdict.why).toContain('fits under all three');
+  });
+});
+
+describe('the Negotiation Card never contradicts the verdict', () => {
+  it('does not hand a "don\'t" borrower an amount to ask for', () => {
+    const card = negotiationCard(compute(anita.answers));
+    expect(card.advisesAgainst).toBe(true);
+    expect(card.rows.map((r) => r.label)).not.toContain('Amount to ask for');
+    expect(card.rows.map((r) => r.label)).not.toContain('Most you should agree to pay monthly');
+    expect(card.walkAway).toBeDefined();
+  });
+
+  it('asks for the safe number, never the lender number', () => {
+    const r = compute(priya.answers);
+    const card = negotiationCard(r);
+    const amount = card.rows.find((row) => row.label === 'Amount to ask for')!;
+    expect(amount.value).toBe(money(r.amounts.safe));
+    // The lender's larger number appears only as the thing not to be flattered by.
+    expect(amount.note).toContain('not a compliment');
+  });
+
+  it('always shows the all-in rate next to the headline rate', () => {
+    for (const p of [priya, ravi, anita]) {
+      const card = negotiationCard(compute(p.answers));
+      const labels = card.rows.map((row) => row.label);
+      expect(labels, p.id).toContain('Rate to hold them to');
+      expect(labels, p.id).toContain('All-in rate, fees included');
+    }
   });
 });

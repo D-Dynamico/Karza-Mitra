@@ -46,10 +46,14 @@ describe('Priya — two numbers, not one', () => {
   });
 
   it('locks the endpoints', () => {
-    expect(r.amounts.safe.lo).toBeCloseTo(469364, NEAR);
-    expect(r.amounts.safe.hi).toBeCloseTo(480044, NEAR);
-    expect(r.amounts.lender.lo).toBeCloseTo(2114347, NEAR);
-    expect(r.amounts.lender.hi).toBeCloseTo(2419291, NEAR);
+    // Moved 2026-09-07 when the personal loan floor was verified down from
+    // 10.5% to 9.99%. A cheaper rate buys more principal for the same
+    // instalment, so both pairs step up. The gap between them is the point,
+    // and it did not narrow.
+    expect(r.amounts.safe.lo).toBeCloseTo(474768, NEAR);
+    expect(r.amounts.safe.hi).toBeCloseTo(485625, NEAR);
+    expect(r.amounts.lender.lo).toBeCloseTo(2139167, NEAR);
+    expect(r.amounts.lender.hi).toBeCloseTo(2447966, NEAR);
   });
 
   it('explains the gap by naming her rent', () => {
@@ -58,9 +62,12 @@ describe('Priya — two numbers, not one', () => {
 
   it('prices her cleanly, because her score is known and high', () => {
     // 780 score, five years at a large employer: the bottom of the band, and
-    // narrow. Quoting her the product's full 10.5-24% would be useless to her.
-    expect(r.pricing!.rateBand.lo).toBeCloseTo(10.5, 6);
-    expect(r.pricing!.rateBand.hi).toBeCloseTo(11.5, 6);
+    // narrow. Quoting her the product's full 9.99-24% would be useless to her.
+    // She lands exactly on the floor, which is the right answer — 9.99% is
+    // quoted by four banks precisely for CIBIL 780+ at a category-A employer,
+    // which is her.
+    expect(r.pricing!.rateBand.lo).toBeCloseTo(9.99, 6);
+    expect(r.pricing!.rateBand.hi).toBeCloseTo(10.99, 6);
     expect(r.confidence).toBe('high');
   });
 
@@ -86,7 +93,13 @@ describe('Ravi — product routing', () => {
     const secured = r.pricing!.rateBand;
     const unsecured = r.routing!.alternative!.product.rateBand;
     expect(secured.hi).toBeLessThan(unsecured.hi);
-    expect(secured.hi).toBeLessThanOrEqual(12);
+    // Was a hardcoded 12%. That number was pinned to the old, too-narrow
+    // 9-12% loan-against-property band; once the band was verified out to
+    // 8.75-14% a thin-file borrower priced at 13.25%, and the literal failed
+    // without anything actually being wrong. The claim the routing copy makes
+    // is that pledging property "roughly halves the rate", so assert that
+    // instead of a number that has to be re-pinned every time a band moves.
+    expect(secured.hi).toBeLessThanOrEqual(unsecured.hi * 0.6);
   });
 
   it('recognises less income than he actually earns, and says so', () => {
@@ -101,8 +114,12 @@ describe('Ravi — product routing', () => {
   });
 
   it('locks the endpoints', () => {
-    expect(r.amounts.safe.lo).toBeCloseTo(1314244, NEAR);
-    expect(r.amounts.safe.hi).toBeCloseTo(1430664, NEAR);
+    // Moved 2026-09-07 with the verified loan-against-property band. The top
+    // of the band went 12% -> 14%, so his dearest case got dearer and safe.lo
+    // fell; the floor went 9% -> 8.75%, so safe.hi rose. The answer got wider
+    // in both directions, which is why his confidence is now 'low'.
+    expect(r.amounts.safe.lo).toBeCloseTo(1265812, NEAR);
+    expect(r.amounts.safe.hi).toBeCloseTo(1441972, NEAR);
   });
 
   it('holds after a bad turn', () => {

@@ -298,6 +298,9 @@ city-tier half of the default.
 - **The four-day box has expired.** Issued 2 Sep 2026, so it closed around 6 Sep; today is
   7 Sep. The brief says asking for more time is not held against you, and that good questions
   about the brief are part of the evaluation. Both should go in one message, soon.
+  **Corrected 7 Sep:** wrong. The 2 Sep issue date was inferred, not known. The user confirms
+  the brief reached them on 4 Sep, so the box closes on the **8th** and is still open. No
+  extension is needed; the questions still need to go out early enough to be answered.
 - **A blank rent is read as zero.** Unlike household spending, rent has no default, so a
   borrower who skips it is silently treated as paying nothing. That is the wrong direction to
   be wrong in. Needs either a default or a forced answer in phase 2.
@@ -364,7 +367,9 @@ Plus two more on the withholding: the lender amount survives a `dont`, and
 - City tiers set on all three personas: Bengaluru metro, Mysuru and Hubballi tier-2.
 - Drafted `docs/questions-to-lokta.md` — extension request plus the six questions, each
   stating what was assumed pending an answer, with a table pointing at where each one bites in
-  the code.
+  the code. **Deleted 7 Sep:** the premise was wrong. The open points are questions to put to
+  the user, who decides them, not to a company. Nothing is sent to anyone. The substance moved
+  into the session note as decisions to resolve.
 
 ## Verification
 

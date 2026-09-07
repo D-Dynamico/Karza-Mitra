@@ -9,6 +9,7 @@
  */
 
 import type { Answers } from '../answers';
+import { money, rupees } from '../format';
 import type { Interval } from '../interval';
 import type { TraceLog } from '../trace';
 import { judgement, register, type Rule } from './table';
@@ -213,12 +214,30 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
     });
   }
 
+  // "Borrow" does not always mean the amount asked for fits. `borrow-less` only
+  // fires once the safe ceiling falls below four fifths of the ask, so a
+  // borrower can land here still asking for slightly more than they can carry.
+  // Saying "the amount fits" to that borrower is a plainly false sentence, and
+  // one obviously wrong line costs more trust than a number that is quietly off.
+  // So the copy reads the numbers rather than asserting a fit.
+  const fitsOutright = asked === undefined || asked <= 0 || asked <= input.safeAmount.lo;
+  const fitsAtBest = asked !== undefined && asked > 0 && asked <= input.safeAmount.hi;
+  const over = asked !== undefined && asked > 0 ? asked - input.safeAmount.hi : 0;
+
+  const fitNote = fitsOutright
+    ? 'The amount fits under all three affordability tests and still holds after a bad month.'
+    : fitsAtBest
+      ? `The amount fits on the better reading of your position, but not on the cautious one — it sits inside the top of what you can safely carry, ${money(input.safeAmount)}, rather than below all of it. Treat the lower figure as the one to plan on.`
+      : `You asked for ${rupees(asked!)}, which is ${rupees(over)} above the most you can safely carry, ${money(input.safeAmount)}. It is close enough to be worth doing — trim the ask by that much and it holds under every test, including after a bad month.`;
+
   return emit({
     kind: 'borrow',
-    headline: 'This works, on the terms below.',
-    why:
-      'The amount fits under all three affordability tests and still holds after a bad month.' +
-      earnsNote,
-    nextStep: 'Take the card below to the lender and hold them to the rate band on it.',
+    headline: fitsOutright
+      ? 'This works, on the terms below.'
+      : 'This works, with the amount trimmed a little.',
+    why: fitNote + earnsNote,
+    nextStep: fitsOutright
+      ? 'Take the card below to the lender and hold them to the rate band on it.'
+      : `Ask for ${rupees(Math.floor(input.safeAmount.hi / 1000) * 1000)} rather than ${rupees(asked!)}, then take the card below to the lender and hold them to the rate band on it.`,
   });
 }
