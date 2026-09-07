@@ -151,7 +151,7 @@ What moved:
 
 *Offered “How many months are left on what you already pay?” — skipped, so the engine assumes instead and says so.*
 
-#### 13. How much more do you expect to earn each month because of this?
+#### 13. Once you have it, how much more would you earn in a month?
 
 **Anita answers:** ₹12,000
   <br>*Asked because: Sharpens whether to borrow at all.*

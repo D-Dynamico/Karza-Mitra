@@ -201,6 +201,6 @@ These do not apply to Priya, so the engine never raises them:
 - Is there already a loan against it?
 - Is there gold in the household you could pledge?
 - What is the on-road price?
-- How much more do you expect to earn each month because of this?
+- Once you have it, how much more would you earn in a month?
 
 *28 questions exist. Priya sees 15 of them.*

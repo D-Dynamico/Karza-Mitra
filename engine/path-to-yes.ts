@@ -27,6 +27,22 @@ import type { VerdictKind } from './rules/verdict';
  */
 const MAX_OPTIONS_CONSIDERED = 8;
 
+/**
+ * The second income assumed when showing what a household earner would change.
+ *
+ * This is the one figure on this screen the borrower did not supply, and it was
+ * a bare literal until it was caught being ranked first for a borrower who had
+ * just answered "nobody else earns". It is a rule now, so it appears in
+ * RULES.md and can be argued with, and the option's label prints it.
+ */
+export const assumedCoApplicantIncome = register<Rule<number>>({
+  id: 'path.assumed-co-applicant-income',
+  what: 'Second household income assumed when showing what another earner would change',
+  value: 15000,
+  why: 'A figure has to be picked to show what a second income is worth at all, and this is roughly what part-time or entry-level work pays in the cities these borrowers live in. It is an illustration, not a prediction — which is why the amount is printed in the option itself rather than hidden inside the arithmetic.',
+  source: judgement('My own round figure, chosen to be modest rather than flattering.'),
+});
+
 export interface Option {
   readonly id: string;
   /** What the borrower would do, in their words. */
@@ -36,6 +52,13 @@ export interface Option {
   readonly change: Partial<Answers>;
   /** Only offered when it could apply to this borrower. */
   readonly applies: (a: Answers) => boolean;
+  /**
+   * True when the option supplies a number the borrower never gave. Such an
+   * option is still worth showing — a second wage really is a way out — but it
+   * must not outrank something the borrower can act on today, because its size
+   * is our choice rather than their situation.
+   */
+  readonly assumesAnInput?: boolean;
 }
 
 export interface OptionResult {
@@ -82,10 +105,11 @@ export const options: readonly Option[] = [
   },
   {
     id: 'co-applicant',
-    label: 'Someone else in the household earns again',
-    kind: 'takes time',
-    change: { coApplicantIncome: 15000, coApplicantPooled: true },
+    label: `If someone else in the household earned ₹${assumedCoApplicantIncome.value.toLocaleString('en-IN')} a month`,
+    kind: 'if it is true',
+    change: { coApplicantIncome: assumedCoApplicantIncome.value, coApplicantPooled: true },
     applies: (a) => (a.coApplicantIncome ?? 0) === 0,
+    assumesAnInput: true,
   },
   {
     id: 'ask-for-less',
@@ -150,9 +174,19 @@ export function pathToYes(answers: Answers, limit = 5): OptionResult[] {
       };
     });
 
-  return results
-    .sort((a, b) => Number(b.unlocks) - Number(a.unlocks) || b.delta - a.delta)
-    .slice(0, limit);
+  // Sorting on the delta alone put "if someone else earned ₹15,000" above "clear
+  // the app loans" for Anita — our own assumption ranked ahead of the one thing
+  // she could do this week, on the strength of a figure she had just told us was
+  // zero. So an option carrying an invented number sits below anything that
+  // actually moves the arithmetic, and above the ones that move nothing: it is
+  // still a real way out, it is just not evidence.
+  const tier = (r: OptionResult): number => {
+    if (r.unlocks) return 0;
+    if (r.option.assumesAnInput === true) return 2;
+    return r.delta > 0 ? 1 : 3;
+  };
+
+  return results.sort((a, b) => tier(a) - tier(b) || b.delta - a.delta).slice(0, limit);
 }
 
 export interface Combination {

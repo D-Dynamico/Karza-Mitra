@@ -517,9 +517,10 @@ export const adaptiveSet: readonly Question[] = [
     id: 'expected-earnings',
     field: 'expectedMonthlyEarnings',
     tier: 'adaptive',
-    prompt: 'How much more do you expect to earn each month because of this?',
+    prompt: 'Once you have it, how much more would you earn in a month?',
     whyWeAsk:
-      'If it earns more than the instalment costs, the loan largely pays for itself, and that is the strongest case for borrowing there is.',
+      'If it earns more than the instalment costs, the loan largely pays for itself, and that is the strongest case for borrowing there is. We count half of what you tell us, because takings take time to build and projections disappoint.',
+    hint: 'The extra money you would keep, after fuel, stock or repairs — not the extra business you would do. A rough figure is fine.',
     skipCost: 'We judge the loan on your current income alone.',
     input: { kind: 'money' },
     moves: ['O1.verdict'],

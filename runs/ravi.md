@@ -128,7 +128,7 @@ What moved:
 
 *Offered “Roughly what does the household spend in a month, apart from rent and loans?” — skipped, so the engine assumes instead and says so.*
 
-*Offered “How much more do you expect to earn each month because of this?” — skipped, so the engine assumes instead and says so.*
+*Offered “Once you have it, how much more would you earn in a month?” — skipped, so the engine assumes instead and says so.*
 
 #### 11. What kind of place do you live in?
 
