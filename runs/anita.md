@@ -30,6 +30,21 @@ Confidence: **low** — how narrow the answer is, not how many questions were as
 - Rent: we assumed ₹4,000 to ₹10,000 a month for your city. Your real figure narrows every number here.
 - Household spending: we assumed ₹19,500 a month for 4 people. Your own figure would be better.
 
+### How much those guesses matter
+
+Each assumption below is a range, not a single figure. These are the answers at both ends of it — the engine re-run, not an illustration.
+
+**What do you pay for rent, or on a home loan?**
+
+| If the answer is | Verdict | Safe to carry | Product |
+|---|---|---|---|
+| ₹4,000 | dont | nothing | Two-wheeler loan from an NBFC or platform financier |
+| ₹10,000 | dont | nothing | Two-wheeler loan from an NBFC or platform financier |
+
+The answer is the same at both ends, so this guess changes the range but not what to do.
+
+Routing is unaffected across the whole range — Two-wheeler loan from an NBFC or platform financier either way.
+
 ## The questions, in the order they were asked
 
 ### The must set — everyone answers these 10

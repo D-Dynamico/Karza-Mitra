@@ -169,6 +169,44 @@ function productTable(): string {
 }
 
 /**
+ * How this engine treats a missing answer.
+ *
+ * Two rules were being quoted at each other during the build — "unknowns never
+ * resolve in the borrower's favour" and "an unknown is never a penalty" — and as
+ * stated they genuinely conflict. Written out properly they are one rule, and
+ * both Ravi and Anita fall out of it without a special case for either.
+ */
+const HOW_UNKNOWNS_WORK = `
+## How a missing answer is treated
+
+**An unknown is an interval. Its full width shows in the range, its conservative end decides
+the verdict, and where the interval sits says what we think is likeliest.**
+
+That single sentence settles what used to be two rules pulling against each other — that an
+unknown must never flatter the borrower, and that not knowing something must never be punished
+as though it were bad news. Both are true, because they are about different parts of the same
+interval.
+
+Two examples, both live in this engine:
+
+- A borrower who does not state their rent and owns no property gets their city's rent band,
+  say ₹4,000 to ₹10,000. The interval is centred where a modest home in that city actually
+  costs, because that is the likeliest value. Its top decides whether they are told to borrow.
+- A borrower who owns property gets **₹0 to about the middle of that same band**. Zero sits at
+  the likely end, because owning premises is real evidence that they pay no rent — that is the
+  domain knowledge, and throwing it away by handing them the same band as everybody else would
+  be its own kind of dishonesty. But it is evidence, not proof, so the interval has width, and
+  the verdict is still decided at the top of it.
+
+The practical consequence is that saying nothing can never produce a better answer than saying
+the favourable thing. It can only produce a wider one.
+
+Where the two ends of an assumed range disagree about what the borrower should *do*, the engine
+detects it and the app asks that question before any other — because at that point the answer
+is not resting on the arithmetic, it is resting on a guess, and one question settles it.
+`;
+
+/**
  * The limits of this document, written by hand because no table can state what
  * it fails to model. Kept here rather than in RULES.md so the generated file
  * stays generated.
@@ -259,6 +297,8 @@ function main(): void {
   out.push(
     'Where a row says **My judgement**, that is exactly what it means — the figure is mine, reasoned but uncited. Where it says **Market** or **Regulation**, the citation and the date it was checked are in the last two columns.',
   );
+  out.push('');
+  out.push(HOW_UNKNOWNS_WORK.trim());
   out.push('');
 
   // Products get a dedicated table first: each band carries its own source, and

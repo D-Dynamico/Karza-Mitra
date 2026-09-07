@@ -84,7 +84,6 @@ export const ravi: Persona = {
     ownsProperty: true,
     propertyValue: 4500000,
     propertyHasCharge: false,
-    gstRegistered: true,
     coApplicantIncome: 18000, // wife
     coApplicantPooled: true,
     householdSize: 2, // himself and his wife; the brief mentions no children

@@ -8,6 +8,7 @@
  * only ever one of each.
  */
 
+import type { Answers } from './answers';
 import type { Interval } from './interval';
 
 export type TraceValue = Interval | number | string | boolean | undefined;
@@ -32,6 +33,15 @@ export interface TraceEntry {
    * is what they could correct, not everything downstream that inherited it.
    */
   readonly assumption?: string;
+  /**
+   * The answer that would settle this assumption outright.
+   *
+   * Set alongside `assumption` wherever the gap is a single numeric answer. It
+   * is what lets the engine ask "does this guess actually matter?" — re-running
+   * the verdict with the field pinned to each end of the assumed range and
+   * seeing whether the answer changes. See `engine/pivotal.ts`.
+   */
+  readonly field?: keyof Answers;
 }
 
 /** A value carrying the reasoning that produced it. */

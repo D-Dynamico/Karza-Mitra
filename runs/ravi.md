@@ -8,7 +8,7 @@
 
 **BORROW — This works, with the amount trimmed a little.**
 
-You asked for ₹15,00,000, which is ₹58,028 above the most you can safely carry, ₹13 lakh to ₹14 lakh. It is close enough to be worth doing — trim the ask by that much and it holds under every test, including after a bad month.
+You asked for ₹15,00,000, which is ₹58,028 above the most you can safely carry, ₹8.8 lakh to ₹14 lakh. It is close enough to be worth doing — trim the ask by that much and it holds under every test, including after a bad month.
 
 **Next:** Ask for ₹14,41,000 rather than ₹15,00,000, then take the card below to the lender and hold them to the rate band on it.
 
@@ -16,18 +16,33 @@ You asked for ₹15,00,000, which is ₹58,028 above the most you can safely car
 
 | Output | Answer | Why |
 |---|---|---|
-| **O1 — should you borrow** | borrow — This works, with the amount trimmed a little. | You asked for ₹15,00,000, which is ₹58,028 above the most you can safely carry, ₹13 lakh to ₹14 lakh. It is close enough to be worth doing — trim the ask by that much and it holds under every test, including after a bad month. |
-| **O2 — how much** | a lender would sanction ₹12 lakh to ₹16 lakh<br>safe for you to carry ₹13 lakh to ₹14 lakh | These are computed by separate rulebooks. The lender's leaves your rent out; yours cannot. |
+| **O1 — should you borrow** | borrow — This works, with the amount trimmed a little. | You asked for ₹15,00,000, which is ₹58,028 above the most you can safely carry, ₹8.8 lakh to ₹14 lakh. It is close enough to be worth doing — trim the ask by that much and it holds under every test, including after a bad month. |
+| **O2 — how much** | a lender would sanction ₹12 lakh to ₹16 lakh<br>safe for you to carry ₹8.8 lakh to ₹14 lakh | These are computed by separate rulebooks. The lender's leaves your rent out; yours cannot. |
 | **O2 — which product** | Loan against property | You own property worth ₹45 lakh with nothing charged against it. Pledging it roughly halves the rate on an amount this size — that is the single biggest lever you have. |
 | **O3 — what rate is fair** | 9% to 13.5%<br>all-in 9% to 14.5% | The all-in figure folds the processing fee and its GST back into the rate, which is the only number worth comparing between offers. |
-| **O4 — what instalment to agree to** | at most ₹23,200 a month | Takes 40% of income now, 53% to 54% after a fifth off your income and two points on the rate. |
+| **O4 — what instalment to agree to** | at most ₹16,200 to ₹23,200 a month | Takes 27% to 53% of income now, 37% to 69% after a fifth off your income and two points on the rate. **That breaches the ceiling — this is the binding constraint.** |
 
 Confidence: **low** — how narrow the answer is, not how many questions were asked.
 
 ### Where we guessed
 
-- Rent: we assumed none, because you own property. If you rent the home you live in, say so — it lowers what you can safely carry.
+- Rent: we assumed you probably pay none, because you own property — but allowed up to ₹7,000 a month in case you rent where you live. Telling us settles it.
 - Household spending: we assumed ₹12,500 a month for 2 people. Your own figure would be better.
+
+### How much those guesses matter
+
+Each assumption below is a range, not a single figure. These are the answers at both ends of it — the engine re-run, not an illustration.
+
+**What do you pay for rent, or on a home loan?**
+
+| If the answer is | Verdict | Safe to carry | Product |
+|---|---|---|---|
+| ₹0 | borrow | ₹13 lakh to ₹14 lakh | Loan against property |
+| ₹7,000 | borrow-less | ₹8.8 lakh to ₹10 lakh | Loan against property |
+
+**This one decides the answer.** At one end it is *borrow*, at the other *borrow-less*. A real borrower is asked this before anything else; a fixture cannot be, so both readings are shown.
+
+Routing is unaffected across the whole range — Loan against property either way.
 
 ## The questions, in the order they were asked
 
@@ -136,16 +151,7 @@ What moved:
 
 - what a lender will sanction: ₹8,80,983–₹19,09,032 → **₹7,70,860–₹8,35,202**
 
-#### 13. Do you own a house, shop or land?
-
-**Ravi answers:** yes
-  <br>*Asked because: Sharpens what a lender will sanction, what you can safely carry and your rate band.*
-
-What moved:
-
-- what you can safely carry: ₹1,85,361–₹4,73,967 → **₹6,06,636–₹6,56,263**
-
-#### 14. Does anyone else in the household earn?
+#### 13. Does anyone else in the household earn?
 
 **Ravi answers:** ₹18,000
   <br>*Asked because: Sharpens what a lender will sanction and what you can safely carry.*
@@ -154,7 +160,26 @@ What moved:
 
 - what a lender will sanction: ₹7,70,860–₹8,35,202 → **₹9,69,081–₹12,64,734**
 
-#### 15. Roughly what is it worth?
+#### 14. Is that income actually shared with the household?
+
+**Ravi answers:** yes
+  <br>*Asked because: Sharpens what you can safely carry and your instalment ceiling.*
+
+What moved:
+
+- what you can safely carry: ₹1,85,361–₹4,73,967 → **₹4,58,347–₹7,69,286**
+- your instalment ceiling: ₹4,208–₹9,931 → **₹10,405–₹16,119**
+
+#### 15. Do you own a house, shop or land?
+
+**Ravi answers:** yes
+  <br>*Asked because: Sharpens what a lender will sanction, what you can safely carry and your rate band.*
+
+What moved:
+
+- what you can safely carry: ₹4,58,347–₹7,69,286 → **₹5,84,730–₹9,51,581**
+
+#### 16. Roughly what is it worth?
 
 **Ravi answers:** ₹45,00,000
   <br>*Asked because: Sharpens what a lender will sanction, what you can safely carry and your rate band.*
@@ -163,35 +188,25 @@ What moved:
 
 - the loan you should be asking for: Business loan → Loan against property
 - what a lender will sanction: ₹9,69,081–₹12,64,734 → **₹12,00,339–₹16,08,762**
-- what you can safely carry: ₹6,06,636–₹6,56,263 → **₹7,40,844–₹8,21,950**
+- what you can safely carry: ₹5,84,730–₹9,51,581 → **₹7,14,092–₹11,91,827**
 - your rate band: 9.4%–12.9% → **9.8%–13.3%**
 
-#### 16. Is that income actually shared with the household?
+#### 17. Is there already a loan against it?
 
-**Ravi answers:** yes
-  <br>*Asked because: Sharpens what you can safely carry and your instalment ceiling.*
+**Ravi answers:** no
+  <br>*Asked because: Sharpens what you can safely carry and your rate band.*
 
-What moved:
+*What moved: nothing yet — it needs another answer first.*
 
-- what you can safely carry: ₹7,40,844–₹8,21,950 → **₹10,74,224–₹11,91,827**
-- your instalment ceiling: ₹13,539–₹13,578 → **₹19,632–₹19,689**
-
-#### 17. If your income stopped, how many months could you cover?
+#### 18. If your income stopped, how many months could you cover?
 
 **Ravi answers:** 3
   <br>*Asked because: Sharpens what you can safely carry and your instalment ceiling.*
 
 What moved:
 
-- what you can safely carry: ₹10,74,224–₹11,91,827 → **₹12,65,812–₹14,08,425**
-- your instalment ceiling: ₹19,632–₹19,689 → **₹23,200**
-
-#### 18. Is there already a loan against it?
-
-**Ravi answers:** no
-  <br>*Asked because: Sharpens what you can safely carry and your rate band.*
-
-*What moved: nothing yet — it needs another answer first.*
+- what you can safely carry: ₹7,14,092–₹11,91,827 → **₹8,83,886–₹14,08,425**
+- your instalment ceiling: ₹13,088–₹19,632 → **₹16,200–₹23,200**
 
 #### 19. How long have you been running the business?
 
@@ -207,23 +222,25 @@ What moved:
 
 ### Take this to the lender
 
-> I am asking for ₹13 lakh to ₹14 lakh as a loan against property, over 84 months, at 9% to 13.5%.
+> I am asking for ₹8.8 lakh to ₹14 lakh as a loan against property, over 84 months, at 9% to 13.5%.
 
 | | | |
 |---|---|---|
-| **Amount to ask for** | ₹13 lakh to ₹14 lakh | A lender may well offer more — up to ₹12 lakh to ₹16 lakh. That is what they are willing to risk, not what you can carry. The larger number is not a compliment. |
+| **Amount to ask for** | ₹8.8 lakh to ₹14 lakh | A lender may well offer more — up to ₹12 lakh to ₹16 lakh. That is what they are willing to risk, not what you can carry. The larger number is not a compliment. |
 | **Product to ask for** | Loan against property | If you are offered a personal loan instead, ask why. Without a credit record, an unsecured loan of this size would be declined or priced near the top of its band. The property changes that entirely, because the lender is no longer relying on your file. |
 | **Rate to hold them to** | 9% to 13.5% | Anything above the top of this band needs a reason you find convincing. Ask for it in writing. |
 | **All-in rate, fees included** | 9% to 14.5% | This is the headline rate with the processing fee and its GST folded back in. It is the only number worth comparing between two offers — a lower headline rate with a bigger fee can be the dearer loan. |
 | **Processing fee** | 0.35% – 2% of the amount, plus GST | Negotiable more often than the rate is. Ask for it to be waived or halved before you agree to anything else. |
 | **Tenure** | 84 months | A longer tenure lowers the instalment and raises the total interest. Do not let a longer tenure be used to make an amount you cannot carry look affordable. |
-| **Most you should agree to pay monthly** | ₹23,200 a month | Above this, an ordinary bad month becomes a missed payment. This figure already counts your rent, which the lender's own arithmetic leaves out. |
+| **Most you should agree to pay monthly** | ₹16,200 to ₹23,200 a month | Above this, an ordinary bad month becomes a missed payment. This figure already counts your rent, which the lender's own arithmetic leaves out. |
 
 **Say no to:**
 
 - No to any insurance, membership or "protection" product bundled into the loan. It is almost never required, and it is added to the amount you pay interest on.
 - No to signing before you have seen the Key Facts Statement with the all-in rate on it. You are entitled to it.
 - No to a pre-payment penalty on a floating rate loan. On personal and property loans to individuals, it should not be there.
+
+**Walk away if:** If your income fell by a fifth, this instalment would take 68% of it. Walk away rather than stretch the tenure to hide that.
 
 ## Never asked
 

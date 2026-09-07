@@ -968,3 +968,28 @@ details[open] > summary::before {
   font-size: 0.85rem;
   text-decoration: underline;
 }
+
+/*
+ * An assumption whose ends disagree about the verdict. Louder than a panel,
+ * because it outranks everything else the page could ask for.
+ */
+.pivotal {
+  border: 2px solid var(--warn);
+  background: var(--warn-soft);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: var(--gap);
+}
+
+.pivotal h2 {
+  font-size: 1.15rem;
+  margin: 4px 0 8px;
+}
+
+.pivotal .label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--warn);
+  font-weight: 700;
+}

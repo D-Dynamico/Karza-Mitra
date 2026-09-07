@@ -22,6 +22,8 @@
 import type { Answers } from '../engine/answers';
 import type { Result } from '../engine/compute';
 import { money, perMonth, rate as rateText, rupees, share } from '../engine/format';
+import { pivotalAssumptions } from '../engine/pivotal';
+import { allQuestions } from '../engine/questions';
 import { QuoteCheck } from './QuoteCheck';
 import { TightenThis, WorkingDrawer } from './Working';
 
@@ -45,6 +47,10 @@ export function Results({
 }) {
   const { amounts, pricing, repayment, routing } = result;
 
+  // An assumption whose two ends disagree about what to do is not a detail to
+  // be tightened later — it is the answer. Ask it before anything else.
+  const pivotal = pivotalAssumptions(answers);
+
   return (
     <>
       <section className={`verdict ${VERDICT_CLASS[result.verdict.kind] ?? 'less'}`}>
@@ -53,6 +59,30 @@ export function Results({
         <p>{result.verdict.why}</p>
         {result.verdict.nextStep ? <div className="next">{result.verdict.nextStep}</div> : null}
       </section>
+
+      {pivotal.map((p) => {
+        const question = allQuestions.find((q) => q.field === p.field);
+        return (
+          <section className="pivotal no-print" key={String(p.field)}>
+            <span className="label">Confirm this one thing</span>
+            <h2>{question?.prompt ?? 'One answer decides this'}</h2>
+            <p>
+              Your answer below rests on a guess, and the two ends of that guess disagree. At the
+              low end the answer is <strong>{p.atLow.verdict.replace('-', ' ')}</strong>; at the
+              high end it is <strong>{p.atHigh.verdict.replace('-', ' ')}</strong>. Everything
+              else on this page is steadier than this one fact.
+            </p>
+            <p className="muted">{p.assumption}</p>
+            <button
+              type="button"
+              className="btn primary wide"
+              onClick={() => onTighten(p.field)}
+            >
+              Answer it now
+            </button>
+          </section>
+        );
+      })}
 
       {/* O2 — the two numbers. The whole point, so it goes first. */}
       <section className="panel">

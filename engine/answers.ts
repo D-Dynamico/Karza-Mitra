@@ -85,7 +85,6 @@ export const answersSchema = z.object({
   ownsProperty: z.boolean().optional(),
   propertyValue: rupees.optional(),
   propertyHasCharge: z.boolean().optional(),
-  gstRegistered: z.boolean().optional(),
   goldValue: rupees.optional(),
   bouncedInLast6Months: z.boolean().optional(),
   appOrBnplLoans: z.boolean().optional(),

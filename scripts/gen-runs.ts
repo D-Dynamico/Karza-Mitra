@@ -21,6 +21,7 @@ import { money, perMonth, rate as rateText, rupees, share } from '../engine/form
 import { nextQuestions } from '../engine/next-questions';
 import { factsChanged, OUTPUT_LABELS, readOutput, type OutputId } from '../engine/outputs';
 import { personas, type Persona } from '../engine/personas';
+import { testedAssumptions } from '../engine/pivotal';
 import { adaptiveSet, allQuestions, mustSet, type Question } from '../engine/questions';
 
 function show(value: unknown): string {
@@ -179,6 +180,45 @@ function render(persona: Persona): string {
     out.push('');
     for (const a of final.assumptions) out.push(`- ${a}`);
     out.push('');
+  }
+
+  // How much each guess actually matters. Nobody can answer these for a fixture
+  // borrower, so the next best thing is to show what the answer would have been
+  // either way — and to say plainly which guesses change nothing.
+  const tested = testedAssumptions(answers);
+  if (tested.length > 0) {
+    out.push('### How much those guesses matter');
+    out.push('');
+    out.push(
+      'Each assumption below is a range, not a single figure. These are the answers at both ends of it — the engine re-run, not an illustration.',
+    );
+    out.push('');
+    for (const t of tested) {
+      const question = allQuestions.find((q) => q.field === t.field);
+      out.push(`**${question?.prompt ?? String(t.field)}**`);
+      out.push('');
+      out.push('| If the answer is | Verdict | Safe to carry | Product |');
+      out.push('|---|---|---|---|');
+      for (const end of [t.atLow, t.atHigh]) {
+        const r = compute({ ...answers, [t.field]: end.value });
+        out.push(
+          `| ${rupees(end.value)} | ${end.verdict} | ${money(end.safe)} | ${r.routing?.product.name ?? '—'} |`,
+        );
+      }
+      out.push('');
+      out.push(
+        t.flipsVerdict
+          ? `**This one decides the answer.** At one end it is *${t.atLow.verdict}*, at the other *${t.atHigh.verdict}*. A real borrower is asked this before anything else; a fixture cannot be, so both readings are shown.`
+          : 'The answer is the same at both ends, so this guess changes the range but not what to do.',
+      );
+      if (!t.flipsProduct) {
+        out.push('');
+        out.push(
+          `Routing is unaffected across the whole range — ${compute(answers).routing?.product.name ?? 'the product'} either way.`,
+        );
+      }
+      out.push('');
+    }
   }
 
   out.push('## The questions, in the order they were asked');

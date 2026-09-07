@@ -118,12 +118,32 @@ describe('Ravi — product routing', () => {
     // of the band went 12% -> 14%, so his dearest case got dearer and safe.lo
     // fell; the floor went 9% -> 8.75%, so safe.hi rose. The answer got wider
     // in both directions, which is why his confidence is now 'low'.
-    expect(r.amounts.safe.lo).toBeCloseTo(1265812, NEAR);
+    // Moved again 2026-09-07 when `rent.owns-premises` stopped asserting a flat
+    // zero. Owning property is evidence that he pays no rent, not proof, so it
+    // is now an interval from zero to what renting would cost in his city. Only
+    // the bottom moved: at the likely end nothing changed, and the new lower
+    // bound is what it would be if the guess is wrong.
+    expect(r.amounts.safe.lo).toBeCloseTo(883886, NEAR);
     expect(r.amounts.safe.hi).toBeCloseTo(1441972, NEAR);
   });
 
-  it('holds after a bad turn', () => {
-    expect(r.repayment!.stressBreaches).toBe(false);
+  it('is honest that a bad turn breaks it if he does pay rent', () => {
+    // Was `false`, when his rent was assumed to be flatly nil. With rent
+    // allowed up to the middle of his city band, the stressed outflow breaches
+    // at that end — so the flag is true, and it should be.
+    //
+    // The flag collapses an interval to a boolean, and the project's rule is
+    // that the conservative end decides. Reporting "holds after a bad month"
+    // because it holds in the good case would be the flattering read, and the
+    // whole point of this change was to stop doing that.
+    expect(r.repayment!.stressBreaches).toBe(true);
+  });
+
+  it('still holds after a bad turn if he really pays no rent', () => {
+    // The other end of the same assumption. Answering the question settles it.
+    const owns = compute({ ...ravi.answers, rentOrHomeEmi: 0 });
+    expect(owns.repayment!.stressBreaches).toBe(false);
+    expect(owns.verdict.kind).toBe('borrow');
   });
 });
 

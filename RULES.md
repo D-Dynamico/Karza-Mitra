@@ -6,6 +6,34 @@ Every number this engine uses lives in a table in `engine/rules/`, carrying its 
 
 Where a row says **My judgement**, that is exactly what it means — the figure is mine, reasoned but uncited. Where it says **Market** or **Regulation**, the citation and the date it was checked are in the last two columns.
 
+## How a missing answer is treated
+
+**An unknown is an interval. Its full width shows in the range, its conservative end decides
+the verdict, and where the interval sits says what we think is likeliest.**
+
+That single sentence settles what used to be two rules pulling against each other — that an
+unknown must never flatter the borrower, and that not knowing something must never be punished
+as though it were bad news. Both are true, because they are about different parts of the same
+interval.
+
+Two examples, both live in this engine:
+
+- A borrower who does not state their rent and owns no property gets their city's rent band,
+  say ₹4,000 to ₹10,000. The interval is centred where a modest home in that city actually
+  costs, because that is the likeliest value. Its top decides whether they are told to borrow.
+- A borrower who owns property gets **₹0 to about the middle of that same band**. Zero sits at
+  the likely end, because owning premises is real evidence that they pay no rent — that is the
+  domain knowledge, and throwing it away by handing them the same band as everybody else would
+  be its own kind of dishonesty. But it is evidence, not proof, so the interval has width, and
+  the verdict is still decided at the top of it.
+
+The practical consequence is that saying nothing can never produce a better answer than saying
+the favourable thing. It can only produce a wider one.
+
+Where the two ends of an assumed range disagree about what the borrower should *do*, the engine
+detects it and the app asks that question before any other — because at that point the answer
+is not resting on the arithmetic, it is resting on a guess, and one question settles it.
+
 ## Products and pricing
 
 Which loan a borrower is routed to, and what it costs. Getting the product wrong is more expensive than negotiating the rate badly, so routing runs before pricing.

@@ -75,6 +75,7 @@ export function assumedExpenses(answers: Answers, log: TraceLog): ExpenseEstimat
     output: value,
     why: `${expenseDefaults.why} Correct it if it is wrong — it moves your safe amount directly.`,
     assumed: true,
+    field: 'householdExpenses',
     assumption: `Household spending: we assumed ₹${value.toLocaleString('en-IN')} a month for ${people} ${people === 1 ? 'person' : 'people'}. Your own figure would be better.`,
   });
 
