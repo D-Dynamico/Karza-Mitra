@@ -39,6 +39,8 @@ export function App() {
 
   const result = useMemo(() => compute(answers), [answers]);
   const isDont = result.verdict.kind === 'dont';
+  /** Whether anything has actually been answered yet. */
+  const started = Object.keys(answers).length > 0;
 
   const loadPersona = (p: Persona): void => {
     setAnswers(p.answers);
@@ -54,14 +56,21 @@ export function App() {
     <main className={view === 'start' ? 'wrap start' : 'wrap'}>
       <header className="masthead no-print">
         <h1>Karza Mitra</h1>
-        <div className="tag">
-          What a lender offers isn&rsquo;t always what you can safely afford.
-        </div>
+        <div className="tag">What a lender offers is not always what you can afford.</div>
+        {/* The brief stresses no login and nothing stored. Saying it out loud on
+            the first screen is trust, and it costs a line. */}
+        {view === 'start' ? (
+          <div className="privacy">Nothing you type leaves this phone.</div>
+        ) : null}
         {view !== 'start' ? (
           <div className="pickers">
-            <button type="button" className="pick" onClick={() => setView('start')}>
-              Start over
-            </button>
+            {/* Nothing to start over from on the first question. */}
+            {started ? (
+              <button type="button" className="pick" onClick={() => setView('start')}>
+                Start over
+              </button>
+            ) : null}
+            <span className="muted">Try an example:</span>
             {personas.map((p) => (
               <button type="button" key={p.id} className="pick" onClick={() => loadPersona(p)}>
                 {p.name}
@@ -102,25 +111,28 @@ export function App() {
               </button>
             </section>
 
-            <p className="privacy">🔒 Private. Nothing leaves your device.</p>
-
-            <div className="orline">
-              <span>Want to see how it works?</span>
-            </div>
-
-            <div className="examples">
-              {personas.map((p) => (
-                <button
-                  type="button"
-                  key={p.id}
-                  className="example"
-                  onClick={() => loadPersona(p)}
-                >
-                  <strong>{p.name}</strong>
-                  <span className="muted">{p.blurb}</span>
-                </button>
+            {/* One tap away, because a reviewer will reach for these within ten
+                seconds — but small and prefixed, because three first names in a
+                row above the fold read as a sign-in, not as examples. */}
+            <p className="examples-line">
+              <span className="muted">Try an example: </span>
+              {personas.map((p, i) => (
+                <span key={p.id}>
+                  {i > 0 ? <span className="dot"> · </span> : null}
+                  {/* The blurb is the button's title rather than visible text:
+                      spelled out inline it wrapped to two lines and pulled the
+                      eye off the button above it. */}
+                  <button
+                    type="button"
+                    className="linky"
+                    title={p.blurb}
+                    onClick={() => loadPersona(p)}
+                  >
+                    {p.name}
+                  </button>
+                </span>
               ))}
-            </div>
+            </p>
           </>
         ) : view === 'flow' || view === 'review' ? (
           <Flow

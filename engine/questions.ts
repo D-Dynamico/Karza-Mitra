@@ -101,18 +101,25 @@ export const mustSet: readonly Question[] = [
     field: 'purpose',
     tier: 'must',
     prompt: 'What is the loan for?',
+    // The why-link is the only explanation on the card, so it has to be
+    // specific. A helper sentence under the question saying "this helps us
+    // understand your situation" was considered and cut: it says nothing, it
+    // duplicates this, and it makes the card longer on a phone.
     whyWeAsk:
-      'It decides which kind of loan you should be asking for, and the cheapest loan for a shop is not the cheapest loan for a wedding.',
-    skipCost: 'Without it we cannot route you to the right product, only price a general one.',
+      'It decides which kind of loan we compare you to, and whether the loan pays for itself. The cheapest loan for a shop is not the cheapest loan for a wedding.',
+    // Almost nobody is unsure why they want a loan, so this skip should be rare
+    // and the cost of it should be stated plainly rather than softened.
+    skipCost: 'We will compare you to a personal loan, usually the costliest option.',
     input: {
       kind: 'choice',
       options: [
         { value: 'wedding', label: 'A wedding' },
         { value: 'medical', label: 'Medical treatment' },
         { value: 'education', label: 'Education' },
-        { value: 'business-stock', label: 'Stock or working capital' },
+        { value: 'business-stock', label: 'Stock for my business' },
         { value: 'vehicle', label: 'A vehicle' },
-        { value: 'home', label: 'A home or repairs' },
+        { value: 'home-purchase', label: 'Buying a home' },
+        { value: 'home-repair', label: 'Home repairs or renovation' },
         { value: 'debt-consolidation', label: 'Clearing other loans' },
         { value: 'other', label: 'Something else' },
       ],

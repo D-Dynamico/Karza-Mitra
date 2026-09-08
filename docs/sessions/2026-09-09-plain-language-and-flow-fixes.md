@@ -63,7 +63,99 @@ than shown. Rebuilt:
   each with a one-line description, replacing "load one of the three borrowers from the
   brief" — which told a stranger nothing about which one to press.
 
+### Third pass — Lokta Purple, and the wireframe
+
+A brand colour with a story behind it, and a second list of screen fixes.
+
+- **The palette is now Lokta Purple `#4B2440`** — from Chak-Hao, the black rice of Manipur,
+  whose pigment survives the pot and deepens rather than washing out. Where `#000` would be
+  expected the ink is `#1C0F18`, the colour of the uncooked grain. Everything else is
+  derived from those two: the greys carry the same hue at low saturation, so a border and a
+  heading read as the same material.
+- **Progress says "Question 3 of 10"**, not a metaphor. The number tells the borrower how
+  long this takes and quietly promises figures after the tenth.
+- **One box, promise then evidence.** The confidence meter and the "what moved" banner were
+  at opposite ends of the screen, and on question one the meter was an empty bar under a
+  generic sentence. They are now the same box below the card: "Your numbers appear after 10
+  questions. Each answer after that narrows them", replaced from the second answer on by
+  what actually changed.
+- **The examples stopped looking like a login.** Three first names in a row above the fold
+  read as accounts, so they are a small prefixed strip — "Try an example: Priya · Ravi ·
+  Anita" — below the card on the first screen and beside "Start over" in the masthead
+  after. Still one tap away.
+- **"Start over" is hidden until something has been answered.**
+- **Privacy moved under the tagline**: "Nothing you type leaves this phone."
+- **The tagline dropped a word and a contraction**: "What a lender offers is not always what
+  you can afford."
+- **The purpose question was rewritten.** "A home or repairs" split in two, "Stock or
+  working capital" became "Stock for my business", the why-link says what it actually
+  decides, and the skip states its real cost.
+- **Options are full-width rows with a 48px minimum**, so a thumb on a 360px screen cannot
+  miss them.
+- **Amounts above a crore say crore.** The home loan is what forced it — "₹106 lakh" is
+  arithmetic the reader has to do.
+
 ## Decisions
+
+### Splitting "a home or repairs" meant adding the product it routes to
+
+- **Choice:** `home-purchase` and `home-repair` replace `home`, and a **home loan** product
+  was added for the first to route to — `iv(8, 11.5)`, fee 0–0.5%, LTV 0.75–0.9, with a
+  `preferredTenureMonths` of 240. `home-repair` routes to a loan against property where
+  there is property, and a personal loan where there is not. Repairs were previously sent to
+  a **business loan**, which was simply wrong.
+- **Why:** merging them decided routing wrongly on the very first answer, and splitting the
+  label without adding the product would only have moved the error. Verified across four
+  cases: buying with and without property already owned, repairing with and without.
+- **Rejected:** splitting the label and routing both to LAP or personal (keeps the bug,
+  hides it); leaving repairs on the business-loan branch (they are not a business purpose
+  and do not qualify for scheme-backed lending).
+- **Assumes:** the rate band. **This is my own working figure**, anchored below the sourced
+  loan-against-property row because a home loan is the cheaper of the two, and it is marked
+  `judgement` in the table with that said plainly. The loan-to-value follows the RBI slabs
+  and is the part I am confident in. **This needs checking against real rate cards before
+  anyone acts on it.**
+- **Would be wrong if:** real September 2026 home-loan cards sit outside 8–11.5%.
+- **Source:** my judgement, 2026-09-09, anchored to `products.bands`.
+
+### A product may override the tenure policy
+
+- **Choice:** `Product.preferredTenureMonths`, used by `headlineTenure` when set. Only the
+  home loan sets it, at 240 months.
+- **Why:** `tenurePolicy` prefers seven years for anything secured, which is right for a
+  loan against property and absurd for a home loan. Left alone it would have quoted a ₹50
+  lakh purchase at an EMI nobody is ever asked for, then refused the borrower on it — a
+  wrong answer arrived at correctly.
+- **Rejected:** lowering the home loan's tenure floor so the policy applies (same wrong
+  quote); raising `securedPreferredMonths` globally (it would stretch every loan against
+  property to twenty years, which is not how they are written).
+- **Would be wrong if:** a second product needs its own term. Then this is a table, not a
+  field, and `tenurePolicy` should hold it.
+- **Source:** my judgement, 2026-09-09.
+
+### The status colours are not pulled toward the purple
+
+- **Choice:** go `#1F6B45`, warn `#8A5A16`, stop `#A32014` — deepened to sit in the same
+  tonal register as the brand, but kept at their own hues.
+- **Why:** "stop" has to read as stop at a glance. A wine red beside a wine-purple brand is
+  a colour nobody can act on, and the "don't borrow" banner is the one surface in this
+  product that must never read as decoration.
+- **Rejected:** a purple-family red (harmonious and unreadable); the original brighter set
+  (correct but visibly from a different system than the new ink).
+- **Assumes:** every foreground clears 4.5:1 on the paper behind it. `--ink-faint` was
+  darkened from the original grey specifically to hold that.
+- **Source:** my judgement, 2026-09-09.
+
+### The example blurbs became titles rather than visible text
+
+- **Choice:** the strip shows names only; the blurb is the button's `title`.
+- **Why:** spelled out inline the three descriptions wrapped to two lines and pulled the eye
+  off the button above them, which is the opposite of "secondary". The request's own
+  wording was names with a middle dot.
+- **Rejected:** deleting `blurb` (it is real, checked-against-the-data content, and a hover
+  still explains); keeping the card layout from the previous pass (that is what read as a
+  login).
+- **Source:** the user's updated note, 2026-09-09.
 
 ### A displayed range narrower than 5% collapses to one figure
 
@@ -238,6 +330,17 @@ than shown. Rebuilt:
   language. It is one string, in `App.tsx`.
 - **Source:** the user's recommended copy, 2026-09-09.
 
+## Files touched (third pass adds)
+
+- `ui/styles.css` — the Lokta palette and its derivation, every hardcoded status colour
+  replaced by a token, focus rings and `accent-color`, full-width option rows.
+- `index.html` — `theme-color`.
+- `engine/answers.ts`, `engine/rules/products.ts`, `engine/compute.ts` — the purpose split,
+  the home-loan product, `preferredTenureMonths`.
+- `engine/format.ts` — crore.
+- `ui/Confidence.tsx`, `ui/Flow.tsx`, `ui/App.tsx` — the promise/evidence box, the counted
+  progress label, the example strip, the privacy line, hiding "Start over".
+
 ## Files touched
 
 - `engine/format.ts` — narrow-range collapse, `approx`, `tenure`, lakh decimal threshold.
@@ -280,6 +383,14 @@ than shown. Rebuilt:
   with `width: 100%`, and the reason is in a comment above the rule.
 - `justify-content: safe center` on `.wrap.start`, so the taller opening screen cannot
   push its own top off a short phone.
+- The four home-purpose routes were run directly and checked to be distinct: buying with no
+  property → home loan against personal; buying while owning → home loan against LAP;
+  repairing with no property → personal loan; repairing while owning → LAP. Before the
+  split, all four went to a business loan or LAP.
+- Driven in the browser again after the palette: the opening screen, the purpose question
+  with the split options and the purple hover row, "Question 2 of 10" with "Start over"
+  appearing only after the first answer, and Ravi's answer screen for the status colours
+  against the new ink.
 
 ## Open items
 
@@ -293,6 +404,8 @@ than shown. Rebuilt:
   register rather than the borrower's, so they were left alone deliberately. If they are
   brought in, extend `everySentence` in `tests/copy.test.ts` to cover the trace and expect
   a large but mechanical diff.
+- **The home-loan rate band is unverified.** It is my own figure, marked as such in the
+  table and in RULES.md. Check it against real September 2026 rate cards.
 - **The verdict kind is still printed raw** as the chip above the headline — "DONT" rather
   than "Don't". Cosmetic, untouched.
 - **Only the opening screen got the design pass.** The answer screen, the flow and the

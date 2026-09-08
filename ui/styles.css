@@ -8,21 +8,61 @@
  * squeezed onto two lines at 375px stops reading as one quantity.
  */
 
+/* ---------------------------------------------------------------------------
+   Lokta Purple.
+
+   #4B2440 comes from Chak-Hao, the black rice of Manipur — grown in one
+   valley's soil, GI-tagged since 2020, and prized for a pigment that survives
+   the pot. Raw, the grain is near-black; cooked, everything it touches turns
+   this purple. The colour does not wash out. It deepens.
+
+   The rhyme is the reason. A lending ledger has one job: hold the record,
+   through audits, migrations, and the twenty-year life of a home loan. A colour
+   that holds through anything is the honest choice for it.
+
+   Where you would expect #000 we use the colour of the uncooked grain,
+   #1C0F18. The voice and the ink come from the same harvest, and the colour on
+   the page comes from the same soil as the name.
+
+   Everything below is derived from those two. Greys are not neutral greys —
+   they carry the same hue at low saturation, so a panel border and a heading
+   read as the same material. The three status colours are the exception and
+   are deliberately *not* pulled toward the purple: "stop" has to read as stop
+   at a glance, and a wine red beside a wine brand is a colour nobody can act
+   on. Every foreground here clears 4.5:1 on the paper behind it.
+   --------------------------------------------------------------------------- */
+
 :root {
-  --ink: #1a1a1a;
-  --ink-soft: #52525b;
-  --ink-faint: #71717a;
-  --paper: #fbfbfa;
+  /* The grain, raw. */
+  --ink: #1c0f18;
+  --ink-soft: #574653;
+  --ink-faint: #776974;
+
+  --paper: #fbf8fa;
   --card: #ffffff;
-  --line: #e4e4e7;
-  --accent: #1d4ed8;
-  --accent-soft: #eff6ff;
-  --warn: #b45309;
-  --warn-soft: #fffbeb;
-  --stop: #b91c1c;
-  --stop-soft: #fef2f2;
-  --go: #15803d;
-  --go-soft: #f0fdf4;
+  --line: #e8e0e6;
+  --line-strong: #d6c9d2;
+
+  /* The grain, cooked. */
+  --accent: #4b2440;
+  --accent-deep: #351829;
+  --accent-soft: #f5eff3;
+  --accent-line: #d9c7d3;
+
+  --warn: #8a5a16;
+  --warn-soft: #fbf4e9;
+  --warn-line: #e7d4ae;
+
+  --stop: #a32014;
+  --stop-deep: #6e1610;
+  --stop-soft: #fbf0ee;
+  --stop-line: #edc5be;
+
+  --go: #1f6b45;
+  --go-deep: #124a2f;
+  --go-soft: #eff6f1;
+  --go-line: #bedcc9;
+
   --radius: 10px;
   --gap: 16px;
 }
@@ -124,17 +164,17 @@ button {
 
 .verdict.go {
   background: var(--go-soft);
-  border-color: #bbf7d0;
+  border-color: var(--go-line);
 }
 
 .verdict.less {
   background: var(--warn-soft);
-  border-color: #fde68a;
+  border-color: var(--warn-line);
 }
 
 .verdict.stop {
   background: var(--stop-soft);
-  border-color: #fecaca;
+  border-color: var(--stop-line);
 }
 
 .verdict .kind {
@@ -153,7 +193,7 @@ button {
 .verdict .next {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--line-strong);
   font-weight: 500;
 }
 
@@ -298,7 +338,7 @@ details[open] > summary::before {
   font-size: 0.72rem;
   background: var(--warn-soft);
   color: var(--warn);
-  border: 1px solid #fde68a;
+  border: 1px solid var(--warn-line);
   border-radius: 4px;
   padding: 0 5px;
   margin-left: 6px;
@@ -359,14 +399,14 @@ details[open] > summary::before {
 
 .nudge.bad {
   background: var(--stop-soft);
-  border: 1px solid #fecaca;
-  color: #7f1d1d;
+  border: 1px solid var(--stop-line);
+  color: var(--stop-deep);
 }
 
 .nudge.ok {
   background: var(--go-soft);
-  border: 1px solid #bbf7d0;
-  color: #14532d;
+  border: 1px solid var(--go-line);
+  color: var(--go-deep);
 }
 
 .nudge button {
@@ -494,7 +534,7 @@ details[open] > summary::before {
   margin-top: 12px;
   padding: 10px 12px;
   background: var(--stop-soft);
-  border: 1px solid #fecaca;
+  border: 1px solid var(--stop-line);
   border-radius: 8px;
   font-size: 0.89rem;
 }
@@ -545,7 +585,7 @@ details[open] > summary::before {
 }
 
 .crash {
-  border: 1px solid #fecaca;
+  border: 1px solid var(--stop-line);
   background: var(--stop-soft);
   border-radius: var(--radius);
   padding: 16px;
@@ -598,7 +638,7 @@ details[open] > summary::before {
   }
 
   .card {
-    border: 1px solid #000;
+    border: 1px solid var(--ink);
     page-break-inside: avoid;
     font-size: 11pt;
   }
@@ -834,7 +874,7 @@ details[open] > summary::before {
 /* What moved. Silent when nothing did. */
 .moved {
   background: var(--go-soft);
-  border: 1px solid #bbf7d0;
+  border: 1px solid var(--go-line);
   border-radius: var(--radius);
   padding: 12px 14px;
   margin-bottom: var(--gap);
@@ -1115,75 +1155,76 @@ details[open] > summary::before {
   padding-inline: 26px;
 }
 
-.privacy {
+
+
+.examples-line {
   text-align: center;
+  font-size: 0.84rem;
+  line-height: 1.9;
+  max-width: 34rem;
+  margin: 18px auto 0;
   color: var(--ink-faint);
+}
+
+.examples-line .linky {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+  font-size: inherit;
+}
+
+.examples-line .dot {
+  color: var(--line-strong);
+}
+
+/* Under the tagline on the first screen, and hidden everywhere else. */
+.masthead .privacy {
   font-size: 0.82rem;
-  margin: 14px 0 0;
-}
-
-/* A rule with the invitation sitting in the gap.
-
-   `width: 100%` is load-bearing. As a flex item of `.wrap.start` with auto
-   inline margins, this shrink-wrapped to the width of its own text, which left
-   the two ::before/::after rules with no free space to grow into — so they
-   computed to 0px wide and the divider was invisible while looking correct in
-   the stylesheet. */
-.orline {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 26px auto 14px;
-  width: 100%;
-  max-width: 34rem;
   color: var(--ink-faint);
-  font-size: 0.85rem;
+  margin-top: 6px;
 }
 
-.orline::before,
-.orline::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--line);
+/* ---------------------------------------------------------------------------
+   Brand surfaces.
+
+   A questionnaire is mostly focus rings, checkboxes and tap targets, so this is
+   where the colour is actually seen. Kept last so it wins over the component
+   rules above without raising anyone's specificity.
+   --------------------------------------------------------------------------- */
+
+html {
+  accent-color: var(--accent);
 }
 
-.examples {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 1fr;
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+.btn.primary:hover {
+  background: var(--accent-deep);
+  border-color: var(--accent-deep);
+}
+
+/* A full-width row, not a dot with a label beside it. A thumb on a 360px
+   screen aims at the row; anything smaller than this gets missed. */
+.choice {
+  display: block;
   width: 100%;
-  max-width: 34rem;
-  margin-inline: auto;
-}
-
-@media (min-width: 560px) {
-  .examples {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.example {
-  display: grid;
-  gap: 1px;
+  min-height: 48px;
   text-align: left;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  color: var(--ink);
 }
 
-.example:hover {
+.choice:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
-}
-
-.example strong {
-  font-size: 0.92rem;
-}
-
-.example .muted {
-  font-size: 0.78rem;
-  line-height: 1.3;
 }

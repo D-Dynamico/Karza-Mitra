@@ -139,6 +139,10 @@ Every branch emits its reason. "Don't" is a full screen, not a dead end:
 
 ## 3. Question design
 
+Purpose splits buying a home from repairing one, because they route to completely different
+products — a home loan against the property being bought, versus a personal loan or a loan
+against property already owned. Merged, routing was decided wrongly on the first answer.
+
 Must set (10): purpose · amount · how they earn · net monthly income (range allowed) ·
 whether there are any loans running, and what they cost · rent or home EMI · household
 expenses (defaulted from a table by household size and city tier if skipped, shown and
@@ -166,6 +170,11 @@ The opening screen is a preview of the answer, not a description of it: the two-
 is drawn in the same `two-up` tiles the results panel uses for the real figures, with one
 sentence above and the CTA below. The three personas sit under it as example cards with a
 one-line description each, so a visitor can choose between them.
+
+Progress is counted — "Question 3 of 10" — because the number tells the borrower how long
+this takes and promises that figures arrive after the tenth. The confidence meter and the
+"what moved" banner share one box below the card: a promise while the essentials are being
+collected, then what actually changed from the second answer on.
 
 Flow rules: one question per screen; skip always visible with a one-line consequence
 ("keeps your rate a wider range"), and skipping one of the ten essentials asks for

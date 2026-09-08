@@ -44,6 +44,7 @@ Which loan a borrower is routed to, and what it costs. Getting the product wrong
 |---|---|---|---|---|---|---|
 | **Business loan**<br>unsecured | 8.4 – 24% | 1 – 2% | 12 – 60 months | n/a — nothing is pledged | ₹50,000 | Government-backed schemes sit at the bottom of this band and unsecured lenders at the top, so which door you walk through matters more than the product name. |
 | **Gold loan**<br>secured | 8.5 – 14% | 0.25 – 1% | 6 – 36 months | set by `products.gold-ltv` | ₹10,000 | Quick, cheap and short. Good for an urgent gap, poor for anything you will still be repaying in three years. |
+| **Home loan**<br>secured | 8 – 11.5% | 0 – 0.5% | 60 – 360 months | 75–90% | ₹3,00,000 | The home you are buying is the security, and it is the cheapest borrowing available to an individual in India. Nothing else you can be offered comes close on rate or on term. |
 | **Loan against property**<br>secured | 8.75 – 14% | 0.35 – 2% | 60 – 180 months | 50–70% | ₹5,00,000 | The property stands behind the loan, so the rate drops sharply and the tenure can stretch. The risk you take is real: the asset is on the line. |
 | **Microfinance or SHG loan**<br>unsecured | 18 – 26% | 0 – 1% | 12 – 24 months | n/a — nothing is pledged | ₹15,000 | Expensive, but honest about it, and built for people who cannot show their income on paper. Cheaper than any app loan. |
 | **Two-wheeler loan from an NBFC or platform financier**<br>secured | 18 – 28% | 2 – 6% | 18 – 60 months | 70–95% | ₹25,000 | A bank will not write this loan for someone who cannot show their income on paper, whatever the vehicle is worth. The lenders who will — NBFCs and the finance arms attached to delivery platforms — charge a great deal more for taking the risk a bank would not. |
@@ -56,6 +57,7 @@ Where each product’s bands come from:
 |---|---|---|
 | Business loan | Market: MUDRA / PMMY lender rate tables, Sep 2026: public sector banks roughly 8.40-12%, private banks and NBFCs 10-15% and above, scheme band overall about 9-24%. Each lending institution prices within its own policy, which is why the band is this wide. The MUDRA ceiling rose from 10 to 20 lakh in 2024. | 2026-09-07 |
 | Gold loan | My judgement — The rate band is still my own working figure: bank gold loans sit near the bottom and NBFC gold lenders well above it, but I did not find a rate table I was willing to cite. The loan-to-value beside it is regulated and is sourced separately. | — |
+| Home loan | My judgement — My own working band, anchored to the sourced loan-against-property row above and set below it, because a home loan is the cheaper of the two and priced competitively. I did not find a rate table for September 2026 I was willing to cite, so this needs checking against real cards before anyone acts on it. The loan-to-value follows the RBI slabs — 90% on small loans down to 75% on large ones — which is regulation rather than pricing and is the part of this row I am confident in. | — |
 | Loan against property | Market: Bank loan-against-property rate cards, Sep 2026: SBI 8.95-10.50%, HDFC 9.00-11.00%, Axis 9.25-10.95%, ICICI 10.60-12.25%; NBFCs and housing finance companies run to 14%. Processing fees 0.35% (SBI) to 2% (private banks). Loan-to-value is 60-70% on commercial premises against 75-80% residential, so a shop sits at the lower end of this band. | 2026-09-07 |
 | Microfinance or SHG loan | Market: NBFC-MFI effective lending rates, Sep 2026: sector band roughly 18-26%. ICICI reports a maximum of 21.50% to microfinance borrowers for Q4 FY2026; Tata Capital microfinance starts at 24.25%. RBI removed the margin cap on NBFC-MFI pricing in 2022, so the band is set by the market rather than by a formula. | 2026-09-07 |
 | Two-wheeler loan from an NBFC or platform financier | Market: BankBazaar two-wheeler loan rate table, page updated 07 Sep 2026: NBFC lenders from 9.47% up to 24% (Bajaj Auto Finance), with the two-wheeler market as a whole reaching 36%; NBFC processing fees 4-7%; NBFCs finance up to 95% of on-road price and write tenures to 60 months. The band starts at 18% rather than 9.47% because the low NBFC quotes go to borrowers a bank would also accept, and this product exists for the ones a bank would not. | 2026-09-07 |
@@ -260,8 +262,9 @@ would be an invented one — but they are the rows to argue with first.
 - `verdict.obligation-danger-line`
 - `verdict.productive-coverage`
 - `products.bands → gold-loan`
+- `products.bands → home-loan`
 
-That is 32 of 40 rows.
+That is 33 of 41 rows.
 
 ## Which questions get asked, and why
 

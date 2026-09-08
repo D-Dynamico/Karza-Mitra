@@ -67,6 +67,15 @@ describe('lakh keeps a decimal exactly where it changes the sentence', () => {
     expect(inLakh(1500000)).toBe('₹15 lakh');
     expect(inLakh(800000)).toBe('₹8 lakh');
   });
+
+  it('switches to crore rather than saying "one hundred and six lakh"', () => {
+    // The home loan is what forced this: a product that can run past a crore
+    // makes every large figure arithmetic the reader has to do.
+    expect(inLakh(10600000)).toBe('₹1.1 crore');
+    expect(inLakh(12900000)).toBe('₹1.3 crore');
+    expect(inLakh(9900000)).toBe('₹99 lakh');
+    expect(inLakh(250000000)).toBe('₹25 crore');
+  });
 });
 
 describe('a computed amount is rounded before it reaches a sentence', () => {

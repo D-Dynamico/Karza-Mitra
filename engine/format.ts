@@ -40,18 +40,28 @@ const NARROW_ENOUGH = 0.05;
 
 export const rupees = (n: number): string => `₹${Math.round(n).toLocaleString('en-IN')}`;
 
-/** In lakh, the unit borrowers actually think in for anything sizeable. */
+/**
+ * In lakh and crore, the units borrowers actually think in.
+ *
+ * Nobody says "one hundred and six lakh". The home loan is what forced this:
+ * once a product can run past a crore, printing every large figure in lakh
+ * gives the reader arithmetic to do before they can picture the number.
+ *
+ * The decimal rule is the same at both scales — keep a tenth until the figure
+ * is large enough that a tenth is noise. Dropping it too early made
+ * "₹14.41 lakh" read as "₹14 lakh", which contradicted the ₹58,000 gap named in
+ * the same sentence: the reader does the subtraction and it does not come out.
+ * Keeping it too long is the opposite error, claiming a tenth of a lakh matters
+ * on a figure that rests on an assumed rent.
+ */
 export function inLakh(n: number): string {
   if (Math.abs(n) < 100000) return rupees(n);
-  const lakh = n / 100000;
-  // One decimal below twenty lakh, none above. Dropping it at ten made
-  // "₹14.41 lakh" read as "₹14 lakh", which contradicted the ₹58,000 gap named
-  // in the same sentence — the reader does the subtraction and it does not come
-  // out. Keeping it above twenty is the opposite error: "₹29.5 lakh to
-  // ₹33.2 lakh" claims a tenth of a lakh matters on a figure resting on an
-  // assumed rent.
-  const rounded = Math.abs(lakh) >= 20 ? lakh.toFixed(0) : lakh.toFixed(1).replace(/\.0$/, '');
-  return `₹${rounded} lakh`;
+
+  const withTenth = (x: number, dropAt: number): string =>
+    Math.abs(x) >= dropAt ? x.toFixed(0) : x.toFixed(1).replace(/\.0$/, '');
+
+  if (Math.abs(n) >= 10000000) return `₹${withTenth(n / 10000000, 20)} crore`;
+  return `₹${withTenth(n / 100000, 20)} lakh`;
 }
 
 /**

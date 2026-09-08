@@ -31,7 +31,12 @@ export const loanPurpose = z.enum([
   'education',
   'business-stock',
   'vehicle',
-  'home',
+  // Buying a home and repairing one route to different products — a home loan
+  // against the property being bought, versus a personal loan or a loan against
+  // property you already own. Merged as "home", routing was decided wrongly on
+  // the very first answer.
+  'home-purchase',
+  'home-repair',
   'debt-consolidation',
   'other',
 ]);

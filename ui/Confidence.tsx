@@ -15,8 +15,14 @@
  * meaning "no answer yet", not "you can carry nothing". Printing it read as
  * **"safe to carry nothing"** on the first four screens of the flow, which is
  * not a cautious answer, it is a wrong one, and a borrower who reads one absurd
- * number stops believing the rest of the page. So while there is no answer, this
- * says there is no answer.
+ * number stops believing the rest of the page.
+ *
+ * So during the must set this box does not report a width at all — an empty bar
+ * under a generic sentence is decoration. It makes a promise instead: your
+ * figures arrive after this many questions, and every answer after that narrows
+ * them. `Flow` then replaces the same box with the "what moved" list from the
+ * second answer onward, so one box on the page goes from promise to evidence
+ * rather than two boxes competing.
  */
 
 import type { Result } from '../engine/compute';
@@ -24,7 +30,7 @@ import { money, rate as rateText } from '../engine/format';
 
 const COPY: Record<string, { label: string; why: string }> = {
   high: {
-    label: 'Narrow',
+    label: 'Very specific',
     why: 'The range is tight enough to act on. Take it to a lender.',
   },
   medium: {
@@ -32,7 +38,7 @@ const COPY: Record<string, { label: string; why: string }> = {
     why: 'Wide enough that the two ends mean different things. One or two more answers would close it.',
   },
   low: {
-    label: 'Wide',
+    label: 'Still wide',
     why: 'The top and the bottom of this answer are two different situations. That is honest, not broken. It usually means we are still guessing something important.',
   },
 };
@@ -40,6 +46,7 @@ const COPY: Record<string, { label: string; why: string }> = {
 export function Confidence({
   result,
   showAmount = true,
+  totalEssentials,
 }: {
   readonly result: Result;
   /**
@@ -52,13 +59,37 @@ export function Confidence({
    * and width only, and the amount arrives when it has been earned.
    */
   readonly showAmount?: boolean;
+  /** How many essentials there are, for the promise made during them. */
+  readonly totalEssentials?: number;
 }) {
-  // No answer yet. Say that, rather than reporting a zero as though it were one.
+  // Still collecting the essentials: make a promise rather than report a width
+  // nobody can use yet. This also covers `need-more-info`, which is what the
+  // engine returns until an income is given.
+  if (!showAmount) {
+    return (
+      <section className="confidence none">
+        <div className="crow">
+          <span className="label">How specific your answer can be</span>
+          <strong>Just getting started</strong>
+        </div>
+        <div className="meter">
+          <span style={{ width: '0%' }} />
+        </div>
+        <p className="muted">
+          Your numbers appear after {totalEssentials ?? 10} questions. Each answer after that
+          narrows them.
+        </p>
+      </section>
+    );
+  }
+
+  // Answered enough to have figures, but not enough to have an income — only
+  // reachable by skipping the income question, which is allowed.
   if (result.verdict.kind === 'need-more-info') {
     return (
       <section className="confidence none">
         <div className="crow">
-          <span className="label">How narrow the answer is</span>
+          <span className="label">How specific your answer can be</span>
           <strong>Nothing to narrow yet</strong>
         </div>
         <div className="meter">
@@ -76,24 +107,17 @@ export function Confidence({
   return (
     <section className={`confidence ${result.confidence}`}>
       <div className="crow">
-        <span className="label">How narrow the answer is</span>
+        <span className="label">How specific your answer can be</span>
         <strong>{copy.label}</strong>
       </div>
       <div className="meter">
         <span style={{ width: `${width}%` }} />
       </div>
       <p className="muted">{copy.why}</p>
-      {showAmount ? (
-        <p className="muted">
-          So far: safe for you {money(result.amounts.safe)}
-          {result.pricing ? `, at ${rateText(result.pricing.rateBand)}` : ''}.
-        </p>
-      ) : (
-        <p className="muted">
-          The figures come once the essential questions are done. Until then this only shows how
-          wide the answer would be.
-        </p>
-      )}
+      <p className="muted">
+        So far: safe for you {money(result.amounts.safe)}
+        {result.pricing ? `, at ${rateText(result.pricing.rateBand)}` : ''}.
+      </p>
     </section>
   );
 }

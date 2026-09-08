@@ -20,6 +20,14 @@
  * - **What moved** — after each answer, what actually changed. It stays silent
  *   when nothing did, which is the point: it is evidence the question was worth
  *   asking, so it must be capable of saying nothing.
+ *
+ * "What moved" and the confidence meter share one box at the foot of the card,
+ * rather than sitting at opposite ends of the screen. On the first question the
+ * meter has nothing to report and an empty bar under a generic sentence is
+ * decoration, so the box makes a promise instead — your figures arrive after ten
+ * questions. From the second answer on, the same box carries what actually
+ * changed. One box, going from promise to evidence, is worth more than two boxes
+ * each half-doing it.
  */
 
 import { useMemo, useState } from 'react';
@@ -155,30 +163,20 @@ export function Flow({
 
   return (
     <>
+      {/* "Question 3 of 10", not "building your financial picture". The number
+          tells the borrower how long this will take, which is what they want to
+          know on screen one, and it quietly promises that figures arrive after
+          the tenth. A metaphor tells them nothing. */}
       <div className="progress no-print">
         <div className="bar">
           <span style={{ width: `${Math.round((mustDone / mustSet.length) * 100)}%` }} />
         </div>
         <span className="muted">
           {mustDone < mustSet.length
-            ? `${mustDone} of ${mustSet.length} essentials`
+            ? `Question ${mustDone + 1} of ${mustSet.length}`
             : 'Essentials done — these only sharpen the answer'}
         </span>
       </div>
-
-      {moved.length > 0 ? (
-        <div className="moved" role="status">
-          <strong>That changed:</strong>
-          <ul>
-            {moved.map((m) => (
-              <li key={m.id}>
-                {m.label}: <span className="was">{m.before}</span> → <strong>{m.after}</strong>
-                {m.narrowed ? <span className="tight"> narrower</span> : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
 
       <section className="ask">
         <h2>
@@ -219,7 +217,7 @@ export function Flow({
             className={confirmSkip === question.id ? 'skipbtn warn' : 'skipbtn'}
             onClick={skip}
           >
-            {confirmSkip === question.id ? 'Yes, skip it' : 'Skip this'}
+            {confirmSkip === question.id ? 'Yes, skip it' : 'Not sure? Skip this'}
           </button>
           {confirmSkip === question.id ? (
             <>
@@ -246,7 +244,27 @@ export function Flow({
         </button>
       ) : null}
 
-      <Confidence result={result} showAmount={mustDone >= mustSet.length} />
+      {/* The same box: what changed if anything did, otherwise the meter — which
+          is itself a promise until the essentials are done. */}
+      {moved.length > 0 ? (
+        <div className="moved" role="status">
+          <strong>That changed:</strong>
+          <ul>
+            {moved.map((m) => (
+              <li key={m.id}>
+                {m.label}: <span className="was">{m.before}</span> → <strong>{m.after}</strong>
+                {m.narrowed ? <span className="tight"> narrower</span> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <Confidence
+          result={result}
+          showAmount={mustDone >= mustSet.length}
+          totalEssentials={mustSet.length}
+        />
+      )}
 
       {mustDone >= mustSet.length ? (
         <button type="button" className="btn wide" onClick={() => setReviewing(true)}>
@@ -341,7 +359,7 @@ function Review({
         </p>
       ) : null}
 
-      <Confidence result={result} showAmount />
+      <Confidence result={result} showAmount totalEssentials={mustSet.length} />
 
       <button type="button" className="btn primary wide" onClick={onDone}>
         Show me the answer →

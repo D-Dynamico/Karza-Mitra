@@ -153,9 +153,11 @@ function headlineTenure(routing: Routing, answers: Answers, log: TraceLog): numb
     answers.age !== undefined
       ? Math.max(12, (policy.retirementAge - answers.age) * 12)
       : band.hi;
-  const preferred = routing.product.secured
-    ? Math.min(band.hi, policy.securedPreferredMonths)
-    : policy.unsecuredPreferredMonths;
+  const preferred =
+    routing.product.preferredTenureMonths ??
+    (routing.product.secured
+      ? Math.min(band.hi, policy.securedPreferredMonths)
+      : policy.unsecuredPreferredMonths);
   const capped = Math.min(preferred, monthsToRetirement);
   const tenure = Math.max(band.lo, capped);
 

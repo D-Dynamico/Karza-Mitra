@@ -19,6 +19,7 @@ import { judgement, register, tierFor, type Rule, type Source, type TieredRule }
 
 export type ProductId =
   | 'personal-loan'
+  | 'home-loan'
   | 'loan-against-property'
   | 'vehicle-loan'
   | 'gold-loan'
@@ -36,6 +37,15 @@ export interface Product {
   readonly feeBand: Interval;
   /** Tenure the product is written over, in months. */
   readonly tenureMonths: Interval;
+  /**
+   * The term to quote for this product, where the general policy would be
+   * wrong. `tenurePolicy` prefers seven years for anything secured, which is
+   * right for a loan against property and absurd for a home loan — it would
+   * quote a ₹50 lakh purchase at an instalment nobody is ever asked for, and
+   * then refuse the borrower on it. Set only where the product has a term of
+   * its own; everything else follows the policy.
+   */
+  readonly preferredTenureMonths?: number;
   /** Share of the pledged asset's value that can be borrowed. */
   readonly loanToValue?: Interval;
   /**
@@ -78,6 +88,21 @@ export const products = register<Rule<Record<ProductId, Product>>>({
           'Paisabazaar and BankBazaar personal-loan rate tables, Sep 2026. Floor of 9.99% quoted by HDFC, ICICI, Axis and IndusInd for CIBIL 780+ at category-A employers; public sector teaser rates from 8.75%, which are not what an ordinary applicant is written at. Top of band 24%.',
         checked: '2026-09-07',
       },
+    },
+    'home-loan': {
+      id: 'home-loan',
+      minTicket: 300000,
+      name: 'Home loan',
+      secured: true,
+      rateBand: iv(8, 11.5),
+      feeBand: iv(0, 0.5),
+      tenureMonths: iv(60, 360),
+      preferredTenureMonths: 240,
+      loanToValue: iv(0.75, 0.9),
+      why: 'The home you are buying is the security, and it is the cheapest borrowing available to an individual in India. Nothing else you can be offered comes close on rate or on term.',
+      source: judgement(
+        'My own working band, anchored to the sourced loan-against-property row above and set below it, because a home loan is the cheaper of the two and priced competitively. I did not find a rate table for September 2026 I was willing to cite, so this needs checking against real cards before anyone acts on it. The loan-to-value follows the RBI slabs — 90% on small loans down to 75% on large ones — which is regulation rather than pricing and is the part of this row I am confident in.',
+      ),
     },
     'loan-against-property': {
       id: 'loan-against-property',
@@ -372,7 +397,26 @@ export function route(
     });
   }
 
+  // Buying a home. The property being bought is the security, so this comes
+  // before the loan-against-property branch below: a borrower who already owns
+  // something would otherwise be sent to pledge it, at a higher rate and over a
+  // shorter term than the home they are buying would itself support.
+  if (answers.purpose === 'home-purchase') {
+    return record({
+      product: all['home-loan'],
+      alternative: {
+        product: usableProperty ? all['loan-against-property'] : all['personal-loan'],
+        why: usableProperty
+          ? 'Pledging property you already own would work, but it is dearer than a loan against the home you are buying, and over a shorter term. Use the cheaper security.'
+          : 'It would avoid the paperwork, but it is the costliest way there is to buy a home, and the term is a fraction as long.',
+      },
+      why: 'The home you are buying stands behind the loan, which makes it the cheapest borrowing you will ever be offered. Ask at a bank before anywhere else.',
+    });
+  }
+
   // Property that could be pledged, and an amount large enough to be worth it.
+  // Home repairs land here when there is something to pledge, and on a personal
+  // loan when there is not — which is the honest answer for a small job.
   if (usableProperty && asked >= lapThreshold.value) {
     const value = answers.propertyValue!;
     const ltv = all['loan-against-property'].loanToValue!;
@@ -405,8 +449,10 @@ export function route(
     });
   }
 
-  // Business purpose, where scheme lending is the door to try first.
-  if (answers.purpose === 'business-stock' || answers.purpose === 'home') {
+  // Business purpose, where scheme lending is the door to try first. Repairing
+  // a home used to be routed here too, which was simply wrong: it is not a
+  // business purpose and does not qualify for scheme-backed lending.
+  if (answers.purpose === 'business-stock') {
     return record({
       product: all['business-loan'],
       alternative: {
