@@ -1157,39 +1157,52 @@ details[open] > summary::before {
 
 
 
-.examples-line {
+.examples-label {
   text-align: center;
   font-size: 0.84rem;
-  line-height: 1.9;
-  /* Aligned to the card above it. Widening this to fit all three on one line
-     was tried and does nothing: the page itself is capped at 720px, so the run
-     wraps whatever this says. Two tidy lines under the card beat one line that
-     overhangs it. */
+  margin: 20px 0 8px;
+}
+
+.examples {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+  width: 100%;
   max-width: 34rem;
-  margin: 18px auto 0;
-  color: var(--ink-faint);
+  margin-inline: auto;
 }
 
-.examples-line .linky {
-  background: none;
-  border: 0;
-  padding: 0;
+@media (min-width: 560px) {
+  .examples {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.example {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.example:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.example strong {
+  font-size: 0.92rem;
   color: var(--accent);
-  font-weight: 600;
-  text-decoration: underline;
-  font-size: inherit;
 }
 
-/* One borrower, unbreakable. Without this the line broke inside a
-   description — "Priya — Salaried, has a car" / "loan · Ravi — Shopkeeper" —
-   which is harder to read than three tidy lines. */
-.examples-line .example-item {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.examples-line .dot {
-  color: var(--line-strong);
+.example .muted {
+  font-size: 0.78rem;
+  line-height: 1.3;
 }
 
 /* Under the tagline on the first screen, and hidden everywhere else. */

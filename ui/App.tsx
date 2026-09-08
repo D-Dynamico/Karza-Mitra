@@ -20,7 +20,7 @@
  * make room for it.
  */
 
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
 import { personas, type Persona } from '../engine/personas';
@@ -114,25 +114,26 @@ export function App() {
             {/* One tap away, because a reviewer will reach for these within ten
                 seconds — but small and prefixed, because three first names in a
                 row above the fold read as a sign-in, not as examples. */}
-            {/* The descriptions are what make these worth pressing — "Priya"
-                alone says nothing about which example to pick. Each name and its
-                description is one unbreakable unit, so the line wraps between
-                borrowers rather than through the middle of a phrase, and the
-                separators sit between units rather than starting a line. */}
-            <p className="examples-line">
-              <span className="muted">Try an example: </span>
-              {personas.map((p, i) => (
-                <Fragment key={p.id}>
-                  {i > 0 ? <span className="dot"> · </span> : null}
-                  <span className="example-item">
-                    <button type="button" className="linky" onClick={() => loadPersona(p)}>
-                      {p.name}
-                    </button>
-                    <span className="muted"> — {p.blurb}</span>
-                  </span>
-                </Fragment>
+            {/* Three boxes, outside the card and quieter than it. The
+                description is what makes one worth pressing — "Priya" alone says
+                nothing about which example to pick — and a box gives it somewhere
+                to sit that a run of text does not. Kept below the fold-line of the
+                card and in a lighter weight, so three first names never read as a
+                sign-in. */}
+            <p className="examples-label muted">Try an example:</p>
+            <div className="examples">
+              {personas.map((p) => (
+                <button
+                  type="button"
+                  key={p.id}
+                  className="example"
+                  onClick={() => loadPersona(p)}
+                >
+                  <strong>{p.name}</strong>
+                  <span className="muted">{p.blurb}</span>
+                </button>
               ))}
-            </p>
+            </div>
           </>
         ) : view === 'flow' || view === 'review' ? (
           <Flow

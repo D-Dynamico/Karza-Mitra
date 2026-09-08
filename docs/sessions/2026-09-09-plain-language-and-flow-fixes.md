@@ -146,24 +146,22 @@ A brand colour with a story behind it, and a second list of screen fixes.
   darkened from the original grey specifically to hold that.
 - **Source:** my judgement, 2026-09-09.
 
-### The example descriptions stay visible — reversed within the session
+### The examples are boxed buttons with their descriptions — settled after two reversals
 
-- **Choice:** the strip reads "Try an example: Priya — Salaried, has a car loan · Ravi —
-  Shopkeeper, owns his shop · Anita — Missed a payment recently", with each name and its
-  description as one `white-space: nowrap` unit and the separators between the units.
-- **Why:** the descriptions are what make these worth pressing. "Priya" alone says nothing
-  about which example to pick, which was the original complaint about the persona buttons
-  in the first place. They were briefly cut to names only because the line wrapped through
-  the middle of a phrase — but that was a layout defect to fix, not a reason to drop
-  content, and the user said so. The nowrap units fix the wrap; the line now breaks between
-  borrowers.
-- **Rejected:** names only with the blurb as a `title` (hides the useful half behind a
-  hover, and is invisible on a phone); the boxed cards from the previous pass (that is what
-  read as a login); widening the line so all three fit on one row — tried, and it does
-  nothing, because the page itself is capped at 720px.
-- **Would be wrong if:** a fourth persona is added and the run grows to four lines. At that
-  point it wants to be a list again, not a run.
-- **Source:** the user, 2026-09-09, correcting me within the session.
+- **Choice:** a "Try an example:" label with three bordered buttons beneath it, each
+  carrying the borrower's name in Lokta Purple over a muted one-line description. Outside
+  the card, lighter than it, three across on a wide screen and stacked on a phone.
+- **Why:** the description is what makes one worth pressing — "Priya" alone says nothing
+  about which example to pick — and a box gives it somewhere to sit that a run of inline
+  text does not. The label above and the lighter weight are what stop three first names
+  reading as a sign-in, which was the original complaint; the box itself was never the
+  problem.
+- **Rejected, in order, because both were tried in this session:** an inline run of names
+  only (drops the half that helps you choose); an inline run with the descriptions (keeps
+  the content but wraps to two lines and leaves a separator dangling at a line end).
+- **Would be wrong if:** a fourth persona is added — three across is what makes this a row
+  rather than a list.
+- **Source:** the user, 2026-09-09, after I had changed it twice.
 
 ### A displayed range narrower than 5% collapses to one figure
 
@@ -416,10 +414,6 @@ A brand colour with a story behind it, and a second list of screen fixes.
   table and in RULES.md. Check it against real September 2026 rate cards.
 - **The verdict kind is still printed raw** as the chip above the headline — "DONT" rather
   than "Don't". Cosmetic, untouched.
-- **The trailing separator can sit at a line end** on the example run, where the line
-  breaks after a middot. Cosmetic, and not fixable in CSS without moving the separator into
-  the following unit, which would start a line with a dangling dot instead — a worse
-  version of the same thing.
 - **Only the opening screen got the design pass.** The answer screen, the flow and the
   don't-borrow screen are unchanged in layout; the same "everything at one visual weight"
   criticism may apply to them.
