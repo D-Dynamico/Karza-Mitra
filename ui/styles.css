@@ -130,8 +130,19 @@ small,
 .pickers {
   display: flex;
   flex-wrap: wrap;
+  /* Without this the row stretches its children, and the "Try an example:"
+     label — which has no padding of its own — renders its text at the top of
+     the row while the pills centre theirs. The two then sit on different
+     lines despite being in the same flex row. */
+  align-items: center;
   gap: 8px;
   margin-top: 12px;
+}
+
+/* A little air before the label, so "Start over" reads as its own thing rather
+   than as the first item in the list of examples. */
+.pickers .muted {
+  margin-left: 8px;
 }
 
 button {
