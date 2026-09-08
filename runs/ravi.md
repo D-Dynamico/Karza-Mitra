@@ -33,7 +33,7 @@ Confidence: **low** — how narrow the answer is, not how many questions were as
 
 Each assumption below is a range, not a single figure. These are the answers at both ends of it — the engine re-run, not an illustration.
 
-**What do you pay for rent, or on a home loan?**
+**What do you pay in rent each month?**
 
 | If the answer is | Verdict | Safe to carry | Product |
 |---|---|---|---|
@@ -87,7 +87,7 @@ What moved:
 
 *What moved: nothing yet — it needs another answer first.*
 
-#### 6. What do you pay for rent, or on a home loan?
+#### 6. What do you pay in rent each month?
 
 **Ravi answers:** *(skipped)*
 
@@ -124,7 +124,7 @@ What moved:
 
 ### Then whatever the engine ranks highest, one at a time
 
-*Offered “What do you pay for rent, or on a home loan?” — skipped, so the engine assumes instead and says so.*
+*Offered “What do you pay in rent each month?” — skipped, so the engine assumes instead and says so.*
 
 *Offered “Roughly what does the household spend in a month, apart from rent and loans?” — skipped, so the engine assumes instead and says so.*
 

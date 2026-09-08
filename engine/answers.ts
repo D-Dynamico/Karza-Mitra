@@ -64,7 +64,14 @@ export const answersSchema = z.object({
   incomeType: incomeType.optional(),
   monthlyIncome: statedRange.optional(),
   existingEmis: rupees.optional(),
-  rentOrHomeEmi: rupees.optional(),
+  /**
+   * Rent only. A home-loan instalment is a different animal and lives below:
+   * a lender ignores rent in its ratios and counts a home loan, so a mortgage
+   * asked for here — as it used to be — was hidden from the lender ceiling and
+   * the sanction came out far too high. It belongs with the other loans.
+   */
+  rent: rupees.optional(),
+
   householdExpenses: rupees.optional(),
   age: z.number().int().min(18).max(100).optional(),
   /** People the income supports. Feeds the household-spending default. */

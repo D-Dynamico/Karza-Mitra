@@ -43,8 +43,8 @@ export interface RentEstimate {
 }
 
 export function assumedRent(answers: Answers, log: TraceLog): RentEstimate {
-  if (answers.rentOrHomeEmi !== undefined) {
-    return { value: point(answers.rentOrHomeEmi), assumed: false };
+  if (answers.rent !== undefined) {
+    return { value: point(answers.rent), assumed: false };
   }
 
   // Owning property is real evidence about rent — a shopkeeper who owns his
@@ -72,7 +72,7 @@ export function assumedRent(answers: Answers, log: TraceLog): RentEstimate {
       output: band,
       why: `You own property and did not tell us about rent, so we have assumed you most likely pay none. We have not assumed it outright — if you rent the home you live in, it would be nearer ₹${ifWrong.toLocaleString('en-IN')} a month, and the lower end of every figure below reflects that.`,
       assumed: true,
-      field: 'rentOrHomeEmi',
+      field: 'rent',
       assumption: `Rent: we assumed you probably pay none, because you own property — but allowed up to ₹${ifWrong.toLocaleString('en-IN')} a month in case you rent where you live. Telling us settles it.`,
     });
     return { value: band, assumed: true };
@@ -88,7 +88,7 @@ export function assumedRent(answers: Answers, log: TraceLog): RentEstimate {
     output: band,
     why: `${assumedRentByCity.why} Telling us the real figure will narrow every number below.`,
     assumed: true,
-    field: 'rentOrHomeEmi',
+    field: 'rent',
     assumption: `Rent: we assumed ₹${band.lo.toLocaleString('en-IN')} to ₹${band.hi.toLocaleString('en-IN')} a month${tier === 'unknown' ? ', not knowing your city' : ` for your city`}. Your real figure narrows every number here.`,
   });
 

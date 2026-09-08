@@ -34,7 +34,7 @@ Confidence: **low** — how narrow the answer is, not how many questions were as
 
 Each assumption below is a range, not a single figure. These are the answers at both ends of it — the engine re-run, not an illustration.
 
-**What do you pay for rent, or on a home loan?**
+**What do you pay in rent each month?**
 
 | If the answer is | Verdict | Safe to carry | Product |
 |---|---|---|---|
@@ -93,7 +93,7 @@ What moved:
 - what you can safely carry: ₹0–₹1,69,398 → **₹0**
 - your instalment ceiling: ₹0–₹4,302 → **₹0**
 
-#### 6. What do you pay for rent, or on a home loan?
+#### 6. What do you pay in rent each month?
 
 **Anita answers:** *(skipped)*
 
@@ -127,7 +127,7 @@ What moved:
 
 ### Then whatever the engine ranks highest, one at a time
 
-*Offered “What do you pay for rent, or on a home loan?” — skipped, so the engine assumes instead and says so.*
+*Offered “What do you pay in rent each month?” — skipped, so the engine assumes instead and says so.*
 
 #### 11. Has any payment bounced or been missed in the last six months?
 

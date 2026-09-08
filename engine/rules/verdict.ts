@@ -48,7 +48,10 @@ export interface VerdictInputs {
   readonly lenderAmount: Interval;
   readonly surplus: Interval;
   readonly planning: Interval;
+  /** The instalment that can actually end, used for the "wait for it" line. */
   readonly existingEmis: number;
+  /** Everything committed each month: existing instalments plus a home loan. */
+  readonly obligations: number;
   readonly recentBounce: boolean;
   readonly unsecuredLikelyDeclined: boolean;
   readonly securedAvailable: boolean;
@@ -161,14 +164,21 @@ export function decide(input: VerdictInputs, log: TraceLog): Verdict {
   }
 
   // 2. Already carrying more than half of income in instalments.
-  const committedShare = input.existingEmis / Math.max(input.planning.lo, 1);
+  const committedShare = input.obligations / Math.max(input.planning.lo, 1);
   if (committedShare > obligationDangerLine.value) {
     return emit({
       kind: 'dont',
       headline: 'Your existing loans are the problem to solve first.',
       why: `More than half of what you earn in a slow month already goes to instalments. ${obligationDangerLine.why}`,
+      // "Clear the dearest loan first" claimed a ranking this engine cannot
+      // make: it knows one instalment total, not what any of it costs. Where
+      // the app-loan flag is set there is a real ordering to give, because app
+      // and BNPL lending is the dearest money in the market as a category. Where
+      // it is not, the honest sentence names no order at all.
       nextStep:
-        'Clear the dearest loan first. Every rupee off that instalment does more for you than a new loan would.' +
+        (input.hasAppLoans
+          ? 'Clear the app loans first — they are the dearest money in the market, so every rupee off them does the most for you.'
+          : 'Paying down what you already owe does more for you here than a new loan would.') +
         waitingNote('dont'),
     });
   }

@@ -73,7 +73,7 @@ What moved:
 - what you can safely carry: ₹11,06,749–₹20,41,422 → **₹5,61,169–₹14,11,909**
 - your instalment ceiling: ₹27,203–₹43,364 → **₹13,793–₹29,992**
 
-#### 6. What do you pay for rent, or on a home loan?
+#### 6. What do you pay in rent each month?
 
 **Priya answers:** ₹28,000
 

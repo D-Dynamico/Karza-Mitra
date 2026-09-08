@@ -16,7 +16,7 @@
 import type { Answers } from './answers';
 
 export interface Persona {
-  readonly id: 'priya' | 'ravi' | 'anita';
+  readonly id: 'priya' | 'ravi' | 'anita' | 'mohan';
   readonly name: string;
   /** What this persona is in the set to catch. */
   readonly tests: string;
@@ -41,7 +41,7 @@ export const priya: Persona = {
     monthlyIncome: { lo: 110000, hi: 110000 },
     existingEmis: 14000, // car loan
     existingEmiMonthsLeft: 24, // "2 years left" — her strongest path-to-yes lever
-    rentOrHomeEmi: 28000,
+    rent: 28000,
     age: 29,
     cityTier: 'metro', // Bengaluru
     creditScore: { known: true, score: 780 },
@@ -152,6 +152,59 @@ export const anita: Persona = {
 export const personas: readonly Persona[] = [priya, ravi, anita];
 
 /**
+ * Mine, not the brief's.
+ *
+ * The three above were chosen by Lokta to exercise routing, the two numbers, and
+ * the refusal. They do it well, and between them they leave one hole: none of
+ * them is near retirement, none pledges property, and none pays no rent. That is
+ * not a weakness in the tests — it is a fixture set built to test lending
+ * decisions rather than a borrower's lifecycle.
+ *
+ * Seven real defects were fixed in this project without a single golden moving,
+ * which is what a hole of that shape looks like from the inside. Mohan closes it:
+ * he is 59, so the retirement cap and the product's minimum tenure disagree over
+ * him; he owns property, so routing goes secured and the loan-to-value cap binds;
+ * and he pays no rent, which is the state that produced the rent clause firing at
+ * zero rent.
+ *
+ * He is deliberately kept OUT of `personas`, so the three run-throughs the brief
+ * asks for stay exactly three. He exists for the goldens.
+ */
+export const mohan: Persona = {
+  id: 'mohan',
+  name: 'Mohan',
+  tests:
+    'The lifecycle holes the three from the brief leave open: a term that outruns working life, a loan-to-value cap doing the binding instead of income, and a borrower who pays no rent at all.',
+  answers: {
+    purpose: 'education',
+    amountAsked: 7500000,
+    incomeType: 'salaried',
+    monthlyIncome: { lo: 220000, hi: 220000 },
+    existingEmis: 25000,
+    existingEmiMonthsLeft: 18,
+    // Explicitly zero, not absent. A blank would trigger the assumed-rent range
+    // and this persona exists partly to hold the zero-rent path.
+    rent: 0,
+    householdExpenses: 60000,
+    age: 59,
+    householdSize: 4,
+    cityTier: 'metro',
+    ownsProperty: true,
+    propertyValue: 6000000,
+  },
+  derived: [
+    {
+      field: 'age',
+      from: 'Chosen at 59 on purpose: a loan against property is not written for less than sixty months, so the retirement cap and the product floor disagree, which is the case that used to pass in silence.',
+    },
+    {
+      field: 'propertyValue',
+      from: 'Chosen so the loan-to-value cap lands below what his income would support, which is what makes collateral — not income — the binding constraint.',
+    },
+  ],
+};
+
+/**
  * The must set of nine only. Used to prove the engine still answers before any
  * of the adaptive branches have been asked.
  */
@@ -162,7 +215,7 @@ export function mustSetOnly(answers: Answers): Answers {
     incomeType: answers.incomeType,
     monthlyIncome: answers.monthlyIncome,
     existingEmis: answers.existingEmis,
-    rentOrHomeEmi: answers.rentOrHomeEmi,
+    rent: answers.rent,
     householdExpenses: answers.householdExpenses,
     householdSize: answers.householdSize,
     age: answers.age,

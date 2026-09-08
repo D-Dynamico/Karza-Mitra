@@ -31,7 +31,7 @@ function* generatedBorrowers(): Generator<Answers> {
             incomeType: types[i],
             monthlyIncome: { lo: income, hi: income },
             existingEmis: emi,
-            rentOrHomeEmi: rent,
+            rent: rent,
             householdExpenses: Math.round(income * 0.3),
             age: 35,
             creditScore: { known: true, score: 720 },
@@ -59,7 +59,7 @@ describe('taking on more debt never helps', () => {
   it('never raises the safe amount when rent goes up', () => {
     for (const a of all) {
       const before = compute(a);
-      const after = compute({ ...a, rentOrHomeEmi: (a.rentOrHomeEmi ?? 0) + 5000 });
+      const after = compute({ ...a, rent: (a.rent ?? 0) + 5000 });
       expect(after.amounts.safe.hi).toBeLessThanOrEqual(before.amounts.safe.hi + 1e-6);
     }
   });
@@ -69,7 +69,7 @@ describe('taking on more debt never helps', () => {
     // being true, either a rule is wrong or the product's premise has changed.
     for (const a of all) {
       const before = compute(a);
-      const after = compute({ ...a, rentOrHomeEmi: (a.rentOrHomeEmi ?? 0) + 5000 });
+      const after = compute({ ...a, rent: (a.rent ?? 0) + 5000 });
       expect(after.amounts.lender.lo).toBeCloseTo(before.amounts.lender.lo, 6);
       expect(after.amounts.lender.hi).toBeCloseTo(before.amounts.lender.hi, 6);
     }
@@ -264,7 +264,7 @@ describe('nothing ever produces a broken number', () => {
       incomeType: 'salaried',
       monthlyIncome: { lo: 40000, hi: 40000 },
       existingEmis: 0,
-      rentOrHomeEmi: 5000,
+      rent: 5000,
       age: 35,
       creditScore: { known: true, score: 750 },
     };

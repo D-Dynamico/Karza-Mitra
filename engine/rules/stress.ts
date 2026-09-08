@@ -24,8 +24,6 @@ export const stressScenario = register<Rule<{ incomeDrop: number; rateRise: numb
 export interface StressResult {
   /** Planning income after the drop. */
   readonly income: Interval;
-  /** The rate band after the rise. */
-  readonly rate: Interval;
   /** Fixed outgo as a share of income, after the bad turn. */
   readonly outflowRatio: Interval;
   /** True when the plan stops holding under the stress case. */
@@ -92,5 +90,5 @@ export function stressTest(
       : 'Even after a bad turn this stays inside a manageable share of your income.',
   });
 
-  return { income: stressedPlanning, rate: iv(0, 0), outflowRatio: ratio, breaches };
+  return { income: stressedPlanning, outflowRatio: ratio, breaches };
 }

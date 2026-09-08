@@ -185,6 +185,12 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
   const credit = assessCredit(answers, log);
   const income = assessIncome(answers, log);
   const existingEmis = answers.existingEmis ?? 0;
+  // A home-loan instalment is an obligation, not a housing preference: a lender
+  // ignores rent in its ratios and counts a mortgage in full. It is collected
+  // with the other loans rather than with rent, so it reaches both ceilings
+  // here without any special case — see the hint on both questions, which is
+  // what actually routes it.
+  const obligations = existingEmis;
   // Never a bare `?? 0`. An unanswered rent becomes a conservative range that
   // widens the answer, not a zero that quietly improves it.
   const rentEstimate = assumedRent(answers, log);
@@ -232,6 +238,7 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
         informalIncome: false,
         hasAppLoans: answers.appOrBnplLoans === true,
         stressBreaches: false,
+        obligations: existingEmis,
         rentCounted: false,
         collateralBindsBoth: false,
         verdictIfExistingEmisCleared: undefined,
@@ -269,10 +276,10 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
   // to deliver. A stress test flattered by the thing under test is not a test.
   const incomeWithoutUplift = atLeastZero(sub(income.planning, income.productiveUplift));
   const stressed = stressedIncome(incomeWithoutUplift, log);
-  const lenderEmiHeadroom = lenderCeiling(income.recognised, existingEmis, log);
+  const lenderEmiHeadroom = lenderCeiling(income.recognised, obligations, log);
   const borrower = borrowerCeiling(income.planning, {
     rent,
-    existingEmis,
+    existingEmis: obligations,
     expenses: expenses.value,
     expensesAssumed: expenses.assumed,
     emergencySavingsMonths: answers.emergencySavingsMonths,
@@ -395,12 +402,12 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
     output: safeAmount,
     why: `The same arithmetic on your own ceiling instead of theirs. The gap between the two numbers is mostly your rent, plus what a bad month would do.`,
   });
-  const outgoNow = totalOutgo(rent, existingEmis, emiAtSafe);
+  const outgoNow = totalOutgo(rent, obligations, emiAtSafe);
 
   // The bad turn is both halves at once: less coming in, and a bigger instalment
   // going out. Testing them separately would understate it.
   const emiAfterRateRise = emiRangeCorrelated(safeAmount, stressedRate(rateBand), tenure);
-  const outgoStressed = totalOutgo(rent, existingEmis, emiAfterRateRise);
+  const outgoStressed = totalOutgo(rent, obligations, emiAfterRateRise);
   const stress = stressTest(
     outgoStressed,
     stressed,
@@ -476,6 +483,7 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
         answers.incomeType === 'informal' || answers.incomeType === 'self-employed-cash',
       hasAppLoans: answers.appOrBnplLoans === true,
       stressBreaches: stress.breaches,
+      obligations,
       rentCounted: rent.hi > 0,
       collateralBindsBoth,
       verdictIfExistingEmisCleared,

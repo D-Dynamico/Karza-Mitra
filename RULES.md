@@ -213,12 +213,15 @@ an assumption on the borrower's own screen. It is still an assumption — no pen
 post-retirement earnings and no co-applicant who keeps working is anywhere in the arithmetic.
 
 **Existing loans are one number, with no rate and no breakdown.** The engine asks what you
-pay each month on loans and gets a single total. That is the right input for both ceilings,
-since a lender counts the instalment rather than its interest rate and so does your own
-budget — but it means two things here are weaker than they read. "Clear the dearest loan
-first" is general advice, not a ranking of your loans, because there is nothing to rank. And
-the what-if for clearing app loans has to treat the whole instalment as app loans, since
-nothing tells it which part is which; the option says so beside itself.
+pay each month on loans and gets a single total, and that total is the right input for both
+ceilings — a lender counts the instalment rather than its interest rate, and so does your own
+budget. A home-loan instalment belongs in that total for the same reason, which is why it is
+asked for there rather than alongside rent: lenders ignore rent and count a mortgage in full.
+What the single total costs is the ordering. Nothing here can tell you which of your loans is
+dearest, so no sentence claims to; the only ordering offered is "clear the app loans first",
+which is a claim about a category rather than about your particular loans. The what-if for
+clearing them still has to treat the whole instalment as app loans, since nothing says which
+part is which, and the option says so beside itself.
 
 ### Which numbers are my judgement rather than a source
 

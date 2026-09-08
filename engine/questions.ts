@@ -172,6 +172,7 @@ export const mustSet: readonly Question[] = [
     prompt: 'What do you already pay each month on loans?',
     whyWeAsk:
       'It comes straight off both ceilings. It is also the fastest number to change, since a loan ending frees the whole instalment at once.',
+    hint: 'Add up everything — a car loan, a personal loan, a home loan, anything on an app. A home loan belongs here rather than with rent: a lender ignores rent, but counts a mortgage against you in full.',
     skipCost: 'Both amounts will be too generous, because we will assume you owe nothing.',
     input: { kind: 'money' },
     moves: ['O2.lender', 'O2.safe', 'O4.emi'],
@@ -181,16 +182,17 @@ export const mustSet: readonly Question[] = [
   {
     id: 'rent',
     corrects: ['rent.assumed-by-city', 'rent.owns-premises'],
-    field: 'rentOrHomeEmi',
+    field: 'rent',
     tier: 'must',
-    prompt: 'What do you pay for rent, or on a home loan?',
+    prompt: 'What do you pay in rent each month?',
     whyWeAsk:
       'Most lenders leave rent out of their arithmetic entirely. You cannot, so we count it — and it is usually the biggest reason our number is smaller than theirs.',
+    hint: 'Rent only. A home loan is not rent — put that with your other loans, because a lender counts it and ignores this.',
     skipCost: 'We will assume a range for your city, which keeps your safe amount wider than it needs to be.',
     input: { kind: 'money' },
     moves: ['O2.safe', 'O4.emi', 'O4.stress'],
     applies: always,
-    probes: [{ rentOrHomeEmi: 0 }, { rentOrHomeEmi: 20000 }],
+    probes: [{ rent: 0 }, { rent: 20000 }],
   },
   {
     id: 'household-expenses',
@@ -277,7 +279,7 @@ export const adaptiveSet: readonly Question[] = [
       ],
     },
     moves: ['O2.safe', 'O4.emi'],
-    applies: (a) => !answered(a, 'rentOrHomeEmi') || !answered(a, 'householdExpenses'),
+    applies: (a) => !answered(a, 'rent') || !answered(a, 'householdExpenses'),
     probes: [{ cityTier: 'metro' }, { cityTier: 'tier-3' }],
   },
   {

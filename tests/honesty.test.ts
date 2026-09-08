@@ -77,7 +77,7 @@ describe('a loan too small to exist is not a smaller loan', () => {
       incomeType: 'salaried',
       monthlyIncome: { lo: 31500, hi: 31500 },
       existingEmis: 0,
-      rentOrHomeEmi: 10000,
+      rent: 10000,
       householdExpenses: 18000,
       age: 30,
       creditScore: { known: true, score: 750 },

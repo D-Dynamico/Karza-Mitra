@@ -175,17 +175,6 @@ export const emergencySavingsRule = register<Rule<{ months: number; setAside: In
   source: judgement('Three months is the common rule of thumb for an emergency fund.'),
 });
 
-export interface AffordabilityResult {
-  /** The most a lender will allow towards a new instalment. */
-  readonly lenderMaxEmi: Interval;
-  /** The most the borrower can carry without the plan getting fragile. */
-  readonly safeEmi: Interval;
-  /** Which of the borrower-side constraints actually bound the answer. */
-  readonly binding: 'outflow ceiling' | 'money left over' | 'a bad month';
-  /** Money left each month once everything, including the new instalment, is paid. */
-  readonly surplusBeforeNewEmi: Interval;
-}
-
 /**
  * The lender's side. Obligations are existing instalments plus the proposed one;
  * rent does not appear, which is exactly the omission that makes their number
@@ -330,7 +319,7 @@ export function bindingConstraint(amounts: {
   fromOutflow: Interval;
   fromSurplus: Interval;
   fromStress: Interval;
-}): AffordabilityResult['binding'] {
+}): 'outflow ceiling' | 'money left over' | 'a bad month' {
   const { fromOutflow, fromSurplus, fromStress } = amounts;
   if (fromSurplus.hi <= fromOutflow.hi && fromSurplus.hi <= fromStress.hi) return 'money left over';
   if (fromStress.hi <= fromOutflow.hi) return 'a bad month';

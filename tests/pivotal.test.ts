@@ -17,9 +17,9 @@ import { allQuestions } from '../engine/questions';
 describe('an assumption is pivotal when its two ends disagree', () => {
   it("finds Ravi's rent, because it decides whether he should borrow", () => {
     const pivotal = pivotalAssumptions(ravi.answers);
-    expect(pivotal.map((p) => p.field)).toContain('rentOrHomeEmi');
+    expect(pivotal.map((p) => p.field)).toContain('rent');
 
-    const rent = pivotal.find((p) => p.field === 'rentOrHomeEmi')!;
+    const rent = pivotal.find((p) => p.field === 'rent')!;
     expect(rent.atLow.verdict).toBe('borrow');
     expect(rent.atHigh.verdict).toBe('borrow-less');
     expect(rent.flipsVerdict).toBe(true);
@@ -29,7 +29,7 @@ describe('an assumption is pivotal when its two ends disagree', () => {
     // Hers is assumed across a wider band than his, and it matters less. Width
     // is not the test; whether the answer changes is.
     const tested = testedAssumptions(anita.answers);
-    const rent = tested.find((p) => p.field === 'rentOrHomeEmi');
+    const rent = tested.find((p) => p.field === 'rent');
     expect(rent, 'her rent should still be tested').toBeDefined();
     expect(rent!.range.hi - rent!.range.lo).toBeGreaterThan(0);
     expect(rent!.atLow.verdict).toBe('dont');
@@ -43,7 +43,7 @@ describe('an assumption is pivotal when its two ends disagree', () => {
 
   it('goes quiet once the question is actually answered', () => {
     for (const rent of [0, 7000]) {
-      const answered: Answers = { ...ravi.answers, rentOrHomeEmi: rent };
+      const answered: Answers = { ...ravi.answers, rent: rent };
       expect(pivotalAssumptions(answered), `rent ${rent}`).toHaveLength(0);
     }
   });
@@ -56,7 +56,7 @@ describe('an assumption is pivotal when its two ends disagree', () => {
   });
 
   it('reports the range it actually tested, and both ends of it', () => {
-    const rent = pivotalAssumptions(ravi.answers).find((p) => p.field === 'rentOrHomeEmi')!;
+    const rent = pivotalAssumptions(ravi.answers).find((p) => p.field === 'rent')!;
     expect(rent.range.lo).toBe(0);
     expect(rent.range.hi).toBeGreaterThan(0);
     expect(rent.atLow.value).toBe(rent.range.lo);
@@ -75,14 +75,14 @@ describe('owning property is evidence about rent, not proof of it', () => {
     expect(band.lo).toBe(0);
     expect(band.hi).toBeGreaterThan(0);
     expect(entry.assumed).toBe(true);
-    expect(entry.field).toBe('rentOrHomeEmi');
+    expect(entry.field).toBe('rent');
   });
 
   it('never resolves an unknown in the borrower\'s favour', () => {
     // The rule this restores. A borrower who says nothing must never end up
     // better off than the same borrower who says the favourable thing.
     const silent = compute(ravi.answers);
-    const saysNoRent = compute({ ...ravi.answers, rentOrHomeEmi: 0 });
+    const saysNoRent = compute({ ...ravi.answers, rent: 0 });
     expect(silent.amounts.safe.lo).toBeLessThanOrEqual(saysNoRent.amounts.safe.lo);
     expect(silent.amounts.safe.hi).toBeLessThanOrEqual(saysNoRent.amounts.safe.hi);
   });
@@ -103,7 +103,7 @@ describe('owning property is evidence about rent, not proof of it', () => {
     // What the brief tests with Ravi is routing. Rent moves the amount, and it
     // must not move the answer to "which loan".
     for (const rent of [0, 5000, 10000, 15000, 25000]) {
-      const r = compute({ ...ravi.answers, rentOrHomeEmi: rent });
+      const r = compute({ ...ravi.answers, rent: rent });
       expect(r.routing?.product.id, `rent ${rent}`).toBe('loan-against-property');
     }
   });
