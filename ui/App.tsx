@@ -20,7 +20,7 @@
  * make room for it.
  */
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
 import { personas, type Persona } from '../engine/personas';
@@ -114,23 +114,23 @@ export function App() {
             {/* One tap away, because a reviewer will reach for these within ten
                 seconds — but small and prefixed, because three first names in a
                 row above the fold read as a sign-in, not as examples. */}
+            {/* The descriptions are what make these worth pressing — "Priya"
+                alone says nothing about which example to pick. Each name and its
+                description is one unbreakable unit, so the line wraps between
+                borrowers rather than through the middle of a phrase, and the
+                separators sit between units rather than starting a line. */}
             <p className="examples-line">
               <span className="muted">Try an example: </span>
               {personas.map((p, i) => (
-                <span key={p.id}>
+                <Fragment key={p.id}>
                   {i > 0 ? <span className="dot"> · </span> : null}
-                  {/* The blurb is the button's title rather than visible text:
-                      spelled out inline it wrapped to two lines and pulled the
-                      eye off the button above it. */}
-                  <button
-                    type="button"
-                    className="linky"
-                    title={p.blurb}
-                    onClick={() => loadPersona(p)}
-                  >
-                    {p.name}
-                  </button>
-                </span>
+                  <span className="example-item">
+                    <button type="button" className="linky" onClick={() => loadPersona(p)}>
+                      {p.name}
+                    </button>
+                    <span className="muted"> — {p.blurb}</span>
+                  </span>
+                </Fragment>
               ))}
             </p>
           </>

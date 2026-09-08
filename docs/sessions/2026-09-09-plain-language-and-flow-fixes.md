@@ -146,16 +146,24 @@ A brand colour with a story behind it, and a second list of screen fixes.
   darkened from the original grey specifically to hold that.
 - **Source:** my judgement, 2026-09-09.
 
-### The example blurbs became titles rather than visible text
+### The example descriptions stay visible — reversed within the session
 
-- **Choice:** the strip shows names only; the blurb is the button's `title`.
-- **Why:** spelled out inline the three descriptions wrapped to two lines and pulled the eye
-  off the button above them, which is the opposite of "secondary". The request's own
-  wording was names with a middle dot.
-- **Rejected:** deleting `blurb` (it is real, checked-against-the-data content, and a hover
-  still explains); keeping the card layout from the previous pass (that is what read as a
-  login).
-- **Source:** the user's updated note, 2026-09-09.
+- **Choice:** the strip reads "Try an example: Priya — Salaried, has a car loan · Ravi —
+  Shopkeeper, owns his shop · Anita — Missed a payment recently", with each name and its
+  description as one `white-space: nowrap` unit and the separators between the units.
+- **Why:** the descriptions are what make these worth pressing. "Priya" alone says nothing
+  about which example to pick, which was the original complaint about the persona buttons
+  in the first place. They were briefly cut to names only because the line wrapped through
+  the middle of a phrase — but that was a layout defect to fix, not a reason to drop
+  content, and the user said so. The nowrap units fix the wrap; the line now breaks between
+  borrowers.
+- **Rejected:** names only with the blurb as a `title` (hides the useful half behind a
+  hover, and is invisible on a phone); the boxed cards from the previous pass (that is what
+  read as a login); widening the line so all three fit on one row — tried, and it does
+  nothing, because the page itself is capped at 720px.
+- **Would be wrong if:** a fourth persona is added and the run grows to four lines. At that
+  point it wants to be a list again, not a run.
+- **Source:** the user, 2026-09-09, correcting me within the session.
 
 ### A displayed range narrower than 5% collapses to one figure
 
@@ -408,6 +416,10 @@ A brand colour with a story behind it, and a second list of screen fixes.
   table and in RULES.md. Check it against real September 2026 rate cards.
 - **The verdict kind is still printed raw** as the chip above the headline — "DONT" rather
   than "Don't". Cosmetic, untouched.
+- **The trailing separator can sit at a line end** on the example run, where the line
+  breaks after a middot. Cosmetic, and not fixable in CSS without moving the separator into
+  the following unit, which would start a line with a dangling dot instead — a worse
+  version of the same thing.
 - **Only the opening screen got the design pass.** The answer screen, the flow and the
   don't-borrow screen are unchanged in layout; the same "everything at one visual weight"
   criticism may apply to them.

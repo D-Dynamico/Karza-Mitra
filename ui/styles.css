@@ -1161,6 +1161,10 @@ details[open] > summary::before {
   text-align: center;
   font-size: 0.84rem;
   line-height: 1.9;
+  /* Aligned to the card above it. Widening this to fit all three on one line
+     was tried and does nothing: the page itself is capped at 720px, so the run
+     wraps whatever this says. Two tidy lines under the card beat one line that
+     overhangs it. */
   max-width: 34rem;
   margin: 18px auto 0;
   color: var(--ink-faint);
@@ -1174,6 +1178,14 @@ details[open] > summary::before {
   font-weight: 600;
   text-decoration: underline;
   font-size: inherit;
+}
+
+/* One borrower, unbreakable. Without this the line broke inside a
+   description — "Priya — Salaried, has a car" / "loan · Ravi — Shopkeeper" —
+   which is harder to read than three tidy lines. */
+.examples-line .example-item {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .examples-line .dot {
