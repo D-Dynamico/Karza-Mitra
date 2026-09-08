@@ -59,6 +59,11 @@ export interface Option {
    * is our choice rather than their situation.
    */
   readonly assumesAnInput?: boolean;
+  /**
+   * What this option takes for granted, in the borrower's words, shown beside
+   * it. Set wherever the arithmetic leans on something they were never asked.
+   */
+  readonly assumes?: string;
 }
 
 export interface OptionResult {
@@ -76,11 +81,17 @@ const has = (a: Answers, k: keyof Answers): boolean => a[k] !== undefined;
 
 export const options: readonly Option[] = [
   {
+    // The engine knows one instalment total, not which part of it is the app
+    // loans, so clearing them here clears the lot. For a borrower whose other
+    // debt is a bank loan that keeps running, this figure is too high. Saying
+    // so is the honest half of a fix that otherwise needs a second question.
     id: 'clear-app-loans',
     label: 'You clear the app loans',
     kind: 'do today',
-    change: { appOrBnplLoans: false, appLoanOutstanding: 0, existingEmis: 0 },
+    change: { appOrBnplLoans: false, existingEmis: 0 },
     applies: (a) => a.appOrBnplLoans === true,
+    assumes:
+      'the whole of what you pay each month is app loans — if some of it is a bank loan that carries on, the gain is smaller',
   },
   {
     id: 'three-clean-months',
@@ -110,6 +121,7 @@ export const options: readonly Option[] = [
     change: { coApplicantIncome: assumedCoApplicantIncome.value, coApplicantPooled: true },
     applies: (a) => (a.coApplicantIncome ?? 0) === 0,
     assumesAnInput: true,
+    assumes: 'nobody in the household earns today, so the figure is ours rather than yours',
   },
   {
     id: 'ask-for-less',

@@ -124,7 +124,6 @@ export const anita: Persona = {
     creditScore: { known: false, everBorrowed: true },
     bouncedInLast6Months: true,
     appOrBnplLoans: true,
-    appLoanOutstanding: 35000,
     vehicleOnRoadPrice: 150000,
     vehicleIsProductive: true,
     // "to double delivery runs". The brief gives the intent but not the figure,

@@ -49,15 +49,23 @@ const fmt = (id: OutputId, answers: Answers): string => {
   return v.lo === v.hi ? rupees(v.lo) : `${rupees(v.lo)}–${rupees(v.hi)}`;
 };
 
-function walk(persona: Persona): { lines: string[]; answers: Answers; steps: number } {
+function walk(persona: Persona): {
+  lines: string[];
+  answers: Answers;
+  steps: number;
+  /** Every question this document mentions at all — asked, or offered and skipped. */
+  surfaced: Set<string>;
+} {
   const lines: string[] = [];
   let asked: Answers = {};
   let step = 0;
   const declined = new Set<string>();
+  const surfaced = new Set<string>();
   const answerOf = (q: Question): unknown => persona.answers[q.field];
 
   function ask(q: Question, why: string): void {
     step += 1;
+    surfaced.add(q.id);
     const value = answerOf(q);
     const after: Answers = value === undefined ? asked : { ...asked, [q.field]: value };
     const changed: string[] = [];
@@ -109,6 +117,7 @@ function walk(persona: Persona): { lines: string[]; answers: Answers; steps: num
     const top = ranked[0]!;
     if (answerOf(top.question) === undefined) {
       declined.add(top.question.id);
+      surfaced.add(top.question.id);
       lines.push(
         `*Offered “${top.question.prompt}” — skipped, so the engine assumes instead and says so.*`,
       );
@@ -118,7 +127,7 @@ function walk(persona: Persona): { lines: string[]; answers: Answers; steps: num
     ask(top.question, top.promise);
   }
 
-  return { lines, answers: asked, steps: step };
+  return { lines, answers: asked, steps: step, surfaced };
 }
 
 function outputs(r: Result): string[] {
@@ -148,7 +157,7 @@ function outputs(r: Result): string[] {
 }
 
 function render(persona: Persona): string {
-  const { lines, answers, steps } = walk(persona);
+  const { lines, answers, steps, surfaced } = walk(persona);
   const final = compute(answers);
   const out: string[] = [];
 
@@ -241,9 +250,47 @@ function render(persona: Persona): string {
     for (const q of never) out.push(`- ${q.prompt}`);
     out.push('');
   }
-  out.push(
-    `*${allQuestions.length} questions exist. ${persona.name} sees ${steps} of them.*`,
+
+  // The third category, and the one that was missing.
+  //
+  // A question can pass its own `applies` test and still never be raised,
+  // because ranking offers only what would move a number or replace a guess the
+  // borrower can see. Anita's "big expense coming?" is the case: her safe amount
+  // is already zero, so nothing the answer revealed could lower it. Listing it
+  // under neither heading left it mentioned nowhere at all, and left this
+  // document's own totals not adding up.
+  const unsurfaced = allQuestions.filter(
+    (q) => q.applies(persona.answers) && !surfaced.has(q.id),
   );
+  if (unsurfaced.length > 0) {
+    out.push('## Applies, but never worth asking');
+    out.push('');
+    out.push(
+      `These do apply to ${persona.name}, and the engine still never raised them. Ranking offers a question only when it would move one of the numbers or replace a guess already on screen; for ${persona.name} these would do neither, so asking would spend the time and change nothing. That is the ranking working, not a gap in it:`,
+    );
+    out.push('');
+    for (const q of unsurfaced) out.push(`- ${q.prompt}`);
+    out.push('');
+  }
+
+  // Spelled out rather than given as one figure, because a reader who counts
+  // the headings should be able to reconcile them with the total.
+  const parts = [`${persona.name} is asked ${steps}`];
+  const offered = surfaced.size - steps;
+  if (offered > 0) {
+    parts.push(offered === 1 ? '1 more is offered and skipped' : `${offered} more are offered and skipped`);
+  }
+  if (unsurfaced.length > 0) {
+    parts.push(
+      unsurfaced.length === 1
+        ? '1 applies but is never worth raising'
+        : `${unsurfaced.length} apply but are never worth raising`,
+    );
+  }
+  if (never.length > 0) {
+    parts.push(never.length === 1 ? '1 does not apply' : `${never.length} do not apply`);
+  }
+  out.push(`*${allQuestions.length} questions exist. ${parts.join(', ')}.*`);
   out.push('');
   return out.join('\n');
 }

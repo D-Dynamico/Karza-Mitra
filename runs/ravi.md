@@ -254,4 +254,4 @@ These do not apply to Ravi, so the engine never raises them:
 - How many months are left on what you already pay?
 - What is the on-road price?
 
-*28 questions exist. Ravi sees 19 of them.*
+*28 questions exist. Ravi is asked 19, 2 more are offered and skipped, 7 do not apply.*

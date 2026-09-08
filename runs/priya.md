@@ -203,4 +203,4 @@ These do not apply to Priya, so the engine never raises them:
 - What is the on-road price?
 - Once you have it, how much more would you earn in a month?
 
-*28 questions exist. Priya sees 15 of them.*
+*28 questions exist. Priya is asked 15, 5 more are offered and skipped, 8 do not apply.*

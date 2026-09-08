@@ -142,6 +142,12 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
                         : 'no change on its own'}
                     {r.unlocks ? ' · turns the answer to yes' : ''}
                   </span>
+                  {r.option.assumes ? (
+                    <>
+                      <br />
+                      <span className="muted">Assumes {r.option.assumes}.</span>
+                    </>
+                  ) : null}
                 </span>
               </label>
             </li>

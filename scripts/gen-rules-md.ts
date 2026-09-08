@@ -257,6 +257,21 @@ of error in the safe-carry number for anyone who does not answer the question.
 **Tax is not modelled.** Income figures are treated as take-home throughout. For a
 self-employed borrower quoting a filed return, that is optimistic.
 
+**Nothing is modelled about income after you stop working.** Tenure is capped at the
+retirement age in \`products.tenure-policy\`, but a product has a shortest term of its own and
+that term wins: a borrower of 59 taking a loan against property gets the sixty months the
+product is written for, running four years past the age assumed here. The result says so as
+an assumption on the borrower's own screen. It is still an assumption — no pension, no
+post-retirement earnings and no co-applicant who keeps working is anywhere in the arithmetic.
+
+**Existing loans are one number, with no rate and no breakdown.** The engine asks what you
+pay each month on loans and gets a single total. That is the right input for both ceilings,
+since a lender counts the instalment rather than its interest rate and so does your own
+budget — but it means two things here are weaker than they read. "Clear the dearest loan
+first" is general advice, not a ranking of your loans, because there is nothing to rank. And
+the what-if for clearing app loans has to treat the whole instalment as app loans, since
+nothing tells it which part is which; the option says so beside itself.
+
 ### Which numbers are my judgement rather than a source
 
 These rows carry no external citation. That is a legitimate answer — the dishonest option

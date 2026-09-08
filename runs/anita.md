@@ -230,4 +230,10 @@ These do not apply to Anita, so the engine never raises them:
 - Roughly what is it worth?
 - Is there already a loan against it?
 
-*28 questions exist. Anita sees 17 of them.*
+## Applies, but never worth asking
+
+These do apply to Anita, and the engine still never raised them. Ranking offers a question only when it would move one of the numbers or replace a guess already on screen; for Anita these would do neither, so asking would spend the time and change nothing. That is the ranking working, not a gap in it:
+
+- Is there a big expense coming in the next year?
+
+*28 questions exist. Anita is asked 17, 2 more are offered and skipped, 1 applies but is never worth raising, 8 do not apply.*
