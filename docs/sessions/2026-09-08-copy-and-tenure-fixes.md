@@ -261,10 +261,93 @@ the user's to run.
   `register()` call site is reachable from the generator would close it properly.
 - **Source:** found while regenerating, 2026-09-08.
 
+### The run-throughs gained a third category, and a total that reconciles
+
+- **Choice:** `scripts/gen-runs.ts` now tracks every question the document mentions and adds
+  **"Applies, but never worth asking"** for those that pass `applies()` yet are never ranked.
+  The footer was replaced with a breakdown that adds up: *"28 questions exist. Anita is asked
+  17, 2 more are offered and skipped, 1 applies but is never worth raising, 8 do not apply."*
+- **Why:** `large-expense` applies to Anita and appeared nowhere — "Never asked" is built from
+  `applies() === false`, so a question that applies but is never surfaced fell through both
+  lists. The old footer said "Anita sees 17 of them" against a total of 28, and nothing in the
+  document accounted for the rest. A judge who counts is the reader this file is written for.
+- **Rejected:** *Forcing the question to be asked* — it moves nothing for her, and asking it
+  would break the rule that earns the question-design row. *Listing it under "Never asked"*
+  — false; it does apply. *Leaving the footer as one number* — the count was the tell.
+- **Assumes:** the reason holds for every borrower who lands in this category, so one blurb
+  covers it. True today, because the ranking has exactly two admission tests.
+- **Would be wrong if:** a third admission test is added and the blurb stops describing why
+  something was left out.
+- **Source:** found by the user asking what a manual run of Anita would show, 2026-09-08.
+
+### Options now disclose what they assume, and disclosure is separate from demotion
+
+- **Choice:** `Option` gained an optional `assumes` string, rendered under the option in
+  `ui/DontScreen.tsx`. `clear-app-loans` carries "the whole of what you pay each month is app
+  loans — if some of it is a bank loan that carries on, the gain is smaller". It is **not**
+  marked `assumesAnInput`.
+- **Why:** the option zeroes `existingEmis` entirely, because one field holds every loan and
+  nothing says which part is the app loans. For Anita that is defensible — ₹6,000 total, app
+  loans present — but for a borrower with a car loan running alongside it overstates the gain,
+  in the one direction this tool exists to prevent. Saying so is the half of the fix that does
+  not need a new question.
+- **Rejected:** *Clearing only the app-loan flag and leaving the instalment* — measured: the
+  option drops to +₹0 for Anita, which strips the number from advice the verdict already
+  gives her ("clear the app loans first"). Understating is not automatically honest.
+  *Marking it `assumesAnInput`* — tried, and it put the invented co-applicant income back on
+  top, because both would tier together and the co-applicant delta is larger. The two are not
+  the same thing: one option's premise is invented, the other's premise is real and only its
+  size is uncertain. `assumesAnInput` demotes; `assumes` discloses.
+- **Assumes:** a borrower reads a one-line caveat under the figure. It is the same weight of
+  disclosure as the assumption list on the results screen.
+- **Would be wrong if:** the field is ever split, at which point the caveat should go and the
+  arithmetic should just be right.
+- **Source:** my judgement, 2026-09-08.
+
+### `appLoanOutstanding` deleted rather than wired up
+
+- **Choice:** removed from `engine/answers.ts`, `engine/personas.ts` and the `clear-app-loans`
+  change.
+- **Why:** dead since phase 1 — no question collected it, no rule read it, and only
+  `path-to-yes` wrote to it. It has been listed as an open item every session without ever
+  doing anything.
+- **Rejected:** *Adding a question for it* — that is the proper fix for the overstatement
+  above, and it is a question-set change, which is the deferred bucket. *Leaving it as a
+  placeholder for that fix* — a schema field is trivial to reintroduce, and a field nothing
+  reads is a standing invitation to assume it works.
+- **Assumes:** whoever splits the loan question later will add the field back deliberately.
+- **Would be wrong if:** something outside this repo depends on the answer shape. Nothing does.
+- **Source:** my judgement, 2026-09-08.
+
+### Two limits added to RULES.md's "What I do not know"
+
+- **Choice:** paragraphs on post-retirement income and on existing loans being one number with
+  no rate or breakdown, both written into the prose in `scripts/gen-rules-md.ts`.
+- **Why:** both are limits established while fixing something else this session, and that
+  section exists precisely so a limit is admitted rather than left to be discovered. The
+  loans paragraph also names the two places the limit shows: "clear the dearest loan first"
+  is advice the engine cannot check, and the app-loan what-if has to treat the whole
+  instalment as app loans.
+- **Rejected:** *Leaving them to the per-borrower assumption lines* — those are shown only to
+  a borrower who hits them; the honesty row is read by someone who runs nothing.
+- **Assumes:** the section stays prose. It is not generated from the rule tables, so nothing
+  keeps it in step with them automatically.
+- **Would be wrong if:** the prose drifts from the rules. It already has no mechanism against
+  that, which is worth a note of its own.
+- **Source:** my judgement, 2026-09-08.
+
 ## Open items
 
-- **Phase 5 exit condition still open** — walk Priya's flow at 375px, confirm no horizontal
-  scroll and a numeric keypad on money fields. Phase 6 should not start until it passes.
+- **Phase 5 exit condition still open, and it could not be run here.** The remaining bullet
+  is: walk Priya's flow at 375px, confirm no horizontal scroll and a numeric keypad on money
+  fields. Attempted through the Chrome extension and abandoned after it failed the same way
+  the previous session recorded: `resize_window` returned success twice while `window.innerWidth`
+  stayed at 1536 and `window.outerWidth` read **0**, and clicks by both element ref and
+  coordinate did not reach the app (the landing screen rendered, "Start" never advanced).
+  Half of the bullet is settled anyway — every money field carries `inputMode="numeric"`
+  (`ui/Field.tsx`, six of them, plus `inputMode="decimal"` on the two quote fields in
+  `ui/QuoteCheck.tsx`) — so what is genuinely unverified is the 375px layout. That needs a
+  human at a phone width. **Phase 5 stays open and phase 6 stays unstarted.**
 - **The goldens did not move, and that is the problem.** Four real defects, none touched by
   278 tests. The persona set has no borrower near retirement, none pledging property while
   paying no rent, none capped by collateral. Adding one such persona would have caught three
@@ -276,20 +359,15 @@ the user's to run.
   and overstates what a lender would sanction. Unchanged, and still the largest known
   correctness issue.
 - `AffordabilityResult` and `StressResult.rate` remain dead.
-- **`runs/anita.md` never mentions the `large-expense` question.** It passes `applies()` for
-  Anita but `nextQuestions` only surfaces questions that move a number or correct a visible
-  guess, and for her it does neither — her safe carry is already ₹0, so a future expense
-  cannot lower it. It therefore appears in neither the asked list nor "Never asked", and the
-  document's own footer does not reconcile: *"28 questions exist. Anita sees 17 of them"*,
-  against 17 asked + 8 never-asked + 2 offered-and-skipped = 27. Priya and Ravi are complete;
-  Anita is the only gap. The fix is a third category in `scripts/gen-runs.ts` — "applies, but
-  never worth asking" — which would also be the section that shows the ranking is doing real
-  work. Not done; agreed as a separate decision.
-- **`appLoanOutstanding` is asked by nothing.** It is in the schema, set on one persona, and
-  written by `path-to-yes`, but no question collects it and no rule reads it.
-- **Existing loans carry no rate, and no split.** `existingEmis` is a single total. That is
-  correct for both ceilings — FOIR and surplus both count the instalment, not its rate — but
-  it means "clear the dearest loan first" is advice the engine cannot check, and
-  `path-to-yes`'s `clear-app-loans` zeroes *all* existing EMIs rather than the app-loan share,
-  overstating what clearing them frees. Same shape as the `rentOrHomeEmi` problem: one field
-  standing for two things that behave differently.
+- ~~`runs/anita.md` never mentions the `large-expense` question.~~ **Fixed** — third category
+  added and all three footers now reconcile to 28.
+- ~~`appLoanOutstanding` is asked by nothing.~~ **Deleted.**
+- ~~RULES.md is missing the post-retirement and existing-loan limits.~~ **Added.**
+- ~~`clear-app-loans` overstates what clearing app loans frees.~~ **Disclosed**, not fixed —
+  the arithmetic is still whole-instalment; only a split question can make it right.
+- **Existing loans are still one number, with no rate and no split.** Correct for both
+  ceilings — FOIR and surplus each count the instalment, not its rate — but it leaves "clear
+  the dearest loan first" as advice the engine cannot check, and leaves `clear-app-loans`
+  clearing the whole instalment. Now disclosed in the option and in RULES.md rather than
+  silent. The real fix is the same shape as `rentOrHomeEmi`: one field standing for two things
+  that behave differently, and a question change to separate them.
