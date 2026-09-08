@@ -139,9 +139,15 @@ Every branch emits its reason. "Don't" is a full screen, not a dead end:
 
 ## 3. Question design
 
-Must set (9): purpose · amount · how they earn · net monthly income (range allowed) ·
-existing EMIs · rent or home EMI · household expenses (defaulted from a table by household
-size and city tier if skipped, shown and flagged "assumed") · age · credit score.
+Must set (10): purpose · amount · how they earn · net monthly income (range allowed) ·
+whether there are any loans running, and what they cost · rent or home EMI · household
+expenses (defaulted from a table by household size and city tier if skipped, shown and
+flagged "assumed") · household size · age · credit score.
+
+The loans question asks whether there is a loan **before** asking what it costs, so that a
+borrower with none answers with a button rather than by typing a zero. Household size was
+promoted here from the adaptive set; it drives two defaults, and leaving it out meant
+telling a mother of three "we assumed you live alone".
 
 These nine alone must produce a verdict and a rate band roughly 4 pts wide — wide ranges are
 a feature, not a failure.
@@ -157,17 +163,33 @@ asserts that for at least one persona, answering it changes a declared output. A
 that fails gets deleted. This policy is stated in RULES.md.
 
 Flow rules: one question per screen; skip always visible with a one-line consequence
-("keeps your rate band 2 points wider"); a "what moved" banner after every answer; a
+("keeps your rate a wider range"), and skipping one of the ten essentials asks for
+confirmation once, in red, before going through; a "what moved" banner after every answer; a
 confidence meter derived from range width, not question count; a "why are you asking?" line
 on every question; results reachable after the must set, with further questions offered as
 "tighten this" buttons on the panel they affect; a review screen before results showing
-every answer, with assumed defaults marked and blanks tap-to-fill.
+every answer, with assumed defaults marked and blanks tap-to-fill. A question whose prompt
+would otherwise have to say "it" names the thing instead, through `promptFor` on the
+question — "Once you have the vehicle, how much more would you earn each month?".
+
+Nothing is asked that the borrower has already answered by implication: someone whose
+income supports one person is never asked whether anyone else in the household earns.
 
 ## 4. Outputs and the Negotiation Card
 
 Each output panel is: headline range, one-sentence why generated *from the trace*, and a
 "show working" drawer. Never hand-write the why per case — it breaks the moment a rule
 changes live.
+
+**The register is the borrower's, not the lender's.** EMI, not instalment. Approve or give,
+not sanction. A rate difference is said in rupees over the term, never in points. Numbers
+first, reason second, one sentence each; no metaphors; each thing said once. A range whose
+two ends are within 5% prints as a single "about" figure, terms print in years, and a
+computed amount is rounded before it reaches a sentence. `tests/copy.test.ts` enforces all
+of this over the verdict, the assumptions, the Negotiation Card, the routing prose, the
+question registry, the output labels and the what-if list. The rule `why` fields shown in
+the working drawer are deliberately outside that surface: they are the explainability
+register, one tap away.
 
 The Card mirrors the RBI Key Facts Statement, same rows in the same order and vocabulary,
 so the borrower compares line by line against the document the lender must hand over:

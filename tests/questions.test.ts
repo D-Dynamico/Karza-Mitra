@@ -8,6 +8,7 @@ import {
   allQuestions,
   cutQuestions,
   mustSet,
+  questionById,
   unansweredApplicable,
 } from '../engine/questions';
 import { anita, mustSetOnly, priya, ravi } from '../engine/personas';
@@ -168,6 +169,47 @@ describe('the flow adapts', () => {
     const asked = unansweredApplicable({ ...ravi.answers, ownsProperty: false }).map((q) => q.id);
     expect(asked).not.toContain('property-value');
     expect(asked).not.toContain('property-charge');
+  });
+
+  it('does not ask who else earns when the income supports one person', () => {
+    // She has just told us her income supports her and nobody else. Asking
+    // reads as not having listened, and the only answer it can collect is the
+    // one we are already holding.
+    const alone: Answers = { ...priya.answers };
+    delete alone.coApplicantIncome;
+    const asked = unansweredApplicable({ ...alone, householdSize: 1 }).map((q) => q.id);
+    expect(asked).not.toContain('co-applicant-income');
+    expect(unansweredApplicable({ ...alone, householdSize: 3 }).map((q) => q.id)).toContain(
+      'co-applicant-income',
+    );
+  });
+
+  it('asks whether there is a loan at all before asking what it costs', () => {
+    // A bare rupee box made "none" the awkward answer: the borrower had to work
+    // out that zero was what we wanted. The "no" is a button now.
+    const q = questionById('existing-emis')!;
+    expect(q.input.kind).toBe('money-optional');
+    if (q.input.kind === 'money-optional') {
+      expect(q.input.noLabel.toLowerCase()).toContain('no');
+    }
+  });
+
+  it('names the thing the borrower would earn with, rather than saying "it"', () => {
+    const q = questionById('expected-earnings')!;
+    expect(q.promptFor).toBeDefined();
+    expect(q.promptFor!({ purpose: 'vehicle' })).toContain('vehicle');
+    expect(q.promptFor!({ purpose: 'business-stock' })).toContain('stock');
+    // And it always asks a question, whatever the purpose.
+    expect(q.promptFor!({}).endsWith('?')).toBe(true);
+  });
+
+  it('will not accept a household of nobody, or a borrower under eighteen', () => {
+    // The answers schema rejects both. The bound belongs on the input too, so
+    // it can be said before the answer is given rather than after.
+    const household = questionById('household-size')!.input;
+    expect(household.kind === 'number' && household.min).toBe(1);
+    const age = questionById('age')!.input;
+    expect(age.kind === 'number' && age.min).toBe(18);
   });
 
   it('gives nobody the whole registry', () => {

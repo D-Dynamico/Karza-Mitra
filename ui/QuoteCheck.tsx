@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import type { Result } from '../engine/compute';
 import { apr, emi } from '../engine/finance';
-import { perMonth, rate as rateText, rupees } from '../engine/format';
+import { inLakh, perMonth, rate as rateText, tenure as tenureText } from '../engine/format';
 import { iv } from '../engine/interval';
 
 export function QuoteCheck({ result }: { readonly result: Result }) {
@@ -84,7 +84,7 @@ export function QuoteCheck({ result }: { readonly result: Result }) {
             All-in, that offer is {rateText(iv(allIn, allIn))}
           </div>
           <p className="muted">
-            On {rupees(principal)} over {pricing.tenureMonths} months, that is{' '}
+            On {inLakh(principal)} over {tenureText(pricing.tenureMonths)}, that is{' '}
             {perMonth(iv(instalment, instalment))}. The all-in figure adds the{' '}
             {quotedFee}% fee and its GST back into the rate — it is{' '}
             {(allIn - quoted).toFixed(2)} points above the headline.
@@ -102,8 +102,8 @@ export function QuoteCheck({ result }: { readonly result: Result }) {
 
           {overCeiling && !overridden ? (
             <div className="nudge bad">
-              At that rate the instalment is {perMonth(iv(instalment, instalment))}, above the
-              most you can safely carry ({perMonth(ceiling!)}). Borrow less rather than
+              At that rate the EMI is {perMonth(iv(instalment, instalment))}, above the most that
+              is safe for you ({perMonth(ceiling!)}). Borrow less rather than
               stretching the tenure to hide it.{' '}
               <button type="button" onClick={() => setOverridden(true)}>
                 Use it anyway

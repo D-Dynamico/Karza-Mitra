@@ -88,7 +88,8 @@ describe('a loan too small to exist is not a smaller loan', () => {
     expect(r.amounts.safeOnAffordabilityAlone.hi).toBeGreaterThan(0);
     expect(r.amounts.safeOnAffordabilityAlone.hi).toBeLessThan(r.routing!.product.minTicket);
     expect(r.verdict.kind).toBe('dont');
-    expect(r.verdict.headline.toLowerCase()).toContain('any amount');
+    // The headline has to say there is no loan, not quote a smaller one.
+    expect(r.verdict.headline.toLowerCase()).toContain('no loan');
     expect(r.verdict.why).toContain('no lender writes');
   });
 
@@ -327,11 +328,12 @@ describe('a "borrow" verdict does not claim a fit it never tested', () => {
     // He asks 15L against a safe ceiling of about 14.42L. `borrow-less` only
     // fires below four fifths of the ask, so he lands on `borrow` — but the
     // old copy then told him "the amount fits under all three affordability
-    // tests", which was false by about ₹58,000.
+    // tests" — since reworded to "passes all three checks" — which was false by
+    // about ₹58,000 either way.
     const r = compute(ravi.answers);
     expect(r.verdict.kind).toBe('borrow');
     expect(ravi.answers.amountAsked!).toBeGreaterThan(r.amounts.safe.hi);
-    expect(r.verdict.why).not.toContain('fits under all three');
+    expect(r.verdict.why).not.toContain('passes all three');
     expect(r.verdict.nextStep).toMatch(/Ask for/);
   });
 
@@ -340,7 +342,7 @@ describe('a "borrow" verdict does not claim a fit it never tested', () => {
     const r = compute(modest);
     expect(r.verdict.kind).toBe('borrow');
     expect(r.amounts.safe.lo).toBeGreaterThanOrEqual(800000);
-    expect(r.verdict.why).toContain('fits under all three');
+    expect(r.verdict.why).toContain('passes all three');
   });
 });
 
@@ -367,7 +369,7 @@ describe('the Negotiation Card never contradicts the verdict', () => {
       const card = negotiationCard(compute(p.answers));
       const labels = card.rows.map((row) => row.label);
       expect(labels, p.id).toContain('Rate to hold them to');
-      expect(labels, p.id).toContain('All-in rate, fees included');
+      expect(labels, p.id).toContain('All-in rate, with fees');
     }
   });
 });

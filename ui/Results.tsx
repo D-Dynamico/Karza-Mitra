@@ -21,7 +21,7 @@
 
 import type { Answers } from '../engine/answers';
 import type { Result } from '../engine/compute';
-import { money, perMonth, rate as rateText, rupees, share } from '../engine/format';
+import { approx, inLakh, money, perMonth, rate as rateText, share, tenure as tenureText } from '../engine/format';
 import { pivotalAssumptions } from '../engine/pivotal';
 import { allQuestions } from '../engine/questions';
 import { QuoteCheck } from './QuoteCheck';
@@ -65,12 +65,12 @@ export function Results({
         return (
           <section className="pivotal no-print" key={String(p.field)}>
             <span className="label">Confirm this one thing</span>
-            <h2>{question?.prompt ?? 'One answer decides this'}</h2>
+            <h2>{question?.promptFor?.(answers) ?? question?.prompt ?? 'One answer decides this'}</h2>
             <p>
-              Your answer below rests on a guess, and the two ends of that guess disagree. At the
-              low end the answer is <strong>{p.atLow.verdict.replace('-', ' ')}</strong>; at the
-              high end it is <strong>{p.atHigh.verdict.replace('-', ' ')}</strong>. Everything
-              else on this page is steadier than this one fact.
+              We had to guess this one, and the guess changes the answer. If it is at the low
+              end, the answer is <strong>{p.atLow.verdict.replace('-', ' ')}</strong>. At the
+              high end it is <strong>{p.atHigh.verdict.replace('-', ' ')}</strong>. Nothing else
+              on this page turns on one fact this much.
             </p>
             <p className="muted">{p.assumption}</p>
             <button
@@ -89,18 +89,20 @@ export function Results({
         <span className="label">How much</span>
         <div className="two-up">
           <div className="theirs">
-            <div className="muted">A lender would sanction</div>
+            <div className="muted">A lender would approve</div>
             <div className="figure small">{money(amounts.lender, { asLender: true })}</div>
           </div>
           <div className="yours">
-            <div className="muted">You can safely carry</div>
+            <div className="muted">Safe for you</div>
             <div className="figure small">{money(amounts.safe)}</div>
           </div>
         </div>
+        {/* The sentence comes from the engine, because it is a claim about this
+            borrower: the old fixed version blamed rent for someone who paid
+            none. See `amounts.whyTheyDiffer`. */}
         <p className="muted" style={{ marginTop: 10 }}>
-          Two rulebooks, not one number with a margin of error. A lender counts what you owe; it
-          does not count your rent. You have to.
-          {amounts.asked !== undefined ? ` You asked for ${rupees(amounts.asked)}.` : ''}
+          {amounts.whyTheyDiffer}
+          {amounts.asked !== undefined ? ` You asked for ${inLakh(amounts.asked)}.` : ''}
         </p>
         <WorkingDrawer
           trace={result.trace}
@@ -127,15 +129,15 @@ export function Results({
             <>
               <dt>Your rate</dt>
               <dd>{rateText(pricing.rateBand)}</dd>
-              <dt>All-in, fees included</dt>
+              <dt>All-in rate, with fees</dt>
               <dd>{rateText(pricing.aprBand)}</dd>
-              <dt>Tenure</dt>
-              <dd>{pricing.tenureMonths} months</dd>
+              <dt>How long</dt>
+              <dd>{tenureText(pricing.tenureMonths)}</dd>
             </>
           ) : null}
           {repayment ? (
             <>
-              <dt>Instalment ceiling</dt>
+              <dt>Most you should pay</dt>
               <dd>{perMonth(repayment.emiCeiling)}</dd>
             </>
           ) : null}
@@ -143,8 +145,8 @@ export function Results({
 
         {repayment?.stressBreaches ? (
           <div className="nudge bad">
-            After a bad month this breaches the ceiling. That, not today&rsquo;s arithmetic, is
-            what is limiting the amount.
+            In a bad month this EMI goes over what you can pay. That is what caps the amount,
+            not this month&rsquo;s figures.
           </div>
         ) : null}
 
@@ -160,6 +162,19 @@ export function Results({
               <>
                 <h3>Why not a {routing.alternative.product.name.toLowerCase()}</h3>
                 <p className="muted">{routing.alternative.why}</p>
+                {/* "Several points more" is true and useless. The same fact in
+                    rupees is one the borrower can repeat at the counter, and it
+                    is the argument for pledging something. */}
+                {result.alternativeCost ? (
+                  <p>
+                    <strong>
+                      The same {inLakh(result.alternativeCost.amount)} as a{' '}
+                      {routing.alternative.product.name.toLowerCase()} would cost you about{' '}
+                      {approx(result.alternativeCost.extraInterest)} more in interest over{' '}
+                      {tenureText(result.alternativeCost.months)}.
+                    </strong>
+                  </p>
+                ) : null}
                 <div className="scroll-x">
                   <table className="compare">
                     <thead>
@@ -203,16 +218,16 @@ export function Results({
                     product against product, so the base band is the right one
                     to show in it. */}
                 <p className="muted">
-                  These are the bands lenders publish for each product, before anything is
+                  These are the rates lenders publish for each kind of loan, before anything is
                   adjusted for you.
-                  {pricing ? ` Your own band is ${rateText(pricing.rateBand)}.` : ''}
+                  {pricing ? ` Your own rate is ${rateText(pricing.rateBand)}.` : ''}
                 </p>
               </>
             ) : null}
             {routing.securedCap ? (
               <p className="muted">
-                What you pledge supports {money(routing.securedCap)} — the loan is capped by that
-                as well as by what you can afford.
+                What you pledge is worth {money(routing.securedCap)} to a lender. That caps the
+                loan too, not just what you can afford.
               </p>
             ) : null}
           </>
@@ -222,9 +237,10 @@ export function Results({
           <details>
             <summary>What the all-in rate includes</summary>
             <p className="muted">
-              It folds the {pricing.feeBand.lo}–{pricing.feeBand.hi}% processing fee and its GST
-              back into the rate. It is the only number worth comparing between two offers — a
-              lower headline rate with a bigger fee can be the dearer loan.
+              The {pricing.feeBand.lo}–{pricing.feeBand.hi}% processing fee and the GST on it
+              never reach your account, but you repay as though they did. This rate puts them
+              back in. Compare two offers on this number, not the headline one — a lower rate
+              with a bigger fee can be the costlier loan.
             </p>
           </details>
         ) : null}
@@ -233,9 +249,9 @@ export function Results({
           <details>
             <summary>What a bad month does to this</summary>
             <p className="muted">
-              The instalment takes {share(repayment.outflowRatioNow)} of your income now, and{' '}
-              {share(repayment.outflowRatioStressed)} after a fifth off your income and two points
-              on the rate.
+              The EMI takes {share(repayment.outflowRatioNow)} of your income now. It would take{' '}
+              {share(repayment.outflowRatioStressed)} if your income dropped by a fifth and the
+              rate went up.
             </p>
           </details>
         ) : null}
@@ -272,7 +288,7 @@ export function Results({
         Take this to the lender →
       </button>
       <p className="muted centred no-print">
-        One page with the amount, the rate and what to say no to.
+        One page with the amount, the rate, and what to say no to.
       </p>
     </>
   );

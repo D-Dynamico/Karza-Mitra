@@ -21,9 +21,13 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Answers } from '../engine/answers';
+import { negotiationCard } from '../engine/card';
 import { compute, type Result } from '../engine/compute';
 import { rupees } from '../engine/format';
+import { nextQuestions } from '../engine/next-questions';
+import { OUTPUT_LABELS } from '../engine/outputs';
 import { pathToYes } from '../engine/path-to-yes';
+import { allQuestions } from '../engine/questions';
 import { anita, priya, ravi } from '../engine/personas';
 
 /**
@@ -101,13 +105,14 @@ describe('a sentence only appears when what it claims is true', () => {
 
   it('never promises a full sanction the lender ceiling does not reach', () => {
     // The original: "A lender will likely say yes to the full amount", against
-    // a ₹75L ask and a ₹30–42L lender figure.
+    // a ₹75L ask and a ₹30–42L lender figure. The sentence now reads "will
+    // likely approve the full ₹X"; the guard tracks the claim, not the draft.
     for (const { answers, result } of everyone) {
       const asked = answers.amountAsked ?? 0;
       if (asked <= 0 || result.amounts.lender.hi >= asked) continue;
       for (const s of sentences(result)) {
-        expect(s, `full sanction promised — ${describeCase(answers)}`).not.toMatch(
-          /say yes to the full amount/i,
+        expect(s, `full approval promised — ${describeCase(answers)}`).not.toMatch(
+          /(say yes to|approve) the full/i,
         );
       }
     }
@@ -181,6 +186,137 @@ describe('a sentence appears when the thing it explains is present', () => {
           `${r.option.label} ${r.option.assumes ?? ''}`,
           `${r.option.id} hides the number it assumes`,
         ).toMatch(/₹[\d,]+|nobody|no one/i);
+      }
+    }
+  });
+});
+
+/**
+ * Everything a borrower reads, wherever it is generated: the verdict block, the
+ * assumptions, and every row of the Negotiation Card. The card is included
+ * because it is the page that leaves the building.
+ */
+const everySentence = (r: Result): string[] => {
+  const card = negotiationCard(r);
+  return [
+    ...sentences(r),
+    card.title,
+    card.ask,
+    card.walkAway ?? '',
+    ...card.rows.flatMap((row) => [row.label, row.value, row.note]),
+    ...card.redLines,
+    // The routing prose is the heaviest reading on the answer screen and sits
+    // on the surface rather than in a drawer, so it is held to the same bar.
+    r.routing?.why ?? '',
+    r.routing?.alternative?.why ?? '',
+  ].filter((s) => s.length > 0);
+};
+
+/**
+ * The vocabulary guard.
+ *
+ * The defect these catch is not a wrong number. It is a right number described
+ * in a register the borrower does not read in: "without the plan getting
+ * fragile", "two rulebooks", "several points more", "sanction". Each of those
+ * shipped, and none of the tests above could see it, because every one of them
+ * was arithmetically true.
+ *
+ * A word goes on this list when there is a plainer word that means the same
+ * thing to the person reading it — not because it is long. `replacement` is
+ * what the failure tells you to use, so the fix is obvious from the message.
+ */
+const BANNED: ReadonlyArray<{ word: RegExp; replacement: string }> = [
+  { word: /\binstal?ments?\b/i, replacement: 'EMI' },
+  { word: /\bsanction(ed|s|ing)?\b/i, replacement: 'approve, or give' },
+  { word: /\brulebooks?\b/i, replacement: 'say the thing itself' },
+  { word: /\bfragile\b/i, replacement: 'say what actually breaks' },
+  { word: /\b(\d+|several|a few) points?\b/i, replacement: 'a rupee figure over the term' },
+  { word: /\bbands?\b/i, replacement: 'rate, or range' },
+  { word: /\bun(secured|pledged)\b/i, replacement: 'with nothing behind it' },
+  { word: /\blevers?\b/i, replacement: 'name the thing itself' },
+  { word: /\bceilings?\b/i, replacement: 'limit, or the most you should pay' },
+  { word: /\bdearer\b/i, replacement: 'costlier, or "costs more"' },
+  { word: /\bvintage\b/i, replacement: 'how long you have been running it' },
+  { word: /\bunpledged\b/i, replacement: 'with no loan against it' },
+  { word: /\bFOIR\b/i, replacement: 'the share of income they allow' },
+  { word: /\boutflow\b/i, replacement: 'what goes out each month' },
+  { word: /\bunderwrit(e|ten|ing)\b/i, replacement: 'what the lender decides on' },
+  { word: /\bevidenced\b/i, replacement: 'shown on paper' },
+];
+
+describe('the borrower is written to in her own words', () => {
+  it('uses no term that has a plainer equivalent', () => {
+    for (const { answers, result } of everyone) {
+      for (const s of everySentence(result)) {
+        for (const { word, replacement } of BANNED) {
+          expect(
+            s,
+            `"${s}" — say ${replacement} instead. ${describeCase(answers)}`,
+          ).not.toMatch(word);
+        }
+      }
+    }
+  });
+
+  it('uses no such term in the questions, the labels or the promises', () => {
+    // The jargon does not only live in the verdict. "Sharpens what a lender
+    // will sanction, what you can safely carry, your rate band" was printed
+    // under every amount on the answer screen, built from `OUTPUT_LABELS`.
+    const registry = allQuestions.flatMap((q) => [
+      q.prompt,
+      q.whyWeAsk,
+      q.skipCost,
+      q.hint ?? '',
+      q.promptFor?.({ purpose: 'vehicle' }) ?? '',
+      ...(q.input.kind === 'choice' ? q.input.options.map((o) => o.label) : []),
+      ...(q.input.kind === 'money-optional' ? [q.input.noLabel, q.input.yesLabel] : []),
+    ]);
+    const promises = everyone.flatMap(({ answers }) =>
+      nextQuestions(answers, 10).map((r) => r.promise),
+    );
+    // The what-if list is the whole of the "don't borrow" screen below the
+    // reason, so it is read as closely as the verdict is.
+    const whatIfs = everyone.flatMap(({ answers }) =>
+      pathToYes(answers).flatMap((r) => [r.option.label, r.option.assumes ?? '']),
+    );
+    for (const s of [...registry, ...Object.values(OUTPUT_LABELS), ...promises, ...whatIfs]) {
+      if (s.length === 0) continue;
+      for (const { word, replacement } of BANNED) {
+        expect(s, `"${s}" — say ${replacement} instead`).not.toMatch(word);
+      }
+    }
+  });
+
+  it('states a term in years once it runs past two of them', () => {
+    // "60 months" is a spreadsheet's way of writing five years, and a borrower
+    // comparing two offers at a counter is thinking in years.
+    for (const { answers, result } of everyone) {
+      for (const s of everySentence(result)) {
+        const months = [...s.matchAll(/(\d+)\s+months\b/g)].map((m) => Number(m[1]));
+        for (const n of months) {
+          expect(n, `"${s}" gives a term in months — ${describeCase(answers)}`).toBeLessThan(24);
+        }
+      }
+    }
+  });
+
+  it('never prints a range whose two ends are the same figure', () => {
+    // "₹7,500 to ₹7,600 a month" invites the reader to work out what separates
+    // the ends. Nothing does. `format.ts` collapses these to one "about" figure.
+    for (const { answers, result } of everyone) {
+      for (const s of everySentence(result)) {
+        for (const m of s.matchAll(/₹([\d,.]+)( lakh)? to ₹([\d,.]+)( lakh)?/g)) {
+          // "₹99,000 to ₹1.5 lakh" mixes units, so each end carries its own.
+          const scale = (digits: string, lakh: string | undefined): number =>
+            Number(digits.replace(/,/g, '')) * (lakh === undefined ? 1 : 100000);
+          const lo = scale(m[1]!, m[2]);
+          const hi = scale(m[3]!, m[4]);
+          if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= 0) continue;
+          expect(
+            (hi - lo) / hi,
+            `"${s}" prints a range that is not one — ${describeCase(answers)}`,
+          ).toBeGreaterThanOrEqual(0.05);
+        }
       }
     }
   });

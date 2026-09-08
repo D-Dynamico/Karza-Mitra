@@ -42,11 +42,11 @@ export function App() {
   };
 
   return (
-    <main className="wrap">
+    <main className={view === 'start' ? 'wrap start' : 'wrap'}>
       <header className="masthead no-print">
         <h1>Karza Mitra</h1>
         <div className="tag">
-          Two numbers, not one — what a lender will sanction, and what you can safely carry.
+          Two numbers, not one — what a lender will give you, and what is safe for you.
         </div>
         {view !== 'start' ? (
           <div className="pickers">
@@ -64,12 +64,12 @@ export function App() {
 
       <ErrorBoundary trace={result.trace}>
         {view === 'start' ? (
-          <section className="ask">
+          <section className="ask start">
             <h2>What can you actually afford to borrow?</h2>
             <p>
-              Not what a lender will approve — that is a different number, and it is usually
-              much larger. Answer a few questions and this will tell you both, show its
-              working, and tell you plainly if the answer is that you should not borrow.
+              Not what a lender will approve. That is a different number, and it is usually
+              much bigger. Answer a few questions and this tells you both, shows its working,
+              and says plainly if the answer is that you should not borrow.
             </p>
             <p className="muted">
               Nothing leaves your device. There is no account and no saving.
@@ -82,6 +82,7 @@ export function App() {
                 Or load one of the three borrowers from the brief, to see a finished answer
                 without answering anything:
               </span>
+              {/* Centred by `.wrap.start`; see the note at the foot of styles.css. */}
               <div className="pickers">
                 {personas.map((p) => (
                   <button

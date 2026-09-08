@@ -6,21 +6,21 @@
 
 ## The answer
 
-**DONT — Not right now — clear what you have first.**
+**DONT — Not now. Clear what you owe first.**
 
-A payment bounced in the last six months. Lenders who see that will decline or price it steeply, and taking on another instalment while one is already slipping is how a difficult month becomes a difficult year. You are also carrying app loans, which are the dearest money in the market and the reason the rest of the month does not stretch. On top of that, nothing is left at the end of the month even before a new instalment.
+A payment bounced in the last six months. Most lenders will say no, and the ones who say yes will charge a much higher rate. Taking a new EMI while one is already slipping turns a hard month into a hard year. You also have app loans. Those cost the most of any loan you can get, and they are why the month does not stretch. And nothing is left at the end of the month, even before a new EMI.
 
-**Next:** Clear the app loans first, highest rate first — that frees the most per month. Three clean months after that changes this answer materially.
+**Next:** Clear the app loans first. They cost the most, so paying them off frees the most money. Three months with every payment on time after that changes this answer.
 
 ## The four outputs
 
 | Output | Answer | Why |
 |---|---|---|
-| **O1 — should you borrow** | dont — Not right now — clear what you have first. | A payment bounced in the last six months. Lenders who see that will decline or price it steeply, and taking on another instalment while one is already slipping is how a difficult month becomes a difficult year. You are also carrying app loans, which are the dearest money in the market and the reason the rest of the month does not stretch. On top of that, nothing is left at the end of the month even before a new instalment. |
-| **O2 — how much** | a lender would sanction close to nothing at a bank, up to ₹1.3 lakh from an NBFC or a platform's finance partner<br>safe for you to carry nothing | These are computed by separate rulebooks. The lender's leaves your rent out; yours cannot. |
+| **O1 — should you borrow** | dont — Not now. Clear what you owe first. | A payment bounced in the last six months. Most lenders will say no, and the ones who say yes will charge a much higher rate. Taking a new EMI while one is already slipping turns a hard month into a hard year. You also have app loans. Those cost the most of any loan you can get, and they are why the month does not stretch. And nothing is left at the end of the month, even before a new EMI. |
+| **O2 — how much** | a lender would approve close to nothing at a bank, up to ₹1.3 lakh from an NBFC or a platform's finance partner<br>safe for you nothing | Two separate calculations. The difference is your rent. Lenders leave it out. Your budget cannot. |
 | **O2 — which product** | Two-wheeler loan from an NBFC or platform financier | The vehicle secures the loan, but the lender still has to accept you, and a bank will not on income it cannot verify. This is the rate the lenders who will say yes actually charge. It is high because they are taking a risk a bank declined. |
 | **O3 — what rate is fair** | 22% to 28.5%<br>all-in 23% to 32.5% | The all-in figure folds the processing fee and its GST back into the rate, which is the only number worth comparing between offers. |
-| **O4 — what instalment to agree to** | at most ₹0 a month | Takes 34% to 55% of income now, 53% to 86% after a fifth off your income and two points on the rate. **That breaches the ceiling — this is the binding constraint.** |
+| **O4 — what EMI to agree to** | at most ₹0 a month | Takes 34% to 55% of income now, 53% to 86% if income dropped a fifth and the rate rose. **That goes over the limit — this is what caps the amount.** |
 
 Confidence: **low** — how narrow the answer is, not how many questions were asked.
 
@@ -79,19 +79,19 @@ What moved:
 What moved:
 
 - whether to borrow at all: need-more-info → **borrow**
-- what a lender will sanction: ₹0 → **₹2,14,736–₹3,78,051**
-- what you can safely carry: ₹0 → **₹0–₹1,69,398**
-- your instalment ceiling: ₹0 → **₹0–₹4,302**
+- what a lender will give you: ₹0 → **₹2,14,736–₹3,78,051**
+- what is safe for you: ₹0 → **₹0–₹1,69,398**
+- the most you should pay each month: ₹0 → **₹0–₹4,302**
 
-#### 5. What do you already pay each month on loans?
+#### 5. Do you have any loans running now?
 
 **Anita answers:** ₹6,000
 
 What moved:
 
-- what a lender will sanction: ₹2,14,736–₹3,78,051 → **₹8,259–₹1,41,769**
-- what you can safely carry: ₹0–₹1,69,398 → **₹0**
-- your instalment ceiling: ₹0–₹4,302 → **₹0**
+- what a lender will give you: ₹2,14,736–₹3,78,051 → **₹8,259–₹1,41,769**
+- what is safe for you: ₹0–₹1,69,398 → **₹0**
+- the most you should pay each month: ₹0–₹4,302 → **₹0**
 
 #### 6. What do you pay in rent each month?
 
@@ -132,12 +132,12 @@ What moved:
 #### 11. Has any payment bounced or been missed in the last six months?
 
 **Anita answers:** yes
-  <br>*Asked because: Sharpens whether to borrow at all, your rate band and the all-in rate.*
+  <br>*Asked because: Sharpens whether to borrow at all, your rate and the all-in rate.*
 
 What moved:
 
 - the verdict is still "dont", but the reason changed
-- your rate band: 18.0%–24.5% → **22.0%–28.5%**
+- your rate: 18.0%–24.5% → **22.0%–28.5%**
 - the all-in rate: 19.1%–28.2% → **23.2%–32.4%**
 
 #### 12. Are any of those loans from an app, or buy-now-pay-later?
@@ -151,7 +151,7 @@ What moved:
 
 *Offered “How many months are left on what you already pay?” — skipped, so the engine assumes instead and says so.*
 
-#### 13. Once you have it, how much more would you earn in a month?
+#### 13. How much more would you earn each month with this?
 
 **Anita answers:** ₹12,000
   <br>*Asked because: Sharpens whether to borrow at all.*
@@ -163,21 +163,21 @@ What moved:
 #### 14. Does anyone else in the household earn?
 
 **Anita answers:** 0
-  <br>*Asked because: Sharpens what a lender will sanction and what you can safely carry.*
+  <br>*Asked because: Sharpens what a lender will give you and what is safe for you.*
 
 *What moved: nothing yet — it needs another answer first.*
 
-#### 15. If your income stopped, how many months could you cover?
+#### 15. How many months of expenses do you have saved?
 
 **Anita answers:** 0
-  <br>*Asked because: Sharpens what you can safely carry and your instalment ceiling.*
+  <br>*Asked because: Sharpens what is safe for you and the most you should pay each month.*
 
 *What moved: nothing yet — it needs another answer first.*
 
 #### 16. What is the on-road price?
 
 **Anita answers:** ₹1,50,000
-  <br>*Asked because: Sharpens what a lender will sanction.*
+  <br>*Asked because: Sharpens what a lender will give you.*
 
 *What moved: nothing yet — it needs another answer first.*
 
@@ -198,24 +198,24 @@ What moved:
 
 > The honest answer today is not to take this loan. This card is what to do instead.
 
-The answer above stands. These rows are here only so that a borrower who goes ahead regardless is not walking in uninformed — they are the terms to insist on, not a reason to borrow.
+The answer above stands. These rows are here only so that a borrower who goes ahead anyway does not walk in uninformed. They are the terms to insist on, not a reason to borrow.
 
 | | | |
 |---|---|---|
-| **Product to ask for** | Two-wheeler loan from an NBFC or platform financier | If you are offered a vehicle loan instead, ask why. This is what a bank charges for the same loan, and it is what you should be aiming at. Getting there means evidenced income and a clean twelve months — it is not available to you today, at any branch. |
-| **Rate to hold them to** | 22% to 28.5% | Anything above the top of this band needs a reason you find convincing. Ask for it in writing. |
-| **All-in rate, fees included** | 23% to 32.5% | This is the headline rate with the processing fee and its GST folded back in. It is the only number worth comparing between two offers — a lower headline rate with a bigger fee can be the dearer loan. |
-| **Processing fee** | 2% – 6% of the amount, plus GST | Negotiable more often than the rate is. Ask for it to be waived or halved before you agree to anything else. |
-| **Tenure** | 60 months | A longer tenure lowers the instalment and raises the total interest. Do not let a longer tenure be used to make an amount you cannot carry look affordable. |
+| **Product to ask for** | Two-wheeler loan from an NBFC or platform financier | If you are offered a vehicle loan instead, ask why. This is what a bank charges for the same loan, and it is what you should aim at. Getting there means showing your income on paper and twelve clean months. It is not open to you today, at any branch. |
+| **Rate to hold them to** | 22% to 28.5% | Anything above the top of this needs a reason you find convincing. Ask for that reason in writing. |
+| **All-in rate, with fees** | 23% to 32.5% | The rate with the processing fee and its GST added back in. Compare two offers on this number, not the headline one — a lower rate with a bigger fee can be the costlier loan. |
+| **Processing fee** | 2% – 6% of the amount, plus GST | Easier to get down than the rate is. Ask for it to be dropped or halved before you agree to anything else. |
+| **How long** | 5 years | A longer loan means a smaller EMI and more interest in total. Do not let a longer loan be used to make an amount you cannot afford look affordable. |
 
 **Say no to:**
 
-- No to any insurance, membership or "protection" product bundled into the loan. It is almost never required, and it is added to the amount you pay interest on.
+- No to any insurance, membership or "protection" added to the loan. It is almost never required, and you pay interest on it too.
 - No to signing before you have seen the Key Facts Statement with the all-in rate on it. You are entitled to it.
-- No to a pre-payment penalty on a floating rate loan. On personal and property loans to individuals, it should not be there.
-- No to a processing fee at the top of the 2–6% range without a reason. On this product it is the part of the price with the most room in it.
+- No to a charge for paying the loan off early, on a floating rate loan. On personal and property loans it should not be there.
+- No to a processing fee at the top of 2–6% without a reason. On this loan it is the part of the price with the most room in it.
 
-**Why not now:** A payment bounced in the last six months. Lenders who see that will decline or price it steeply, and taking on another instalment while one is already slipping is how a difficult month becomes a difficult year. You are also carrying app loans, which are the dearest money in the market and the reason the rest of the month does not stretch. On top of that, nothing is left at the end of the month even before a new instalment. Clear the app loans first, highest rate first — that frees the most per month. Three clean months after that changes this answer materially.
+**Why not now:** A payment bounced in the last six months. Most lenders will say no, and the ones who say yes will charge a much higher rate. Taking a new EMI while one is already slipping turns a hard month into a hard year. You also have app loans. Those cost the most of any loan you can get, and they are why the month does not stretch. And nothing is left at the end of the month, even before a new EMI. Clear the app loans first. They cost the most, so paying them off frees the most money. Three months with every payment on time after that changes this answer.
 
 ## Never asked
 

@@ -15,7 +15,7 @@
 import { useMemo, useState } from 'react';
 import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
-import { money, perMonth, rupees } from '../engine/format';
+import { approx, money, perMonth, rupees } from '../engine/format';
 import { iv } from '../engine/interval';
 import {
   nothingUnlocksIt,
@@ -57,8 +57,8 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
         </div>
         <p className="muted">
           {negative
-            ? 'Before any new instalment, what comes in does not cover what goes out. A new loan does not fix that — it postpones it and makes it larger.'
-            : 'That is what is left after rent, household spending and the instalments you already pay. A new instalment has to fit inside it and still leave room for a bad month.'}
+            ? 'Before any new EMI, what comes in does not cover what goes out. A new loan does not fix that. It delays it and makes it bigger.'
+            : 'That is what is left after rent, what the house spends, and the EMIs you already pay. A new EMI has to fit inside it and still leave room for a bad month.'}
         </p>
 
         <details>
@@ -98,7 +98,7 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
               <li key={r.option.id}>
                 {r.option.label}
                 {r.delta > 0 ? (
-                  <span className="effect up"> — worth {rupees(r.delta)} more you could carry</span>
+                  <span className="effect up"> — worth {approx(r.delta)} more you could borrow</span>
                 ) : null}
               </li>
             ))}
@@ -108,14 +108,14 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
       <section className="panel">
         <span className="label">What would change the answer</span>
         <p className="muted">
-          Tick anything you could actually do. The number below is what the engine says
-          afterwards — it is re-run, not an illustration.
+          Tick anything you could actually do. The number below is what this works out
+          afterwards. It is calculated again, not an example.
         </p>
 
         {nothingUnlocksIt(ranked) ? (
           <div className="nudge bad">
-            Nothing on this list, on its own, turns this into a yes. That is worth knowing
-            plainly rather than as a list of near misses.
+            Nothing on this list, on its own, turns this into a yes. Better to say that plainly
+            than to show you a list of near misses.
             {combo ? ' Two of them together would — see below.' : ''}
           </div>
         ) : null}
@@ -136,9 +136,9 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
                   <br />
                   <span className={r.delta > 0 ? 'effect up' : 'effect'}>
                     {r.delta > 0
-                      ? `+${rupees(r.delta)} you could carry`
+                      ? `+${approx(r.delta)} you could borrow`
                       : r.delta < 0
-                        ? `${rupees(r.delta)} — this one costs you`
+                        ? `${approx(r.delta)} — this one costs you`
                         : 'no change on its own'}
                     {r.unlocks ? ' · turns the answer to yes' : ''}
                   </span>
@@ -163,10 +163,10 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
             // on purpose. Printing an instalment ceiling beside it would read as
             // "you can carry nothing, and also ₹4,000 a month" — two true
             // sentences that contradict each other in front of a borrower.
-            <>Still not enough to change the answer: safe to carry {money(projected.amounts.safe)}.</>
+            <>Still not enough to change the answer: safe for you {money(projected.amounts.safe)}.</>
           ) : (
             <>
-              Safe to carry {money(projected.amounts.safe)}
+              Safe for you {money(projected.amounts.safe)}
               {projected.repayment
                 ? `, at most ${perMonth(projected.repayment.emiCeiling)}`
                 : ''}
@@ -186,8 +186,8 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
           {combo.stillShortBy > 0 ? (
             <>
               <p className="muted">
-                Still {rupees(combo.stillShortBy)} short of what you asked for. Ways to close
-                that gap that are not a bigger loan:
+                Still {approx(combo.stillShortBy)} short of what you asked for. Ways to close that
+                gap that are not a bigger loan:
               </p>
               <ul className="redlines">
                 {combo.waysToCloseTheGap.map((w) => (
@@ -200,12 +200,12 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
       ) : null}
 
       <section className="panel">
-        <span className="label">What a lender would still offer you</span>
+        <span className="label">What a lender would still give you</span>
         <div className="figure small">{money(base.amounts.lender, { asLender: true })}</div>
         <p className="muted">
-          Someone will lend to you today. That is not the same as it being a good idea, and the
-          fact that a number exists here is part of what you are up against — it is the offer
-          that would arrive at exactly the wrong moment.
+          Someone will lend you this money today. That does not make it a good idea. This number
+          exists here because it is what you are up against: the offer that arrives at exactly
+          the wrong moment.
         </p>
       </section>
     </>

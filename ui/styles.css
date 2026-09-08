@@ -810,6 +810,27 @@ details[open] > summary::before {
   justify-self: start;
 }
 
+/* Skipping an essential asks once. Red enough to be noticed, not so red that
+   it reads as an error the borrower has made — skipping is allowed, and the
+   second press always goes through. */
+.skip.confirming {
+  border-top-color: var(--stop);
+  background: var(--stop-soft);
+  border-radius: var(--radius);
+  padding: 12px 12px 10px;
+  grid-auto-flow: row;
+}
+
+.skipbtn.warn {
+  color: var(--stop);
+  font-weight: 600;
+}
+
+.warn-note {
+  color: var(--stop);
+  font-size: 0.86rem;
+}
+
 /* What moved. Silent when nothing did. */
 .moved {
   background: var(--go-soft);
@@ -992,4 +1013,50 @@ details[open] > summary::before {
   letter-spacing: 0.06em;
   color: var(--warn);
   font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------------
+   The opening screen.
+
+   Every other view is a working document — a question being answered, an answer
+   being read — and reads best left-aligned against the top of the page. The
+   first screen is not a document; it is a door, with one sentence and one
+   button. Centring it, with the masthead's rule removed so the two read as one
+   block, is what makes the button look like the only thing to do.
+   --------------------------------------------------------------------------- */
+
+.wrap.start {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  padding-bottom: 20px;
+}
+
+.wrap.start .masthead {
+  border-bottom: 0;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.wrap.start .pickers {
+  justify-content: center;
+}
+
+.ask.start {
+  text-align: center;
+  max-width: 34rem;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.ask.start .skip {
+  display: block;
+  border-top: 0;
+  margin-top: 20px;
+}
+
+.ask.start .btn.wide {
+  max-width: 18rem;
+  margin-inline: auto;
 }

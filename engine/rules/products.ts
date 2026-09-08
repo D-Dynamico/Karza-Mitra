@@ -153,7 +153,7 @@ export const products = register<Rule<Record<ProductId, Product>>>({
       tenureMonths: iv(18, 60),
       loanToValue: iv(0.7, 0.95),
       minTicket: 25000,
-      why: 'A bank will not write this loan for someone whose income cannot be evidenced, whatever the vehicle is worth. The lenders who will — NBFCs and the finance arms attached to delivery platforms — charge a great deal more for taking the risk a bank would not.',
+      why: 'A bank will not write this loan for someone who cannot show their income on paper, whatever the vehicle is worth. The lenders who will — NBFCs and the finance arms attached to delivery platforms — charge a great deal more for taking the risk a bank would not.',
       source: {
         kind: 'market',
         cite:
@@ -169,7 +169,7 @@ export const products = register<Rule<Record<ProductId, Product>>>({
       rateBand: iv(18, 26),
       feeBand: iv(0, 1),
       tenureMonths: iv(12, 24),
-      why: 'Expensive, but honest about it and built for incomes that cannot be evidenced. Cheaper than any app loan.',
+      why: 'Expensive, but honest about it, and built for people who cannot show their income on paper. Cheaper than any app loan.',
       source: {
         kind: 'market',
         cite:
@@ -360,15 +360,15 @@ export function route(
       alternative: bankWillNotWriteIt
         ? {
             product: all['vehicle-loan'],
-            why: 'This is what a bank charges for the same loan, and it is what you should be aiming at. Getting there means evidenced income and a clean twelve months — it is not available to you today, at any branch.',
+            why: 'This is what a bank charges for the same loan, and it is what you should aim at. Getting there means showing your income on paper and twelve clean months. It is not open to you today, at any branch.',
           }
         : {
             product: all['personal-loan'],
-            why: 'A personal loan would leave the vehicle unpledged, but costs several points more for the same money. Not worth it unless a lender refuses the vehicle loan.',
+            why: 'A personal loan would leave the vehicle free of any claim, but costs much more for the same money. Not worth it unless a lender refuses the vehicle loan.',
           },
       why: bankWillNotWriteIt
         ? 'The vehicle secures the loan, but the lender still has to accept you, and a bank will not on income it cannot verify. This is the rate the lenders who will say yes actually charge. It is high because they are taking a risk a bank declined.'
-        : 'The vehicle secures the loan, which is what makes it cheap. Borrowing the same amount unsecured to buy it would cost you several points more.',
+        : 'The vehicle stands behind the loan, which is what makes it cheap. Borrowing the same amount with nothing behind it would cost you far more.',
     });
   }
 
@@ -384,10 +384,10 @@ export function route(
       alternative: {
         product: all['personal-loan'],
         why: unsecuredBlocked
-          ? 'Without a credit record, an unsecured loan of this size would be declined or priced near the top of its band. The property changes that entirely, because the lender is no longer relying on your file.'
-          : 'An unsecured loan would leave the property untouched, but costs roughly double in interest over the life of the loan.',
+          ? 'With no credit record, a loan of this size with nothing behind it would be refused, or priced at the very top. The property changes that completely, because the lender is no longer going on your file alone.'
+          : 'A loan with nothing behind it would leave the property untouched, but costs roughly double in interest over the life of the loan.',
       },
-      why: `You own property worth ${inLakh(value)} with nothing charged against it. Pledging it roughly halves the rate on an amount this size — that is the single biggest lever you have.`,
+      why: `You own property worth ${inLakh(value)} with no loan against it. Pledging it roughly halves the rate on an amount this size. Nothing else you can do here saves you as much.`,
     });
   }
 
@@ -399,7 +399,7 @@ export function route(
       securedCap: iv(answers.goldValue! * ltv.lo, answers.goldValue! * ltv.hi),
       alternative: {
         product: all['personal-loan'],
-        why: 'Slower to arrange and several points dearer, with nothing gained.',
+        why: 'Slower to arrange and a good deal costlier, with nothing gained.',
       },
       why: 'Household gold covers the amount you need. It is the cheapest and fastest money available to you, provided you can clear it inside a couple of years.',
     });
@@ -429,7 +429,7 @@ export function route(
         product: all['personal-loan'],
         why: 'Banks and NBFCs will almost certainly decline, since there is neither a salary slip nor an asset to price against.',
       },
-      why: 'With income that cannot be evidenced and nothing to pledge, group and microfinance lending is the honest option. It is dear, but it is a fraction of what an app charges.',
+      why: 'With no way to show your income on paper and nothing to pledge, group and microfinance lending is the honest option. It is expensive, but it is a fraction of what an app charges.',
     });
   }
 

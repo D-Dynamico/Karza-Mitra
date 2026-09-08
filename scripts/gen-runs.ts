@@ -138,7 +138,7 @@ function outputs(r: Result): string[] {
     `| **O1 — should you borrow** | ${r.verdict.kind} — ${r.verdict.headline} | ${r.verdict.why} |`,
   );
   out.push(
-    `| **O2 — how much** | a lender would sanction ${money(r.amounts.lender, { asLender: true })}<br>safe for you to carry ${money(r.amounts.safe)} | These are computed by separate rulebooks. The lender's leaves your rent out; yours cannot. |`,
+    `| **O2 — how much** | a lender would approve ${money(r.amounts.lender, { asLender: true })}<br>safe for you ${money(r.amounts.safe)} | Two separate calculations. ${r.amounts.whyTheyDiffer} |`,
   );
   if (r.routing) {
     out.push(`| **O2 — which product** | ${r.routing.product.name} | ${r.routing.why} |`);
@@ -150,7 +150,7 @@ function outputs(r: Result): string[] {
   }
   if (r.repayment) {
     out.push(
-      `| **O4 — what instalment to agree to** | at most ${perMonth(r.repayment.emiCeiling)} | Takes ${share(r.repayment.outflowRatioNow)} of income now, ${share(r.repayment.outflowRatioStressed)} after a fifth off your income and two points on the rate.${r.repayment.stressBreaches ? ' **That breaches the ceiling — this is the binding constraint.**' : ''} |`,
+      `| **O4 — what EMI to agree to** | at most ${perMonth(r.repayment.emiCeiling)} | Takes ${share(r.repayment.outflowRatioNow)} of income now, ${share(r.repayment.outflowRatioStressed)} if income dropped a fifth and the rate rose.${r.repayment.stressBreaches ? ' **That goes over the limit — this is what caps the amount.**' : ''} |`,
     );
   }
   return out;

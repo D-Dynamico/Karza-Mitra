@@ -46,6 +46,9 @@ const OUTPUT_UNITS: Readonly<Record<string, Unit>> = {
   'pricing.rate-band': 'percent',
   'pricing.apr': 'percent',
   'products.routing.alternative': 'percent',
+  // The cost of the rejected product is a rupee figure, so the default is
+  // right for the output; only its two rates need saying.
+
   'stress.outflow': 'percentAlready',
   'pricing.tenure-past-retirement': 'plain',
 };
@@ -66,6 +69,8 @@ const INPUT_UNITS: Readonly<Record<string, Unit>> = {
   'stability.years-in-work::years': 'plain',
   'pricing.rate-band::added for your credit standing': 'points',
   'pricing.rate-band::adjusted for how steady your income is': 'points',
+  'products.routing.alternative-cost::rate on the loan we suggest': 'percent',
+  'products.routing.alternative-cost::rate on the other loan': 'percent',
   'pricing.rate-band::base band for this product': 'percent',
   'pricing.rate-band::spread between lenders': 'points',
   'pricing.apr::processing fee': 'percent',

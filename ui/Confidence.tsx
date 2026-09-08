@@ -29,11 +29,11 @@ const COPY: Record<string, { label: string; why: string }> = {
   },
   medium: {
     label: 'Workable',
-    why: 'Wide enough that the ends mean different things. Another answer or two would close it.',
+    why: 'Wide enough that the two ends mean different things. One or two more answers would close it.',
   },
   low: {
     label: 'Wide',
-    why: 'The top and bottom of this answer are different situations. That is honest, not broken — it usually means something important is still assumed.',
+    why: 'The top and the bottom of this answer are two different situations. That is honest, not broken. It usually means we are still guessing something important.',
   },
 };
 
@@ -85,13 +85,13 @@ export function Confidence({
       <p className="muted">{copy.why}</p>
       {showAmount ? (
         <p className="muted">
-          Right now: safe to carry {money(result.amounts.safe)}
+          So far: safe for you {money(result.amounts.safe)}
           {result.pricing ? `, at ${rateText(result.pricing.rateBand)}` : ''}.
         </p>
       ) : (
         <p className="muted">
-          The figures arrive once the essential questions are done. Until then this only shows
-          how wide the answer would be.
+          The figures come once the essential questions are done. Until then this only shows how
+          wide the answer would be.
         </p>
       )}
     </section>

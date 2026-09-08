@@ -30,7 +30,7 @@ export type InputKind =
    * button, and the box only appears if they say yes.
    */
   | { kind: 'money-optional'; noLabel: string; yesLabel: string }
-  | { kind: 'number'; unit: string; max?: number }
+  | { kind: 'number'; unit: string; min?: number; max?: number }
   | { kind: 'boolean' }
   | { kind: 'choice'; options: ReadonlyArray<{ value: string; label: string }> }
   | { kind: 'credit-score' };
@@ -42,6 +42,15 @@ export interface Question {
   readonly tier: QuestionTier;
   /** What the borrower reads. */
   readonly prompt: string;
+  /**
+   * The prompt with the thing named, where a fixed sentence would have to say
+   * "it". "Once you have it, how much more would you earn?" is a question the
+   * borrower cannot answer without first working out what "it" refers to, and a
+   * borrower who is guessing at the subject is guessing at the answer. `prompt`
+   * stays as the fallback and is what the registry is checked against, so a
+   * question is never left without a sentence.
+   */
+  readonly promptFor?: (a: Answers) => string;
   /** One sentence behind the "why are you asking?" link. */
   readonly whyWeAsk: string;
   /**
@@ -121,7 +130,7 @@ export const mustSet: readonly Question[] = [
     tier: 'must',
     prompt: 'How much do you want to borrow?',
     whyWeAsk: 'Everything else is measured against it — including whether you should borrow at all.',
-    skipCost: 'We can still tell you your ceiling, but not whether what you had in mind fits under it.',
+    skipCost: 'We can still tell you your limit, but not whether the amount you had in mind fits under it.',
     input: { kind: 'money' },
     moves: ['O1.verdict'],
     applies: always,
@@ -134,7 +143,7 @@ export const mustSet: readonly Question[] = [
     prompt: 'How do you earn?',
     whyWeAsk:
       'Lenders believe a salary slip in full and discount cash income heavily. This is usually the single biggest thing separating what they will lend from what you actually earn.',
-    skipCost: 'Your rate band stays much wider, because we have to allow for every kind of earner.',
+    skipCost: 'Your rate stays a much wider range, because we have to allow for every kind of earner.',
     input: {
       kind: 'choice',
       options: [
@@ -169,12 +178,21 @@ export const mustSet: readonly Question[] = [
     id: 'existing-emis',
     field: 'existingEmis',
     tier: 'must',
-    prompt: 'What do you already pay each month on loans?',
+    prompt: 'Do you have any loans running now?',
     whyWeAsk:
-      'It comes straight off both ceilings. It is also the fastest number to change, since a loan ending frees the whole instalment at once.',
-    hint: 'Add up everything — a car loan, a personal loan, a home loan, anything on an app. A home loan belongs here rather than with rent: a lender ignores rent, but counts a mortgage against you in full.',
-    skipCost: 'Both amounts will be too generous, because we will assume you owe nothing.',
-    input: { kind: 'money' },
+      'What you already pay comes straight off both limits. It is also the fastest number to change, since a loan ending frees the whole EMI at once.',
+    hint: 'Count everything — a car loan, a personal loan, a home loan, anything on an app. A home loan belongs here rather than with rent: a lender ignores rent, but counts a home loan against you in full.',
+    skipCost: 'Both amounts will be too high, because we will assume you owe nothing.',
+    // Asked as "what do you pay?" with a bare rupee box, this made the common
+    // answer — none — the awkward one: a borrower with no loans had to decide
+    // that zero was what we wanted and type it, and the three questions that
+    // follow only exist if the answer is not zero. Asking whether there is a
+    // loan at all is both the plainer sentence and the correct gate.
+    input: {
+      kind: 'money-optional',
+      noLabel: 'No, I have no loans',
+      yesLabel: 'Yes — every month I pay',
+    },
     moves: ['O2.lender', 'O2.safe', 'O4.emi'],
     applies: always,
     probes: [{ existingEmis: 0 }, { existingEmis: 15000 }],
@@ -186,9 +204,9 @@ export const mustSet: readonly Question[] = [
     tier: 'must',
     prompt: 'What do you pay in rent each month?',
     whyWeAsk:
-      'Most lenders leave rent out of their arithmetic entirely. You cannot, so we count it — and it is usually the biggest reason our number is smaller than theirs.',
+      'Lenders do not count rent at all. You have to pay it, so we count it — and it is usually the biggest reason our number is smaller than theirs.',
     hint: 'Rent only. A home loan is not rent — put that with your other loans, because a lender counts it and ignores this.',
-    skipCost: 'We will assume a range for your city, which keeps your safe amount wider than it needs to be.',
+    skipCost: 'We will assume a figure for your city, which keeps your safe amount wider than it needs to be.',
     input: { kind: 'money' },
     moves: ['O2.safe', 'O4.emi', 'O4.stress'],
     applies: always,
@@ -201,7 +219,7 @@ export const mustSet: readonly Question[] = [
     tier: 'must',
     prompt: 'Roughly what does the household spend in a month, apart from rent and loans?',
     whyWeAsk:
-      'Food, power, school, travel. What is left after these is what an instalment actually comes out of.',
+      'Food, power, school, travel. What is left after these is what an EMI actually comes out of.',
     skipCost:
       'We will fill in a figure from your city and household size and mark it as assumed. Your own number is better.',
     input: { kind: 'money' },
@@ -218,7 +236,10 @@ export const mustSet: readonly Question[] = [
     whyWeAsk:
       'The same income supports one person comfortably and four with nothing to spare. It sets what we assume the household spends, and it is the cheapest question here to answer.',
     skipCost: 'We will assume you are supporting only yourself, which almost certainly understates what the household spends.',
-    input: { kind: 'number', unit: 'people', max: 20 },
+    // At least one: the borrower. A zero here used to reach the household
+    // spending default as "supports nobody", which is not a household anyone
+    // lives in, and the schema rejects it anyway.
+    input: { kind: 'number', unit: 'people', min: 1, max: 20 },
     moves: ['O2.safe', 'O4.emi'],
     applies: always,
     probes: [{ householdSize: 1 }, { householdSize: 5 }],
@@ -229,9 +250,9 @@ export const mustSet: readonly Question[] = [
     tier: 'must',
     prompt: 'How old are you?',
     whyWeAsk:
-      'Lenders rarely write a loan that runs past working life, so your age sets how long the loan can be spread — which sets the instalment.',
+      'Lenders rarely write a loan that runs past working life, so your age sets how long the loan can run — which sets the EMI.',
     skipCost: 'We will assume the product\'s full tenure is open to you, which may be optimistic.',
-    input: { kind: 'number', unit: 'years', max: 100 },
+    input: { kind: 'number', unit: 'years', min: 18, max: 100 },
     moves: ['O2.lender', 'O2.safe', 'O4.emi'],
     applies: always,
     probes: [{ age: 30 }, { age: 56 }],
@@ -244,7 +265,7 @@ export const mustSet: readonly Question[] = [
     prompt: 'Do you know your credit score?',
     whyWeAsk:
       'It moves your rate more than anything else you can tell us. Not knowing is fine and common — we will show you the range instead of pretending.',
-    skipCost: 'Your rate band stays several points wide. Checking it is free and takes a minute.',
+    skipCost: 'Your rate stays a wide range. Checking your score is free and takes a minute.',
     input: { kind: 'credit-score' },
     moves: ['O3.rate', 'O3.apr'],
     applies: always,
@@ -286,11 +307,14 @@ export const adaptiveSet: readonly Question[] = [
     id: 'emergency-savings',
     field: 'emergencySavingsMonths',
     tier: 'adaptive',
-    prompt: 'If your income stopped, how many months could you cover?',
+    // "If your income stopped, how many months could you cover?" asks the same
+    // thing, but makes the borrower picture losing their job to answer it. The
+    // savings figure is what the rule actually reads.
+    prompt: 'How many months of expenses do you have saved?',
     whyWeAsk:
-      'With less than three months put by, we hold part of your surplus back rather than letting an instalment take all of it — because the next emergency would otherwise become another loan.',
-    skipCost: 'We assume you have little put by and hold back a tenth of your income.',
-    input: { kind: 'number', unit: 'months', max: 60 },
+      'With less than three months saved, we keep part of what is left over free rather than letting an EMI take all of it. Otherwise the next emergency becomes another loan.',
+    skipCost: 'We assume you have little saved, and keep back a tenth of your income.',
+    input: { kind: 'number', unit: 'months', min: 0, max: 60 },
     moves: ['O2.safe', 'O4.emi'],
     applies: always,
     probes: [{ emergencySavingsMonths: 0 }, { emergencySavingsMonths: 6 }],
@@ -301,7 +325,7 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'Is there a big expense coming in the next year?',
     whyWeAsk:
-      'A school admission or a wedding you already know about is not a surprise. An instalment that only works if it does not happen is not affordable.',
+      'A school admission or a wedding you already know about is not a surprise. An EMI that only works if it does not happen is not affordable.',
     skipCost: 'We assume nothing is coming, which makes your safe amount look larger than it is.',
     input: { kind: 'money' },
     moves: ['O2.safe', 'O4.emi'],
@@ -314,7 +338,7 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'Does anyone else in the household earn?',
     whyWeAsk:
-      'A lender will count part of their income towards what you can borrow. We only count it towards what you can safely carry if you tell us it is genuinely shared.',
+      'A lender will count part of their income towards what you can borrow. We only count it towards what is safe for you if you tell us it is genuinely shared.',
     skipCost: 'We treat you as the only earner, which is the cautious reading.',
     input: {
       kind: 'money-optional',
@@ -322,7 +346,10 @@ export const adaptiveSet: readonly Question[] = [
       yesLabel: 'Yes — and they take home',
     },
     moves: ['O2.lender', 'O2.safe'],
-    applies: always,
+    // A borrower who has just told us their income supports one person has
+    // answered this already. Asking anyway reads as not having listened, and
+    // the only answer it can collect is the one we are holding.
+    applies: (a) => (a.householdSize ?? 2) > 1,
     probes: [{ coApplicantIncome: 0 }, { coApplicantIncome: 30000, coApplicantPooled: true }],
   },
 
@@ -369,8 +396,8 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'How long have you been in this job?',
     whyWeAsk:
-      'Under a year, many lenders will not lend at all. Past three, you should be asking for the bottom of the band.',
-    skipCost: 'Your rate band stays wider than it needs to be.',
+      'Under a year, many lenders will not lend at all. Past three, you should be asking for the lowest rate they offer.',
+    skipCost: 'Your rate stays a wider range than it needs to be.',
     input: { kind: 'number', unit: 'years', max: 50 },
     moves: ['O3.rate', 'O3.apr'],
     applies: (a) => a.incomeType === 'salaried',
@@ -384,7 +411,7 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'What does your filed return show, as a monthly figure?',
     whyWeAsk:
-      'This is the number a lender underwrites you on, whatever the business actually takes. The gap between it and your real income is why pledging an asset may be your best lever.',
+      'This is the number a lender decides on, whatever the business actually takes. The gap between it and what you really earn is why pledging something may save you the most.',
     skipCost: 'We have to discount your stated income heavily instead, which lowers what a lender will offer.',
     input: { kind: 'money' },
     moves: ['O2.lender', 'O2.safe'],
@@ -396,8 +423,8 @@ export const adaptiveSet: readonly Question[] = [
     field: 'yearsInBusiness',
     tier: 'adaptive',
     prompt: 'How long have you been running the business?',
-    whyWeAsk: 'Vintage is what a lender has instead of a payslip. Several years of it is worth asking for a better rate on.',
-    skipCost: 'Your rate band stays wider than it needs to be.',
+    whyWeAsk: 'How long you have been running it is what a lender has instead of a payslip. Several years is worth asking for a better rate on.',
+    skipCost: 'Your rate stays a wider range than it needs to be.',
     input: { kind: 'number', unit: 'years', max: 60 },
     moves: ['O3.rate', 'O3.apr'],
     applies: selfEmployed,
@@ -411,7 +438,7 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'Do you own a house, shop or land?',
     whyWeAsk:
-      'Pledging property roughly halves the rate on a large loan. It is almost always the single biggest lever a borrower has, and most people do not know it is available to them.',
+      'Pledging property roughly halves the rate on a large loan. It is almost always the biggest saving a borrower can make, and most people do not know it is open to them.',
     skipCost: 'We can only price you for a loan with nothing behind it, which is the dearest kind.',
     input: { kind: 'boolean' },
     moves: ['O2.lender', 'O2.safe', 'O3.rate', 'O3.apr'],
@@ -438,7 +465,7 @@ export const adaptiveSet: readonly Question[] = [
     field: 'propertyHasCharge',
     tier: 'adaptive',
     prompt: 'Is there already a loan against it?',
-    whyWeAsk: 'A property already pledged cannot be pledged again, so it stops being a lever.',
+    whyWeAsk: 'A property already pledged cannot be pledged again, so it can no longer bring your rate down.',
     skipCost: 'We assume it is free of any charge, which may overstate what you can borrow.',
     input: { kind: 'boolean' },
     moves: ['O2.safe', 'O3.rate', 'O3.apr'],
@@ -452,7 +479,7 @@ export const adaptiveSet: readonly Question[] = [
     prompt: 'Is there gold in the household you could pledge?',
     whyWeAsk:
       'For a smaller amount over a short period, a gold loan is usually the cheapest and fastest money available, and you keep the gold if you repay.',
-    skipCost: 'We may route you to a dearer loan than you need.',
+    skipCost: 'We may send you to a costlier loan than you need.',
     input: { kind: 'money' },
     moves: ['O2.safe', 'O3.rate', 'O3.apr'],
     applies: (a) => informalOrCash(a) || (a.amountAsked ?? 0) <= 500000,
@@ -466,7 +493,7 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'Has any payment bounced or been missed in the last six months?',
     whyWeAsk:
-      'It is the loudest signal in your file. Most lenders will decline unsecured lending on it, and it usually means the right answer is to wait rather than borrow.',
+      'It is the loudest thing in your file. Most lenders will refuse a loan with nothing behind it on the strength of one, and it usually means the right answer is to wait rather than borrow.',
     skipCost: 'We assume nothing has, which may make our answer more optimistic than a lender will be.',
     input: { kind: 'boolean' },
     moves: ['O1.verdict', 'O3.rate', 'O3.apr'],
@@ -492,7 +519,7 @@ export const adaptiveSet: readonly Question[] = [
     tier: 'adaptive',
     prompt: 'How many months are left on what you already pay?',
     whyWeAsk:
-      'A loan ending soon frees its whole instalment at once. If it is close, waiting may get you more than borrowing now would.',
+      'A loan ending soon frees its whole EMI at once. If it is close, waiting may get you more than borrowing now would.',
     skipCost: 'We cannot tell you whether waiting would be worth it.',
     input: { kind: 'number', unit: 'months', max: 600 },
     moves: ['O1.verdict'],
@@ -506,7 +533,7 @@ export const adaptiveSet: readonly Question[] = [
     field: 'vehicleOnRoadPrice',
     tier: 'adaptive',
     prompt: 'What is the on-road price?',
-    whyWeAsk: 'A vehicle loan is capped at a share of the price, so this sets the ceiling as much as your income does.',
+    whyWeAsk: 'A vehicle loan is capped at a share of the price, so this sets your limit as much as your income does.',
     hint: 'The total you actually pay the dealer — the showroom price plus registration, road tax and insurance. It is the number on the final invoice, not the price on the advertisement.',
     skipCost: 'We cannot cap the loan at what the vehicle supports.',
     input: { kind: 'money' },
@@ -519,11 +546,19 @@ export const adaptiveSet: readonly Question[] = [
     id: 'expected-earnings',
     field: 'expectedMonthlyEarnings',
     tier: 'adaptive',
-    prompt: 'Once you have it, how much more would you earn in a month?',
+    // "Once you have it" left the borrower to work out what "it" was, and a
+    // borrower guessing at the subject is guessing at the answer.
+    prompt: 'How much more would you earn each month with this?',
+    promptFor: (a) =>
+      a.purpose === 'vehicle'
+        ? 'Once you have the vehicle, how much more would you earn each month?'
+        : a.purpose === 'business-stock'
+          ? 'Once you have the stock, how much more would you earn each month?'
+          : 'Once you have what this loan is for, how much more would you earn each month?',
     whyWeAsk:
-      'If it earns more than the instalment costs, the loan largely pays for itself, and that is the strongest case for borrowing there is. We count half of what you tell us, because takings take time to build and projections disappoint.',
+      'If it earns more than the EMI costs, the loan largely pays for itself. That is the strongest reason to borrow there is. We count half of what you tell us, because takings take time to build and projections disappoint.',
     hint: 'The extra money you would keep, after fuel, stock or repairs — not the extra business you would do. A rough figure is fine.',
-    skipCost: 'We judge the loan on your current income alone.',
+    skipCost: 'We judge the loan on what you earn today alone.',
     input: { kind: 'money' },
     moves: ['O1.verdict'],
     applies: (a) =>
@@ -565,7 +600,7 @@ export const cutQuestions = [
   {
     id: 'vehicle-productive',
     prompt: 'Will you earn with it?',
-    why: 'Merged into the question below it, which asks how much it will earn. A yes-or-no answer and a number were competing to express the same thing, and only the number changes an output — knowing a scooter earns is worth nothing next to knowing it earns ₹12,000 a month against a ₹4,000 instalment.',
+    why: 'Merged into the question below it, which asks how much it will earn. A yes-or-no answer and a number were competing to express the same thing, and only the number changes an output — knowing a scooter earns is worth nothing next to knowing it earns ₹12,000 a month against a ₹4,000 EMI.',
   },
   {
     id: 'variable-income-share',

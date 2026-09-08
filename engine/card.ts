@@ -12,7 +12,7 @@
  */
 
 import type { Result } from './compute';
-import { money, perMonth, rate, rupees } from './format';
+import { money, perMonth, rate, rupees, tenure as tenureText } from './format';
 
 export interface CardRow {
   readonly label: string;
@@ -45,7 +45,7 @@ export function negotiationCard(r: Result): NegotiationCard {
     rows.push({
       label: 'Amount to ask for',
       value: money(r.amounts.safe),
-      note: `A lender may well offer more — up to ${money(r.amounts.lender, { asLender: true })}. That is what they are willing to risk, not what you can carry. The larger number is not a compliment.`,
+      note: `A lender may offer more — up to ${money(r.amounts.lender, { asLender: true })}. That is what they are willing to risk, not what you can pay. The bigger number is not a compliment.`,
     });
   }
 
@@ -63,41 +63,41 @@ export function negotiationCard(r: Result): NegotiationCard {
     rows.push({
       label: 'Rate to hold them to',
       value: rate(r.pricing.rateBand),
-      note: `Anything above the top of this band needs a reason you find convincing. Ask for it in writing.`,
+      note: `Anything above the top of this needs a reason you find convincing. Ask for that reason in writing.`,
     });
     rows.push({
-      label: 'All-in rate, fees included',
+      label: 'All-in rate, with fees',
       value: rate(r.pricing.aprBand),
-      note: `This is the headline rate with the processing fee and its GST folded back in. It is the only number worth comparing between two offers — a lower headline rate with a bigger fee can be the dearer loan.`,
+      note: `The rate with the processing fee and its GST added back in. Compare two offers on this number, not the headline one — a lower rate with a bigger fee can be the costlier loan.`,
     });
     rows.push({
       label: 'Processing fee',
       value: `${r.pricing.feeBand.lo}% – ${r.pricing.feeBand.hi}% of the amount, plus GST`,
-      note: 'Negotiable more often than the rate is. Ask for it to be waived or halved before you agree to anything else.',
+      note: 'Easier to get down than the rate is. Ask for it to be dropped or halved before you agree to anything else.',
     });
     rows.push({
-      label: 'Tenure',
-      value: `${r.pricing.tenureMonths} months`,
-      note: 'A longer tenure lowers the instalment and raises the total interest. Do not let a longer tenure be used to make an amount you cannot carry look affordable.',
+      label: 'How long',
+      value: tenureText(r.pricing.tenureMonths),
+      note: 'A longer loan means a smaller EMI and more interest in total. Do not let a longer loan be used to make an amount you cannot afford look affordable.',
     });
   }
 
   if (r.repayment && !dont) {
     rows.push({
-      label: 'Most you should agree to pay monthly',
+      label: 'Most you should agree to pay each month',
       value: perMonth(r.repayment.emiCeiling),
-      note: `Above this, an ordinary bad month becomes a missed payment. This figure already counts your rent, which the lender's own arithmetic leaves out.`,
+      note: `Above this, an ordinary bad month becomes a missed payment. This figure counts your rent. The lender's does not.`,
     });
   }
 
   const redLines = [
-    'No to any insurance, membership or "protection" product bundled into the loan. It is almost never required, and it is added to the amount you pay interest on.',
+    'No to any insurance, membership or "protection" added to the loan. It is almost never required, and you pay interest on it too.',
     'No to signing before you have seen the Key Facts Statement with the all-in rate on it. You are entitled to it.',
-    'No to a pre-payment penalty on a floating rate loan. On personal and property loans to individuals, it should not be there.',
+    'No to a charge for paying the loan off early, on a floating rate loan. On personal and property loans it should not be there.',
   ];
   if (r.pricing && r.pricing.feeBand.hi > 2) {
     redLines.push(
-      `No to a processing fee at the top of the ${r.pricing.feeBand.lo}–${r.pricing.feeBand.hi}% range without a reason. On this product it is the part of the price with the most room in it.`,
+      `No to a processing fee at the top of ${r.pricing.feeBand.lo}–${r.pricing.feeBand.hi}% without a reason. On this loan it is the part of the price with the most room in it.`,
     );
   }
 
@@ -106,13 +106,13 @@ export function negotiationCard(r: Result): NegotiationCard {
     title: dont ? 'Before you borrow anything' : 'Take this to the lender',
     ask: dont
       ? 'The honest answer today is not to take this loan. This card is what to do instead.'
-      : `I am asking for ${money(r.amounts.safe)} as a ${r.routing?.product.name.toLowerCase() ?? 'loan'}, over ${r.pricing?.tenureMonths ?? 60} months, at ${r.pricing ? rate(r.pricing.rateBand) : 'the rate below'}.`,
+      : `I am asking for ${money(r.amounts.safe)} as a ${r.routing?.product.name.toLowerCase() ?? 'loan'}, over ${tenureText(r.pricing?.tenureMonths ?? 60)}, at ${r.pricing ? rate(r.pricing.rateBand) : 'the rate below'}.`,
     rows,
     redLines,
     walkAway: dont
       ? `${r.verdict.why} ${r.verdict.nextStep ?? ''}`.trim()
       : r.repayment && r.repayment.stressBreaches
-        ? `If your income fell by a fifth, this instalment would take ${Math.round(r.repayment.outflowRatioStressed.hi * 100)}% of it. Walk away rather than stretch the tenure to hide that.`
+        ? `If your income fell by a fifth, this EMI would take ${Math.round(r.repayment.outflowRatioStressed.hi * 100)}% of it. Walk away rather than stretch the loan out to hide that.`
         : undefined,
   };
 }
@@ -126,7 +126,7 @@ export function cardAsMarkdown(card: NegotiationCard): string {
   out.push('');
   if (card.advisesAgainst && card.rows.length > 0) {
     out.push(
-      'The answer above stands. These rows are here only so that a borrower who goes ahead regardless is not walking in uninformed — they are the terms to insist on, not a reason to borrow.',
+      'The answer above stands. These rows are here only so that a borrower who goes ahead anyway does not walk in uninformed. They are the terms to insist on, not a reason to borrow.',
     );
     out.push('');
   }

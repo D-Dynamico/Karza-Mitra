@@ -22,6 +22,7 @@ import {
 } from './interval';
 import {
   aprRange,
+  emi,
   emiRangeCorrelated,
   principalFromEmiRange,
   totalInterest,
@@ -77,9 +78,35 @@ export interface Result {
      *  readable on a "don't". */
     readonly safeOnAffordabilityAlone: Interval;
     readonly asked: number | undefined;
+    /**
+     * One sentence on why the two figures differ, for the panel that shows them
+     * side by side. It lives here rather than in the UI because it is a claim
+     * about this borrower — it named rent whether or not she paid any — and a
+     * claim about a borrower is a rule's to make, not a branch in a component's.
+     */
+    readonly whyTheyDiffer: string;
   };
   /** O2: the product this borrower should be asking for. */
   readonly routing: Routing | undefined;
+  /**
+   * What the rejected product would actually cost, in rupees.
+   *
+   * "Several points more" is a true sentence that no borrower can act on. The
+   * same fact as "about ₹4.2 lakh more in interest over 5 years" is one she can
+   * repeat at the counter, and it is the argument for pledging something rather
+   * than a footnote to it. Undefined where there is no alternative, or where the
+   * alternative is the cheaper of the two — which happens, and where the copy
+   * already says the borrower is on the dearer product.
+   */
+  readonly alternativeCost:
+    | {
+        /** Extra interest over the term, at the midpoint of each product's band. */
+        readonly extraInterest: number;
+        /** The amount both were costed on. */
+        readonly amount: number;
+        readonly months: number;
+      }
+    | undefined;
   /** O3: the rate band and the honest all-in rate. */
   readonly pricing:
     | {
@@ -150,6 +177,63 @@ function headlineTenure(routing: Routing, answers: Answers, log: TraceLog): numb
   }
 
   return tenure;
+}
+
+/**
+ * What the rejected product would cost, over and above the chosen one.
+ *
+ * Both loans are costed on the same amount over the same term, so the comparison
+ * is one variable wide — the rate. Each is taken at the midpoint of its own
+ * published band rather than at an end, because pairing one product's floor with
+ * the other's ceiling would manufacture whichever answer we wanted. The term is
+ * the chosen product's, clamped into the alternative's own band: a personal loan
+ * is not written over fifteen years, so costing one there would be inventing a
+ * product to lose the argument to.
+ */
+function costOfTheAlternative(
+  routing: Routing,
+  amount: Interval,
+  chosenTenure: number,
+  log: TraceLog,
+): Result['alternativeCost'] {
+  const alt = routing.alternative?.product;
+  if (alt === undefined) return undefined;
+
+  const principal = Math.round((amount.lo + amount.hi) / 2);
+  if (principal <= 0) return undefined;
+
+  const months = Math.round(
+    Math.min(Math.max(chosenTenure, alt.tenureMonths.lo), alt.tenureMonths.hi),
+  );
+  const mid = (band: Interval): number => (band.lo + band.hi) / 2;
+  const interestAt = (rate: number): number =>
+    totalInterest(principal, emi(principal, rate, months), months);
+
+  const here = interestAt(mid(routing.product.rateBand));
+  const there = interestAt(mid(alt.rateBand));
+  const extraInterest = Math.round(there - here);
+
+  // The alternative is sometimes the cheaper loan — a borrower on an NBFC
+  // two-wheeler rate is being compared against the bank loan she cannot get.
+  // There is no extra cost to report there, and inventing one would be a lie.
+  if (extraInterest <= 0) return undefined;
+
+  log.record({
+    rule: 'products.routing.alternative-cost',
+    label: `What a ${alt.name.toLowerCase()} would cost you instead`,
+    // Fixed key names, not the product names: `ui/units.ts` maps units by
+    // `rule::input`, and a key built from a product name cannot be in a table.
+    inputs: {
+      'costed on': principal,
+      'over': `${months} months`,
+      'rate on the loan we suggest': mid(routing.product.rateBand),
+      'rate on the other loan': mid(alt.rateBand),
+    },
+    output: extraInterest,
+    why: `Both loans at the middle of their published rates, on the same amount over the same term. The difference is what the pledge is worth to you in rupees.`,
+  });
+
+  return { extraInterest, amount: principal, months };
 }
 
 /**
@@ -255,8 +339,11 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
         safe: point(0),
         safeOnAffordabilityAlone: point(0),
         asked: answers.amountAsked,
+        whyTheyDiffer: 'Neither figure can be worked out until you tell us what you earn.',
       },
       routing,
+      // Nothing has been priced, so there is nothing to compare against.
+      alternativeCost: undefined,
       pricing: undefined,
       repayment: undefined,
       income: undefined,
@@ -393,6 +480,13 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
   });
 
   // What the safe amount actually costs each month, and under stress.
+  // Said once, used twice: as the reason on the trace entry, and as the line
+  // under the two figures on screen.
+  const whyTheyDiffer =
+    rent.hi > 0
+      ? 'The difference is your rent. Lenders leave it out. Your budget cannot.'
+      : 'The difference is what your house spends, and what a bad month would do. Lenders leave both out. You cannot.';
+
   const emiAtSafe = emiRangeCorrelated(safeAmount, rateBand, tenure);
 
   log.record({
@@ -400,7 +494,7 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
     label: 'What you can safely carry',
     inputs: { 'instalment you can carry': emiAtSafe, 'over': `${tenure} months` },
     output: safeAmount,
-    why: `The same arithmetic on your own ceiling instead of theirs. The gap between the two numbers is mostly your rent, plus what a bad month would do.`,
+    why: whyTheyDiffer,
   });
   const outgoNow = totalOutgo(rent, obligations, emiAtSafe);
 
@@ -441,6 +535,8 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
       why: predatoryRateFloor.why,
     });
   }
+
+  const alternativeCost = costOfTheAlternative(routing, amountToPrice, tenure, log);
 
   const paysForItself = productiveEarningsCover(
     answers.expectedMonthlyEarnings,
@@ -527,8 +623,10 @@ export function compute(answers: Answers, options: ComputeOptions = {}): Result 
       safe: recommended,
       safeOnAffordabilityAlone: safeAmount,
       asked: answers.amountAsked,
+      whyTheyDiffer,
     },
     routing,
+    alternativeCost,
     pricing: { rateBand, feeBand, aprBand, tenureMonths: tenure },
     repayment: {
       emiCeiling: emiAtSafe,

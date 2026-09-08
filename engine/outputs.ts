@@ -24,11 +24,11 @@ export type OutputId = (typeof OUTPUT_IDS)[number];
 
 export const OUTPUT_LABELS: Record<OutputId, string> = {
   'O1.verdict': 'whether to borrow at all',
-  'O2.lender': 'what a lender will sanction',
-  'O2.safe': 'what you can safely carry',
-  'O3.rate': 'your rate band',
+  'O2.lender': 'what a lender will give you',
+  'O2.safe': 'what is safe for you',
+  'O3.rate': 'your rate',
   'O3.apr': 'the all-in rate',
-  'O4.emi': 'your instalment ceiling',
+  'O4.emi': 'the most you should pay each month',
   'O4.stress': 'how it holds up after a bad month',
 };
 

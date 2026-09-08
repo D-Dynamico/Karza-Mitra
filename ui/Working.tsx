@@ -84,7 +84,7 @@ export function TightenThis({
           key={r.question.id}
           onClick={() => onAnswer(r.question.field)}
         >
-          {r.question.prompt}
+          {r.question.promptFor?.(answers) ?? r.question.prompt}
           <span className="promise">{r.promise}</span>
         </button>
       ))}

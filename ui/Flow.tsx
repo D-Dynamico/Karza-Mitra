@@ -13,7 +13,10 @@
  * - **Skip, always visible, with its cost stated.** Skipping never blocks the
  *   answer; it widens it, and the assumption that filled the gap is labelled
  *   later. This is the difference between an engine that refuses to answer and
- *   one that answers honestly with less.
+ *   one that answers honestly with less. Skipping one of the essentials asks
+ *   once, because the cost there is not a wider range but an answer built on a
+ *   guess about the borrower's own money. It is a confirmation, not a block —
+ *   the second press always goes through.
  * - **What moved** — after each answer, what actually changed. It stays silent
  *   when nothing did, which is the point: it is evidence the question was worth
  *   asking, so it must be capable of saying nothing.
@@ -54,6 +57,8 @@ export function Flow({
   const [moved, setMoved] = useState<readonly Movement[]>([]);
   const [showWhy, setShowWhy] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  /** The essential question whose skip has been asked for but not confirmed. */
+  const [confirmSkip, setConfirmSkip] = useState<string | undefined>(undefined);
   const [reviewing, setReviewing] = useState(startOnReview);
   /**
    * Every previous state, so Back is a real undo rather than a guess at which
@@ -92,15 +97,23 @@ export function Flow({
     setAnswers(after);
     setShowWhy(false);
     setShowHint(false);
+    setConfirmSkip(undefined);
   };
 
   const skip = (): void => {
     if (!question) return;
+    // One confirmation on an essential, then it goes through. The point is to
+    // make the borrower notice what they are giving up, not to argue with them.
+    if (question.tier === 'must' && confirmSkip !== question.id) {
+      setConfirmSkip(question.id);
+      return;
+    }
     remember();
     setSkipped((prev) => [...prev, question.id]);
     setMoved([]);
     setShowWhy(false);
     setShowHint(false);
+    setConfirmSkip(undefined);
   };
 
   const back = (): void => {
@@ -112,6 +125,7 @@ export function Flow({
     setMoved([]);
     setShowWhy(false);
     setShowHint(false);
+    setConfirmSkip(undefined);
   };
 
   if (reviewing || !question) {
@@ -168,7 +182,7 @@ export function Flow({
 
       <section className="ask">
         <h2>
-          {question.prompt}
+          {question.promptFor?.(answers) ?? question.prompt}
           {question.hint ? (
             <button
               type="button"
@@ -199,11 +213,30 @@ export function Flow({
           varies={answers.incomeType !== undefined && answers.incomeType !== 'salaried'}
         />
 
-        <div className="skip">
-          <button type="button" className="skipbtn" onClick={skip}>
-            Skip this
+        <div className={confirmSkip === question.id ? 'skip confirming' : 'skip'}>
+          <button
+            type="button"
+            className={confirmSkip === question.id ? 'skipbtn warn' : 'skipbtn'}
+            onClick={skip}
+          >
+            {confirmSkip === question.id ? 'Yes, skip it' : 'Skip this'}
           </button>
-          <span className="muted">{question.skipCost}</span>
+          {confirmSkip === question.id ? (
+            <>
+              <button
+                type="button"
+                className="skipbtn"
+                onClick={() => setConfirmSkip(undefined)}
+              >
+                No, I will answer
+              </button>
+              <span className="warn-note">
+                Are you sure? This is one we need. {question.skipCost}
+              </span>
+            </>
+          ) : (
+            <span className="muted">{question.skipCost}</span>
+          )}
         </div>
       </section>
 
@@ -253,10 +286,10 @@ function Review({
 
   return (
     <>
-      <h2>Before the answer — check these</h2>
+      <h2>Before the answer, check these</h2>
       <p className="muted">
         Everything below feeds the numbers. Anything marked assumed is our guess, not your
-        answer, and correcting one narrows every figure.
+        answer. Correcting one narrows every figure.
       </p>
 
       <section className="panel">
@@ -264,7 +297,7 @@ function Review({
         <ul className="review">
           {asked.map((q) => (
             <li key={q.id}>
-              <span>{q.prompt}</span>
+              <span>{q.promptFor?.(answers) ?? q.prompt}</span>
               <span className="answer">
                 <strong>{describe(answers[q.field])}</strong>
                 <button type="button" className="changebtn" onClick={() => onChange(q.field)}>
@@ -293,7 +326,7 @@ function Review({
           <div className="tighten">
             {blanks.map((q) => (
               <button type="button" className="q" key={q.id} onClick={() => onFix(q.id)}>
-                {q.prompt}
+                {q.promptFor?.(answers) ?? q.prompt}
                 <span className="promise">{q.skipCost}</span>
               </button>
             ))}

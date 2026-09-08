@@ -233,10 +233,10 @@ export const gapClosers = register<Rule<Record<string, readonly string[]>>>({
       'Ask your supplier for credit terms. Thirty days from a supplier costs nothing and is the cheapest working capital there is.',
     ],
     wedding: [
-      'The date is negotiable in a way an instalment is not. A few months of saving closes a gap this size without any lender involved.',
+      'The date can move in a way an EMI cannot. A few months of saving closes a gap this size with no lender involved.',
     ],
     medical: [
-      'Ask the hospital about instalments directly, and check any scheme you are covered by before borrowing.',
+      'Ask the hospital about paying in parts, and check any scheme you are covered by, before you borrow.',
     ],
   },
   why: 'A shortfall is not automatically a reason to borrow more. Putting part down, taking a subsidy, or buying in stages closes most gaps at a lower cost than the extra lending would.',

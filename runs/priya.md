@@ -6,21 +6,21 @@
 
 ## The answer
 
-**BORROW-LESS — You can borrow, but less than you asked for.**
+**BORROW-LESS — You can borrow, but not ₹8 lakh. Safe for you: about ₹4.8 lakh.**
 
-A lender will likely say yes to the full amount. What you can carry without the plan getting fragile is smaller, because your rent counts against you even though lenders leave it out.
+A lender will likely approve the full ₹8 lakh. Lenders do not count your rent. You have to pay it, so your real limit is lower.
 
-**Next:** Either trim the amount to the safe figure, or change one of the things below and come back to it. Your existing loan has 24 months left. When it ends, the ₹14,000 you pay each month comes back to you, and that alone changes this answer.
+**Next:** Borrow about ₹4.8 lakh, or change one of the things below and check again. Your loan has 2 years left. When it ends, the ₹14,000 you pay each month comes back to you, and that on its own changes this answer.
 
 ## The four outputs
 
 | Output | Answer | Why |
 |---|---|---|
-| **O1 — should you borrow** | borrow-less — You can borrow, but less than you asked for. | A lender will likely say yes to the full amount. What you can carry without the plan getting fragile is smaller, because your rent counts against you even though lenders leave it out. |
-| **O2 — how much** | a lender would sanction ₹21 lakh to ₹24 lakh<br>safe for you to carry ₹4.7 lakh to ₹4.9 lakh | These are computed by separate rulebooks. The lender's leaves your rent out; yours cannot. |
+| **O1 — should you borrow** | borrow-less — You can borrow, but not ₹8 lakh. Safe for you: about ₹4.8 lakh. | A lender will likely approve the full ₹8 lakh. Lenders do not count your rent. You have to pay it, so your real limit is lower. |
+| **O2 — how much** | a lender would approve ₹21 lakh to ₹24 lakh<br>safe for you about ₹4.8 lakh | Two separate calculations. The difference is your rent. Lenders leave it out. Your budget cannot. |
 | **O2 — which product** | Personal loan | Nothing to pledge and a personal purpose, so this is the product you will be offered. The rate is what it is because the lender has only your record to go on. |
 | **O3 — what rate is fair** | 9.5% to 11%<br>all-in 10.5% to 13% | The all-in figure folds the processing fee and its GST back into the rate, which is the only number worth comparing between offers. |
-| **O4 — what instalment to agree to** | at most ₹10,300 to ₹10,400 a month | Takes 47% to 48% of income now, 60% after a fifth off your income and two points on the rate. |
+| **O4 — what EMI to agree to** | at most about ₹10,400 a month | Takes 47% to 48% of income now, 60% if income dropped a fifth and the rate rose. |
 
 Confidence: **high** — how narrow the answer is, not how many questions were asked.
 
@@ -59,19 +59,19 @@ What moved:
 What moved:
 
 - whether to borrow at all: need-more-info → **borrow**
-- what a lender will sanction: ₹0 → **₹24,61,433–₹31,07,034**
-- what you can safely carry: ₹0 → **₹11,06,749–₹20,41,422**
-- your instalment ceiling: ₹0 → **₹27,203–₹43,364**
+- what a lender will give you: ₹0 → **₹24,61,433–₹31,07,034**
+- what is safe for you: ₹0 → **₹11,06,749–₹20,41,422**
+- the most you should pay each month: ₹0 → **₹27,203–₹43,364**
 
-#### 5. What do you already pay each month on loans?
+#### 5. Do you have any loans running now?
 
 **Priya answers:** ₹14,000
 
 What moved:
 
-- what a lender will sanction: ₹24,61,433–₹31,07,034 → **₹18,91,845–₹24,47,966**
-- what you can safely carry: ₹11,06,749–₹20,41,422 → **₹5,61,169–₹14,11,909**
-- your instalment ceiling: ₹27,203–₹43,364 → **₹13,793–₹29,992**
+- what a lender will give you: ₹24,61,433–₹31,07,034 → **₹18,91,845–₹24,47,966**
+- what is safe for you: ₹11,06,749–₹20,41,422 → **₹5,61,169–₹14,11,909**
+- the most you should pay each month: ₹27,203–₹43,364 → **₹13,793–₹29,992**
 
 #### 6. What do you pay in rent each month?
 
@@ -79,8 +79,8 @@ What moved:
 
 What moved:
 
-- what you can safely carry: ₹5,61,169–₹14,11,909 → **₹2,49,408–₹2,87,778**
-- your instalment ceiling: ₹13,793–₹29,992 → **₹6,113–₹6,130**
+- what is safe for you: ₹5,61,169–₹14,11,909 → **₹2,49,408–₹2,87,778**
+- the most you should pay each month: ₹13,793–₹29,992 → **₹6,113–₹6,130**
 - how it holds up after a bad month: 36%–74% → **55%–55%**
 
 #### 7. Roughly what does the household spend in a month, apart from rent and loans?
@@ -107,7 +107,7 @@ What moved:
 
 What moved:
 
-- your rate band: 10.0%–16.5% → **10.0%–11.5%**
+- your rate: 10.0%–16.5% → **10.0%–11.5%**
 - the all-in rate: 10.5%–18.2% → **10.5%–13.1%**
 
 > **After 10 questions:** borrow-less, confidence high. Safe to carry ₹2,78,204–₹2,87,778, rate 10.0%–11.5%.
@@ -125,34 +125,32 @@ What moved:
 
 *What moved: nothing yet — it needs another answer first.*
 
-*Offered “Does anyone else in the household earn?” — skipped, so the engine assumes instead and says so.*
-
-#### 12. If your income stopped, how many months could you cover?
+#### 12. How many months of expenses do you have saved?
 
 **Priya answers:** 2
-  <br>*Asked because: Sharpens what you can safely carry and your instalment ceiling.*
+  <br>*Asked because: Sharpens what is safe for you and the most you should pay each month.*
 
 What moved:
 
-- what you can safely carry: ₹2,78,204–₹2,87,778 → **₹4,69,469–₹4,85,625**
-- your instalment ceiling: ₹6,113–₹6,117 → **₹10,316–₹10,322**
+- what is safe for you: ₹2,78,204–₹2,87,778 → **₹4,69,469–₹4,85,625**
+- the most you should pay each month: ₹6,113–₹6,117 → **₹10,316–₹10,322**
 
 *Offered “Do you own a house, shop or land?” — skipped, so the engine assumes instead and says so.*
 
 #### 13. What kind of employer do you work for?
 
 **Priya answers:** mnc
-  <br>*Asked because: Sharpens your rate band and the all-in rate.*
+  <br>*Asked because: Sharpens your rate and the all-in rate.*
 
 What moved:
 
-- your rate band: 10.0%–11.5% → **10.0%–11.0%**
+- your rate: 10.0%–11.5% → **10.0%–11.0%**
 - the all-in rate: 10.5%–13.1% → **10.5%–12.6%**
 
 #### 14. How long have you been in this job?
 
 **Priya answers:** 5
-  <br>*Asked because: Sharpens your rate band and the all-in rate.*
+  <br>*Asked because: Sharpens your rate and the all-in rate.*
 
 *What moved: nothing yet — it needs another answer first.*
 
@@ -171,29 +169,30 @@ What moved:
 
 ### Take this to the lender
 
-> I am asking for ₹4.7 lakh to ₹4.9 lakh as a personal loan, over 60 months, at 9.5% to 11%.
+> I am asking for about ₹4.8 lakh as a personal loan, over 5 years, at 9.5% to 11%.
 
 | | | |
 |---|---|---|
-| **Amount to ask for** | ₹4.7 lakh to ₹4.9 lakh | A lender may well offer more — up to ₹21 lakh to ₹24 lakh. That is what they are willing to risk, not what you can carry. The larger number is not a compliment. |
+| **Amount to ask for** | about ₹4.8 lakh | A lender may offer more — up to ₹21 lakh to ₹24 lakh. That is what they are willing to risk, not what you can pay. The bigger number is not a compliment. |
 | **Product to ask for** | Personal loan | Nothing to pledge and a personal purpose, so this is the product you will be offered. The rate is what it is because the lender has only your record to go on. |
-| **Rate to hold them to** | 9.5% to 11% | Anything above the top of this band needs a reason you find convincing. Ask for it in writing. |
-| **All-in rate, fees included** | 10.5% to 13% | This is the headline rate with the processing fee and its GST folded back in. It is the only number worth comparing between two offers — a lower headline rate with a bigger fee can be the dearer loan. |
-| **Processing fee** | 1% – 3% of the amount, plus GST | Negotiable more often than the rate is. Ask for it to be waived or halved before you agree to anything else. |
-| **Tenure** | 60 months | A longer tenure lowers the instalment and raises the total interest. Do not let a longer tenure be used to make an amount you cannot carry look affordable. |
-| **Most you should agree to pay monthly** | ₹10,300 to ₹10,400 a month | Above this, an ordinary bad month becomes a missed payment. This figure already counts your rent, which the lender's own arithmetic leaves out. |
+| **Rate to hold them to** | 9.5% to 11% | Anything above the top of this needs a reason you find convincing. Ask for that reason in writing. |
+| **All-in rate, with fees** | 10.5% to 13% | The rate with the processing fee and its GST added back in. Compare two offers on this number, not the headline one — a lower rate with a bigger fee can be the costlier loan. |
+| **Processing fee** | 1% – 3% of the amount, plus GST | Easier to get down than the rate is. Ask for it to be dropped or halved before you agree to anything else. |
+| **How long** | 5 years | A longer loan means a smaller EMI and more interest in total. Do not let a longer loan be used to make an amount you cannot afford look affordable. |
+| **Most you should agree to pay each month** | about ₹10,400 a month | Above this, an ordinary bad month becomes a missed payment. This figure counts your rent. The lender's does not. |
 
 **Say no to:**
 
-- No to any insurance, membership or "protection" product bundled into the loan. It is almost never required, and it is added to the amount you pay interest on.
+- No to any insurance, membership or "protection" added to the loan. It is almost never required, and you pay interest on it too.
 - No to signing before you have seen the Key Facts Statement with the all-in rate on it. You are entitled to it.
-- No to a pre-payment penalty on a floating rate loan. On personal and property loans to individuals, it should not be there.
-- No to a processing fee at the top of the 1–3% range without a reason. On this product it is the part of the price with the most room in it.
+- No to a charge for paying the loan off early, on a floating rate loan. On personal and property loans it should not be there.
+- No to a processing fee at the top of 1–3% without a reason. On this loan it is the part of the price with the most room in it.
 
 ## Never asked
 
 These do not apply to Priya, so the engine never raises them:
 
+- Does anyone else in the household earn?
 - Is that income actually shared with the household?
 - What does your filed return show, as a monthly figure?
 - How long have you been running the business?
@@ -201,6 +200,6 @@ These do not apply to Priya, so the engine never raises them:
 - Is there already a loan against it?
 - Is there gold in the household you could pledge?
 - What is the on-road price?
-- Once you have it, how much more would you earn in a month?
+- How much more would you earn each month with this?
 
-*28 questions exist. Priya is asked 15, 5 more are offered and skipped, 8 do not apply.*
+*28 questions exist. Priya is asked 15, 4 more are offered and skipped, 9 do not apply.*

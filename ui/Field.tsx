@@ -91,7 +91,12 @@ export function Field({
 
     case 'number':
       return (
-        <NumberField unit={input.unit} max={input.max} onCommit={onCommit} />
+        <NumberField
+          unit={input.unit}
+          min={input.min}
+          max={input.max}
+          onCommit={onCommit}
+        />
       );
 
     case 'money-optional':
@@ -225,18 +230,33 @@ function RangeField({
   );
 }
 
+/**
+ * A count, with the floor the question declares.
+ *
+ * The floor matters more than it looks. "How many people does your income
+ * support?" accepted zero, which is not a household anyone lives in and which
+ * the answers schema rejects outright — so a borrower could type a figure the
+ * engine would refuse. The bound belongs on the input, where it can be said
+ * before the answer is given rather than after.
+ */
 function NumberField({
   unit,
+  min,
   max,
   onCommit,
 }: {
   readonly unit: string;
+  readonly min: number | undefined;
   readonly max: number | undefined;
   readonly onCommit: (v: Value) => void;
 }) {
   const [text, setText] = useState('');
   const n = Number.parseFloat(text);
-  const ok = Number.isFinite(n) && n >= 0 && (max === undefined || n <= max);
+  const floor = min ?? 0;
+  const typed = text.trim() !== '';
+  const tooLow = typed && Number.isFinite(n) && n < floor;
+  const tooHigh = typed && Number.isFinite(n) && max !== undefined && n > max;
+  const ok = Number.isFinite(n) && n >= floor && (max === undefined || n <= max);
 
   return (
     <form
@@ -255,6 +275,13 @@ function NumberField({
           aria-label={unit}
         />
         <span className="unit">{unit}</span>
+      </div>
+      <div className="echo">
+        {tooLow
+          ? `That has to be at least ${floor} ${unit}.`
+          : tooHigh
+            ? `That cannot be more than ${max} ${unit}.`
+            : ' '}
       </div>
       <button type="submit" className="btn primary wide" disabled={!ok}>
         Continue
@@ -382,8 +409,11 @@ function OptionalMoneyField({
       <button type="submit" className="btn primary wide" disabled={!ok}>
         Continue
       </button>
-      <button type="button" className="skipbtn" onClick={() => setYes(false)}>
-        Actually, no one else earns
+      {/* Written as "Actually, no one else earns" when this field served one
+          question. It now serves the loans question too, so the way back is the
+          question's own "no" — which is also the answer, so it commits. */}
+      <button type="button" className="skipbtn" onClick={() => onCommit(0 as Value)}>
+        {noLabel}
       </button>
     </form>
   );
