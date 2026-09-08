@@ -191,8 +191,21 @@ Phase 5's outstanding exit check (375px walk-through) is untouched and still ope
   ₹22,000 EMI with 10 months left) is `dont` today and `borrow` with the instalment gone, and
   there the line still reads *"and that alone changes this answer"*.
 
-Not verified: anything in a browser. Phase 5's 375px walk-through remains outstanding and is
-the user's to run.
+Not verified by me: anything in a browser. Phase 5's 375px walk-through was run by the user
+and reported clean on 2026-09-08; it is recorded as their check, not mine.
+
+**Phase 6, run 2026-09-08 in a throwaway clone of the local repo at `d38e666`:**
+
+- 6.1 — `git clone` + `npm i` **9s**, `npm test` **6s** (278 passing), `npm run gen` **4s**,
+  `npm run dev` ready in **6s** and `curl` returned **HTTP 200**, `npm run build` **419ms**.
+  About **25 seconds** in total against a five-minute budget.
+- 6.2 — edited `verdict.borrow-less-threshold` from `0.8` to `0.6` and rewrote its `why`.
+  `npm test` failed **5 tests across 3 files** and named them: Priya's *"says borrow less"* and
+  *"explains the gap by naming her rent"*, two pivotal-assumption tests on Ravi's rent, and the
+  property test that pins each verdict to its numbers. `npm run gen` then updated the
+  `RULES.md` row — both the value and the reworded `why` — plus `runs/priya.md` and
+  `runs/ravi.md`. Reverting the one file and re-running returned 278 passing and the docs to
+  their committed state.
 
 ### An invented co-applicant income was ranked first for Anita
 
@@ -336,9 +349,53 @@ the user's to run.
   that, which is worth a note of its own.
 - **Source:** my judgement, 2026-09-08.
 
+### Phase 6: 6.1 and 6.2 run, 6.3–6.5 cut
+
+- **Choice:** ran the clean-clone smoke test and the live rule-change rehearsal; cut all three
+  optional items and wrote each one's reason into `WALKTHROUGH.md`'s "What I cut, and why".
+- **Why:** the phase itself marks 6.3–6.5 "only if time remains" and its exit condition asks
+  for anything unbuilt to be recorded as a deliberate cut rather than left looking unfinished.
+  Each cut has a reason of its own, not just "no time": the **EMI slider** adds feel rather
+  than a fact the screen does not already give; **acceptance odds** would be a confident
+  number with no bureau data, no lender policy and no outcomes behind it, which is the exact
+  thing this tool argues against; **URL-hash state** quietly reverses the "nothing leaves your
+  device" promise made on the first screen, by putting someone's income in a link that ends up
+  in a chat log.
+- **Rejected:** *Building the slider* — the cheapest of the three, but the same screen space
+  spent on the routing argument is worth more against the scoring. *Building acceptance odds
+  half-calibrated* — worse than nothing here. *Shipping the URL hash without a deliberate
+  "copy a shareable link" action* — the privacy default matters more than the convenience.
+- **Assumes:** the reader of `WALKTHROUGH.md` treats a stated cut as a decision rather than a
+  gap. That is what the section is for and it already carries six others.
+- **Would be wrong if:** any of the three turns out to be what a judge looks for first. The
+  odds one is the strongest candidate, and it is the one with the honest-data problem.
+- **Source:** my judgement, 2026-09-08.
+
+### The clean clone reports modified generated docs on Windows, and it is a false alarm
+
+- **Choice:** recorded rather than "fixed".
+- **Why:** in the fresh clone, `npm run gen` leaves `git status` showing RULES.md and all three
+  run-throughs as modified. `git diff` shows **no content change** — git checks the files out
+  with CRLF under the repo's line-ending setting and the generators write LF, so only the line
+  endings differ. Anyone running this check will see the same thing and could reasonably
+  conclude the docs are stale when they are not. `git diff --ignore-cr-at-eol` is the way to
+  tell the two apart.
+- **Rejected:** *Adding a `.gitattributes` pinning these files to LF* — the right fix, but it
+  rewrites line endings across the working tree on submission day for a cosmetic reporting
+  issue. *Making the generators emit CRLF on Windows* — makes the output platform-dependent,
+  which is worse than the symptom.
+- **Assumes:** the repo keeps its current autocrlf behaviour.
+- **Would be wrong if:** CI ever gates on `git status` being clean after `gen`, which would
+  fail on Windows for no real reason.
+- **Source:** observed during the 6.1 smoke test, 2026-09-08.
+
 ## Open items
 
-- **Phase 5 exit condition still open, and it could not be run here.** The remaining bullet
+- **Phase 5 exit condition passed 2026-09-08, checked by the user, not by me.** They walked
+  the flow at a phone width and reported no horizontal scroll. Recorded as their verification
+  rather than mine, because every automated attempt here failed — detail kept below, since
+  the next session will hit the same extension.
+- Superseded by the line above, kept for the failure mode: The remaining bullet
   is: walk Priya's flow at 375px, confirm no horizontal scroll and a numeric keypad on money
   fields. Attempted through the Chrome extension and abandoned after it failed the same way
   the previous session recorded: `resize_window` returned success twice while `window.innerWidth`

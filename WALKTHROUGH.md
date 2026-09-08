@@ -144,6 +144,20 @@ none of them can say something the arithmetic does not support.
   is what the Card is for — a page carried into a branch. Rendering the same page to a PNG in
   the browser means an SVG `foreignObject` route that fails silently when it fails, and a
   button that sometimes produces a blank image is worse than no button.
+- **An EMI slider with the affordability ceiling drawn on the track.** The tool already prints
+  the instalment ceiling and the amount it supports, so the slider adds a way to feel the
+  trade-off rather than a fact you cannot otherwise get. It was the first of the optional
+  three to go, because the same screen time spent on the routing argument is worth more.
+- **Acceptance odds in words, per product.** "Most lenders would look at this" is a claim about
+  approval rates, and this engine has no bureau data, no lender policy and no outcomes to
+  calibrate against — it would be a confident-sounding number with nothing behind it, in a
+  tool whose whole argument is that it says where it is guessing. It could be done honestly
+  from the credit band and the product, but not in the time left, and a half-calibrated version
+  is worse than none.
+- **Sharing the answer as a link.** State lives in the session and nothing is stored, which is
+  a privacy property worth keeping and is stated on the first screen. Putting the answers in a
+  URL hash quietly reverses it — the link ends up in a chat log with someone's income in it.
+  Worth doing later behind an explicit "copy a shareable link" action, not as a default.
 - **Regional lenders entirely** — cooperative banks, chit funds, moneylenders. They are a real
   part of this market, particularly for the borrowers this tool would help most, and none of
   them are modelled. That is the largest single gap in the product table, and

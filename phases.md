@@ -188,7 +188,7 @@ optional.
 - [x] 5.5 "Why are you asking?" on every question
 - [x] 5.6 Review screen before results — every answer, assumed defaults marked, blanks tap-to-fill
 
-**Exit condition:**
+**Exit condition** — passed 2026-09-08:
 
 - Walk Priya's flow end to end in the browser at a phone width, by hand, and reach results
 - The "what moved" banner shows a real change after every answer that should move something,
@@ -200,13 +200,13 @@ optional.
 
 ## Phase 6 — Buffer, then the nice-to-haves
 
-- [ ] 6.1 Clean-clone smoke test in a temp dir: `npm i`, `npm test`, `npm run gen`, `npm run dev`
-- [ ] 6.2 Rehearse changing one rule live — edit value and why, `npm test` shows which golden moved, `npm run gen` updates the docs
-- [ ] 6.3 EMI slider with the ceiling drawn on the track (only if time remains)
-- [ ] 6.4 Acceptance odds in words per product (only if time remains)
-- [ ] 6.5 Shareable state in the URL hash (only if time remains)
+- [x] 6.1 Clean-clone smoke test in a temp dir: `npm i`, `npm test`, `npm run gen`, `npm run dev`
+- [x] 6.2 Rehearse changing one rule live — edit value and why, `npm test` shows which golden moved, `npm run gen` updates the docs
+- [x] 6.3 EMI slider with the ceiling drawn on the track — **cut**, reason in `WALKTHROUGH.md`
+- [x] 6.4 Acceptance odds in words per product — **cut**, reason in `WALKTHROUGH.md`
+- [x] 6.5 Shareable state in the URL hash — **cut**, reason in `WALKTHROUGH.md`
 
-**Exit condition** — the project is shippable:
+**Exit condition** — passed 2026-09-08. The project is shippable:
 
 - Fresh clone into a temp directory: `npm i`, `npm test`, `npm run gen`, `npm run dev` all
   work, timed and under five minutes total
