@@ -1020,15 +1020,27 @@ details[open] > summary::before {
 
    Every other view is a working document — a question being answered, an answer
    being read — and reads best left-aligned against the top of the page. The
-   first screen is not a document; it is a door, with one sentence and one
-   button. Centring it, with the masthead's rule removed so the two read as one
-   block, is what makes the button look like the only thing to do.
+   first screen is not a document; it is a door. Centring it, with the
+   masthead's rule removed so the title and the promise read as one block, is
+   what makes the button look like the only thing to do.
+
+   The card is the argument, not a paragraph about it: the two tiles in the
+   middle are the whole product, and they are drawn in the same `two-up` shapes
+   the answer screen uses for the real figures, so the first thing a visitor
+   sees is a preview of what they are about to get. Everything below the card —
+   the privacy line, the examples — is deliberately outside it and quieter, so
+   the eye lands on the tiles and the button before anything else.
    --------------------------------------------------------------------------- */
 
 .wrap.start {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* `safe` matters on a short phone: once the card, the examples and the
+     divider are taller than the viewport, a plain `center` overflows equally
+     in both directions and the top of the page becomes unreachable. `safe`
+     falls back to flex-start in that case. A browser that does not know the
+     keyword drops the whole declaration, which lands on flex-start too. */
+  justify-content: safe center;
   min-height: 100vh;
   padding-bottom: 20px;
 }
@@ -1036,11 +1048,14 @@ details[open] > summary::before {
 .wrap.start .masthead {
   border-bottom: 0;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
-.wrap.start .pickers {
-  justify-content: center;
+.wrap.start .masthead .tag {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  max-width: 30rem;
+  margin: 6px auto 0;
 }
 
 .ask.start {
@@ -1048,15 +1063,127 @@ details[open] > summary::before {
   max-width: 34rem;
   width: 100%;
   margin-inline: auto;
+  padding: 26px 22px 24px;
+  margin-bottom: 0;
 }
 
-.ask.start .skip {
-  display: block;
-  border-top: 0;
-  margin-top: 20px;
+.ask.start h2 {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
 }
 
-.ask.start .btn.wide {
-  max-width: 18rem;
+.ask.start > p {
+  max-width: 30rem;
   margin-inline: auto;
+}
+
+/* The centrepiece. Left-aligned inside the tiles, because a label above a
+   phrase reads as a pair rather than as two centred fragments. */
+.two-up.preview {
+  text-align: left;
+  margin: 18px 0 16px;
+}
+
+.two-up.preview > div {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--card);
+}
+
+.two-up.preview .muted {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.two-up.preview strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.two-up.preview .yours strong {
+  color: var(--accent);
+}
+
+/* Sized to its words rather than to the card, so it stops dominating. */
+.btn.go {
+  display: inline-block;
+  width: auto;
+  margin-top: 6px;
+  padding-inline: 26px;
+}
+
+.privacy {
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+  margin: 14px 0 0;
+}
+
+/* A rule with the invitation sitting in the gap.
+
+   `width: 100%` is load-bearing. As a flex item of `.wrap.start` with auto
+   inline margins, this shrink-wrapped to the width of its own text, which left
+   the two ::before/::after rules with no free space to grow into — so they
+   computed to 0px wide and the divider was invisible while looking correct in
+   the stylesheet. */
+.orline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 26px auto 14px;
+  width: 100%;
+  max-width: 34rem;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}
+
+.orline::before,
+.orline::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.examples {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 560px) {
+  .examples {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.example {
+  display: grid;
+  gap: 1px;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.example:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.example strong {
+  font-size: 0.92rem;
+}
+
+.example .muted {
+  font-size: 0.78rem;
+  line-height: 1.3;
 }

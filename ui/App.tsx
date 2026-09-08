@@ -9,6 +9,15 @@
  * The three borrowers can still be loaded directly, which is how the personas
  * are checked and how a reader gets to a finished answer without typing eleven
  * answers first. That is a reviewer's door, not the front door, and it says so.
+ *
+ * **The opening screen carries the argument, not a paragraph about it.** The
+ * whole product is one idea — what a lender will give you is not what you can
+ * afford — and an earlier version stated that idea in four lines of prose above
+ * a button, where it read as throat-clearing. It is now the two tiles in the
+ * middle of the card, drawn in the same shapes as the answer screen's own
+ * `two-up` panel, so the first thing a visitor sees is a preview of the thing
+ * they are about to be given. Everything else on the screen was cut back to
+ * make room for it.
  */
 
 import { useMemo, useState } from 'react';
@@ -46,7 +55,7 @@ export function App() {
       <header className="masthead no-print">
         <h1>Karza Mitra</h1>
         <div className="tag">
-          Two numbers, not one — what a lender will give you, and what is safe for you.
+          What a lender offers isn&rsquo;t always what you can safely afford.
         </div>
         {view !== 'start' ? (
           <div className="pickers">
@@ -64,39 +73,55 @@ export function App() {
 
       <ErrorBoundary trace={result.trace}>
         {view === 'start' ? (
-          <section className="ask start">
-            <h2>What can you actually afford to borrow?</h2>
-            <p>
-              Not what a lender will approve. That is a different number, and it is usually
-              much bigger. Answer a few questions and this tells you both, shows its working,
-              and says plainly if the answer is that you should not borrow.
-            </p>
-            <p className="muted">
-              Nothing leaves your device. There is no account and no saving.
-            </p>
-            <button type="button" className="btn primary wide" onClick={restart}>
-              Start
-            </button>
-            <div className="skip">
-              <span className="muted">
-                Or load one of the three borrowers from the brief, to see a finished answer
-                without answering anything:
-              </span>
-              {/* Centred by `.wrap.start`; see the note at the foot of styles.css. */}
-              <div className="pickers">
-                {personas.map((p) => (
-                  <button
-                    type="button"
-                    key={p.id}
-                    className="pick"
-                    onClick={() => loadPersona(p)}
-                  >
-                    {p.name}
-                  </button>
-                ))}
+          <>
+            {/* Centred by `.wrap.start`; see the note at the foot of styles.css. */}
+            <section className="ask start">
+              <h2>How much can you actually afford to borrow?</h2>
+              <p>Answer a few questions and you get two numbers.</p>
+
+              {/* The same shapes the answer screen uses for the real figures, so
+                  this reads as a preview rather than an illustration. */}
+              <div className="two-up preview">
+                <div className="theirs">
+                  <span className="muted">A lender may offer</span>
+                  <strong>What they will approve</strong>
+                </div>
+                <div className="yours">
+                  <span className="muted">Safe for you</span>
+                  <strong>What you can actually pay</strong>
+                </div>
               </div>
+
+              <p className="muted">
+                Then it shows how it got there — and says so plainly when the honest answer
+                is not to borrow at all.
+              </p>
+
+              <button type="button" className="btn primary go" onClick={restart}>
+                Start assessment &rarr;
+              </button>
+            </section>
+
+            <p className="privacy">🔒 Private. Nothing leaves your device.</p>
+
+            <div className="orline">
+              <span>Want to see how it works?</span>
             </div>
-          </section>
+
+            <div className="examples">
+              {personas.map((p) => (
+                <button
+                  type="button"
+                  key={p.id}
+                  className="example"
+                  onClick={() => loadPersona(p)}
+                >
+                  <strong>{p.name}</strong>
+                  <span className="muted">{p.blurb}</span>
+                </button>
+              ))}
+            </div>
+          </>
         ) : view === 'flow' || view === 'review' ? (
           <Flow
             answers={answers}

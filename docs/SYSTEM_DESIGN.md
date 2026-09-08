@@ -162,6 +162,11 @@ in months, upcoming large expense, co-applicant, quotes received).
 asserts that for at least one persona, answering it changes a declared output. A question
 that fails gets deleted. This policy is stated in RULES.md.
 
+The opening screen is a preview of the answer, not a description of it: the two-number idea
+is drawn in the same `two-up` tiles the results panel uses for the real figures, with one
+sentence above and the CTA below. The three personas sit under it as example cards with a
+one-line description each, so a visitor can choose between them.
+
 Flow rules: one question per screen; skip always visible with a one-line consequence
 ("keeps your rate a wider range"), and skipping one of the ten essentials asks for
 confirmation once, in red, before going through; a "what moved" banner after every answer; a

@@ -16,8 +16,8 @@ Alongside that, five smaller flow and layout fixes.
 
 ## Changes
 
-- **The opening screen is centred**, and the masthead rule is removed on that view so the
-  title and the one sentence read as a single block.
+- **The opening screen was centred**, then rebuilt around the two-number idea — see the
+  second half of this note.
 - **Skipping an essential asks once**, in red, with the cost restated. The second press
   always goes through; adaptive questions still skip on one press as before.
 - **The loans question asks whether there is a loan at all** — "Do you have any loans
@@ -41,6 +41,27 @@ Alongside that, five smaller flow and layout fixes.
 - **Numbers read the way people say them**: a range whose ends are within 5% collapses to
   one "about" figure, terms are in years, computed amounts are rounded before they reach a
   sentence, and lakh keeps a decimal below ₹20 lakh.
+
+### Second pass — the opening screen carries the argument
+
+The centring landed, but the screen still read as a generic form card: four lines of prose
+above a wide button, with everything at the same visual weight. The product's one idea —
+what a lender will give you is not what you can afford — was stated in a paragraph rather
+than shown. Rebuilt:
+
+- The masthead promise is now **"What a lender offers isn't always what you can safely
+  afford."**
+- The card's centrepiece is **two tiles**, drawn with the same `two-up`/`theirs`/`yours`
+  classes the answer screen uses for the real figures: "A lender may offer / What they will
+  approve" beside "Safe for you / What you can actually pay". The opening screen is a
+  preview of the answer screen, in the same shapes.
+- Intro copy cut from three sentences to one, with the "don't borrow" promise moved below
+  the tiles where it reads as a third thing you get rather than a caveat.
+- The CTA is **"Start assessment →"**, sized to its words instead of the full card width.
+- Privacy moved outside the card as a quiet line: **🔒 Private. Nothing leaves your device.**
+- The demo borrowers became **example cards under a "Want to see how it works?" divider**,
+  each with a one-line description, replacing "load one of the three borrowers from the
+  brief" — which told a stranger nothing about which one to press.
 
 ## Decisions
 
@@ -176,6 +197,47 @@ Alongside that, five smaller flow and layout fixes.
   relationship between a claim and the numbers behind it.
 - **Source:** the working agreement — if a rule changes, a golden test should move.
 
+### The opening screen reuses the answer screen's own two-number shapes
+
+- **Choice:** the landing tiles are `.two-up` with `.theirs` and `.yours`, the same classes
+  and the same grey/blue left borders the results panel uses for the real figures.
+- **Why:** the request's strongest point was that "lender approval vs safe amount" is the
+  product and was buried in paragraphs. Drawing the promise in the shapes the answer
+  actually arrives in makes the first screen a preview rather than an advertisement, and
+  costs no new visual vocabulary.
+- **Rejected:** a tick-list of three things the tool does — it makes the two-number idea one
+  bullet among three, which is the flattening being complained about; icons on the tiles —
+  the rest of the app is typographic, and a card and shield emoji would be the only
+  illustration in the product.
+- **Would be wrong if:** the results panel's two-up styling changes for reasons of its own.
+  The landing page would follow it silently, which is the intent, but worth knowing.
+- **Source:** the user's own mock, 2026-09-09.
+
+### The example blurbs describe the borrowers, not the labels in the request
+
+- **Choice:** "Salaried, has a car loan" (Priya) · "Shopkeeper, owns his shop" (Ravi) ·
+  "Missed a payment recently" (Anita), stored as a new `blurb` on `Persona`.
+- **Why:** the request suggested "Ravi — Existing EMIs", but Ravi's `existingEmis` is 0 and
+  Priya's is ₹14,000 a month. A wrong label on the front door is worse than no label. The
+  blurbs now name what each borrower is actually there to show: the two numbers diverging,
+  product routing, and "don't borrow".
+- **Rejected:** reusing `Persona.tests` — that sentence is written for someone reviewing the
+  engine ("Whether 'don't borrow' fires…") and is not a choice a visitor can make; hardcoding
+  the strings in `App.tsx` — they are facts about the personas.
+- **Source:** the persona data itself, checked against `engine/personas.ts`.
+
+### "Start assessment", despite being a shade more formal than the rest
+
+- **Choice:** kept the request's wording rather than substituting something plainer.
+- **Why:** it is a common word, it says what happens next, and "Start" alone was the generic
+  label being complained about. It sits slightly outside the plain-language register set
+  earlier in this session, which is worth noting rather than hiding.
+- **Rejected:** "Find my safe borrowing amount →" (long, and it promises one number where
+  the screen has just promised two); "Start" (the original complaint).
+- **Would be wrong if:** the word tests badly with borrowers reading English as a second
+  language. It is one string, in `App.tsx`.
+- **Source:** the user's recommended copy, 2026-09-09.
+
 ## Files touched
 
 - `engine/format.ts` — narrow-range collapse, `approx`, `tenure`, lakh decimal threshold.
@@ -185,7 +247,9 @@ Alongside that, five smaller flow and layout fixes.
   questions, co-applicant gating, copy throughout.
 - `engine/outputs.ts` — plain-language output labels.
 - `engine/rules/products.ts`, `engine/card.ts`, `engine/path-to-yes.ts` — copy.
-- `ui/App.tsx`, `ui/styles.css` — centred opening screen, skip-confirm styling.
+- `ui/App.tsx`, `ui/styles.css` — the rebuilt opening screen (two-tile centrepiece,
+  narrower CTA, privacy line, example cards under a divider), skip-confirm styling.
+- `engine/personas.ts` — a `blurb` per persona for the example cards.
 - `ui/Flow.tsx` — skip confirmation, contextual prompts in the flow and the review list.
 - `ui/Field.tsx` — `min` with a message, generic "no" escape on the optional-money field.
 - `ui/Results.tsx`, `ui/DontScreen.tsx`, `ui/Card.tsx` (via `card.ts`), `ui/Confidence.tsx`,
@@ -209,6 +273,13 @@ Alongside that, five smaller flow and layout fixes.
   separate jargon leaks the new guard found in `products.ts`, `questions.ts` and
   `path-to-yes.ts` that the manual pass had missed; a range-guard bug that compared
   "₹99,000" against "1.5" without scaling the lakh.
+- The opening screen's divider rules rendered at **0px wide** and were invisible while
+  looking correct in the stylesheet: as a flex item with auto inline margins, `.orline`
+  shrink-wrapped to its own text, so the `flex: 1` pseudo-elements had no free space.
+  Caught by reading the computed style in the browser, not by looking at the CSS. Fixed
+  with `width: 100%`, and the reason is in a comment above the rule.
+- `justify-content: safe center` on `.wrap.start`, so the taller opening screen cannot
+  push its own top off a short phone.
 
 ## Open items
 
@@ -224,6 +295,11 @@ Alongside that, five smaller flow and layout fixes.
   a large but mechanical diff.
 - **The verdict kind is still printed raw** as the chip above the headline — "DONT" rather
   than "Don't". Cosmetic, untouched.
+- **Only the opening screen got the design pass.** The answer screen, the flow and the
+  don't-borrow screen are unchanged in layout; the same "everything at one visual weight"
+  criticism may apply to them.
+- **The opening screen is not covered by the copy guard**, because its strings live in
+  `App.tsx` JSX rather than in the engine. They were written to the same rules by hand.
 - `Field.tsx`'s `min` message is not covered by a test; there is no DOM harness in this
   project and adding one for this was not worth it. The bound itself is tested through the
   registry.

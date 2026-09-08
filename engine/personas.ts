@@ -18,6 +18,14 @@ import type { Answers } from './answers';
 export interface Persona {
   readonly id: 'priya' | 'ravi' | 'anita' | 'mohan';
   readonly name: string;
+  /**
+   * Four or five words a stranger can choose between, for the example buttons
+   * on the opening screen. Distinct from `tests`, which is written for someone
+   * reviewing the engine and says what the persona is here to catch. A visitor
+   * picking an example is not reading that sentence, and "load one of the three
+   * borrowers from the brief" told them nothing about which one to press.
+   */
+  readonly blurb: string;
   /** What this persona is in the set to catch. */
   readonly tests: string;
   readonly answers: Answers;
@@ -32,6 +40,7 @@ export interface Persona {
 export const priya: Persona = {
   id: 'priya',
   name: 'Priya',
+  blurb: 'Salaried, has a car loan',
   tests:
     'Two numbers, not one. A lender would sanction her ask several times over; what she can carry is far less, because her rent does not appear in their arithmetic.',
   answers: {
@@ -64,6 +73,7 @@ export const priya: Persona = {
 export const ravi: Persona = {
   id: 'ravi',
   name: 'Ravi',
+  blurb: 'Shopkeeper, owns his shop',
   tests:
     'Product routing. On his filed return alone he is a thin-file borrower facing an expensive unsecured loan. He owns an unencumbered shop, and the engine has to reach that on its own.',
   answers: {
@@ -104,6 +114,7 @@ export const ravi: Persona = {
 export const anita: Persona = {
   id: 'anita',
   name: 'Anita',
+  blurb: 'Missed a payment recently',
   tests:
     'Whether "don\'t borrow" fires. A bounce last month, app loans above 30%, and a household that depends on her. Any answer that ends in "borrow ₹1.5L" is a failure.',
   answers: {
@@ -173,6 +184,7 @@ export const personas: readonly Persona[] = [priya, ravi, anita];
 export const mohan: Persona = {
   id: 'mohan',
   name: 'Mohan',
+  blurb: 'High earner, big home loan',
   tests:
     'The lifecycle holes the three from the brief leave open: a term that outruns working life, a loan-to-value cap doing the binding instead of income, and a borrower who pays no rent at all.',
   answers: {
