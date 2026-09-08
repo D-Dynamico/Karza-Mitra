@@ -389,7 +389,124 @@ and reported clean on 2026-09-08; it is recorded as their check, not mine.
   fail on Windows for no real reason.
 - **Source:** observed during the 6.1 smoke test, 2026-09-08.
 
+### The home loan moved to the loans question, not to a new one
+
+- **Choice:** `rentOrHomeEmi` was renamed `rent` and means rent only. A home-loan instalment
+  is collected by the **existing loans** question, which already reaches both ceilings. Both
+  questions carry a hint saying which box a mortgage goes in.
+- **Why:** the bug was that a lender ignores rent in its ratios and counts a mortgage in full,
+  while the engine excluded the whole field from `lenderCeiling`. Measured on a borrower
+  earning ₹1.5L with a ₹35,000 housing cost: the lender figure was **₹33,56,500–₹42,36,864**
+  when that ₹35,000 was called rent and **₹19,32,530–₹25,89,195** when it was counted as an
+  obligation. A **₹14 lakh** overstatement, in the tool whose only promise is that it will not
+  flatter you.
+- **Rejected:** *A separate `homeLoanEmi` must question* — built first, and it fails the brief:
+  the must set is capped at eight to ten and `tests/questions.test.ts` asserts exactly ten. It
+  would have been eleven. *Making that question adaptive instead* — worse than the bug. An
+  adaptive question can go unasked or be skipped, and then the mortgage reaches **neither**
+  ceiling, where today it at least reaches the borrower's. A fix whose failure mode is losing
+  the obligation entirely is not a fix. *Leaving one field and splitting it in the rules* —
+  nothing in the data says which half is which.
+- **Assumes:** a borrower puts a mortgage with their loans when both screens tell them to. That
+  assumption is now a test: `personas.test.ts` asserts the rent prompt does **not** say "home
+  loan", its hint does, and the loans hint does. The routing is a sentence, so the sentence is
+  pinned like any other behaviour.
+- **Would be wrong if:** borrowers ignore hints. The next step would be a yes/no follow-up on
+  the housing cost, defaulting to "obligation" when unanswered — conservative, because that is
+  the direction that does not flatter.
+- **Source:** measured against the engine, 2026-09-08.
+
+### Priya is the control, and she did not move
+
+- **Choice:** kept the persona lender figures as explicit golden assertions across the change.
+- **Why:** her ₹28,000 is rent, so if the split were wired to the wrong side her lender number
+  would move. It did not — all three of the brief's borrowers came out identical on both
+  amounts, and the only change in the three run-throughs is the question's wording. That is
+  the difference between fixing the routing and moving the whole housing cost across.
+- **Rejected:** *Trusting the suite to notice* — it would have, but the assertion says why it
+  matters rather than leaving a future reader to work it out from a number.
+- **Source:** run before and after, 2026-09-08.
+
+### Mohan: a fourth persona, mine, deliberately outside `personas`
+
+- **Choice:** added `mohan` — 59, salaried ₹2.2L, ₹75L education ask, ₹25,000 instalment with
+  18 months left, **rent explicitly 0**, owns ₹60L property — exported on his own and **not**
+  added to the `personas` array, so `npm run gen` still writes exactly three run-throughs.
+- **Why:** seven real defects were fixed in this project without one golden moving. That is not
+  a weak suite; it is a fixture set the brief designed to test routing, the two numbers and the
+  refusal, and none of those three borrowers is near retirement, pledges property, or pays no
+  rent. Mohan closes all three holes at once, and his eight goldens are the assertions that
+  would have failed: secured routing, the loan-to-value cap binding instead of income, the
+  sixty-month term kept, the retirement overrun disclosed, the term still shortening to twelve
+  months where the product allows it, no rent blamed, no full-sanction promise, and no claim
+  that waiting changes his answer.
+- **Rejected:** *Adding him to `personas`* — it would generate a fourth run-through and change
+  the deliverable set the brief asked for. *Deriving him from the brief* — he is not in it, and
+  labelling him as though he were would be the same dishonesty this tool is built against. His
+  `tests` field and the comment above him say he is mine.
+- **Assumes:** `retirementAge: 60`. If that rule moves, his tenure golden moves with it, which
+  is the intended behaviour.
+- **Would be wrong if:** the three from the brief are ever taken as the whole fixture set again.
+- **Source:** the borrower the user pasted, promoted to a fixture, 2026-09-08.
+
+### Copy guards live next to the engine, not in a browser
+
+- **Choice:** new `tests/copy.test.ts` — eight guards over a 108-borrower grid plus the three
+  personas, asserting the **relationship** between a claim and the numbers behind it: rent
+  never blamed at zero rent; no full-sanction promise where the lender ceiling falls short of
+  the ask; no "alone changes this answer" unless a recompute moves the verdict; no ordering of
+  loans claimed; collateral named where the cap binds; the bad month mentioned when it breaches
+  **and an amount was quoted**; the retirement overrun disclosed whenever the term outruns
+  working life; any what-if resting on a supplied number prints it. Plus a precision guard: no
+  raw computed endpoint may appear in a sentence.
+- **Why:** nine defects share the shape "number right, sentence wrong", and every sentence is
+  generated from the trace by pure functions — so the guard is testable at engine level with no
+  jsdom, and it runs in the existing suite. Golden strings would break on every reword; these
+  break only when the link between claim and number breaks.
+- **Rejected:** *A jsdom DOM suite* — heavier, slower, and it tests the renderer rather than
+  the copy. Label duplication is the one case that genuinely needs the DOM, because those
+  strings live in React; not built, and listed below. *Asserting exact sentences* — brittle
+  against rewording, which is the thing that happens most often here.
+- **Assumes:** copy stays generated from pure functions. The moment a sentence is assembled in
+  a component, these guards stop covering it.
+- **Would be wrong if:** a guard's regex drifts from the copy and silently passes. Each guard
+  names the original defect in a comment so the intent survives a reword.
+- **Note:** the first version asserted the bad month is always mentioned when stress breaches.
+  It failed on a ₹12,000 income with a ₹20,000 instalment — correctly. That borrower gets a
+  "don't" for a louder reason that fires first, and burying it under the stress case would be
+  the wrong sentence rather than a missing one. The guard was narrowed to cases where an amount
+  was actually quoted. A guard that fires on correct behaviour is a bug in the guard.
+- **Source:** the user's design, 2026-09-08.
+
+### "Clear the dearest loan first" removed
+
+- **Choice:** replaced with "clear the app loans first" where the app-loan flag is set, and
+  "paying down what you already owe does more for you here than a new loan would" otherwise.
+- **Why:** the engine holds one instalment total. It cannot rank loans by cost, so a sentence
+  telling a borrower which is dearest claims knowledge that does not exist. The app-loan version
+  is a claim about a **category** — app and BNPL lending is the dearest money in this market —
+  and that one is defensible without knowing anything about their particular loans.
+- **Rejected:** *Keeping it as generic advice* — it reads as advice about your loans, and a
+  guard now fails on the word.
+- **Source:** the user's instruction, 2026-09-08.
+
+### `format.ts` audited, and the finding is a guard rather than a change
+
+- **Choice:** no code change. Seven sites interpolate rupees outside `format.ts`; all seven
+  print a **stated answer or a rule constant** — the borrower's own instalment, the assumed
+  co-applicant income, the product's minimum ticket, the assumed-rent band, the household
+  spending default. Not one prints a computed interval endpoint, which is what `format.ts`
+  exists to round outward.
+- **Why:** the distinction that makes those seven safe was undefended. The precision guard in
+  `copy.test.ts` now asserts no computed endpoint appears in a sentence, so the first person to
+  interpolate one gets a failure rather than a screen reading "₹29,52,538".
+- **Rejected:** *Routing the seven through `format.ts`* — `rupees()` renders them identically,
+  so it would be churn. *Rounding stated answers* — actively wrong: a borrower who says ₹6,000
+  should be shown ₹6,000.
+- **Source:** the user's question, audited 2026-09-08.
+
 ## Open items
+
 
 - **Phase 5 exit condition passed 2026-09-08, checked by the user, not by me.** They walked
   the flow at a phone width and reported no horizontal scroll. Recorded as their verification
@@ -405,17 +522,19 @@ and reported clean on 2026-09-08; it is recorded as their check, not mine.
   (`ui/Field.tsx`, six of them, plus `inputMode="decimal"` on the two quote fields in
   `ui/QuoteCheck.tsx`) — so what is genuinely unverified is the 375px layout. That needs a
   human at a phone width. **Phase 5 stays open and phase 6 stays unstarted.**
-- **The goldens did not move, and that is the problem.** Four real defects, none touched by
+- ~~The goldens did not move, and that is the problem.~~ **Closed by Mohan**, who covers age,
+  the collateral cap and zero rent, with eight goldens. Original reasoning: Four real defects, none touched by
   278 tests. The persona set has no borrower near retirement, none pledging property while
   paying no rent, none capped by collateral. Adding one such persona would have caught three
   of these four. It changes the golden set deliberately, so it is a decision to take rather
   than a chore to squeeze in.
-- **Still no DOM test in `ui/`.** Nine defects now share the shape "engine right, screen
-  wrong". Three of today's four were caught only by reading output by hand.
-- `rentOrHomeEmi` is still one field, so a home-loan EMI is excluded from the lender ceiling
-  and overstates what a lender would sanction. Unchanged, and still the largest known
-  correctness issue.
-- `AffordabilityResult` and `StressResult.rate` remain dead.
+- **One DOM test still worth having: duplicate labels on a screen.** Those strings live in
+  React, so `copy.test.ts` cannot reach them — it was two rate bands both labelled "Rate" that
+  produced one of the nine. Everything else of that shape is now guarded at engine level.
+- ~~`rentOrHomeEmi` is one field, overstating sanction for a home-loan borrower.~~ **Fixed** —
+  measured at ₹14 lakh on a ₹1.5L income. The home loan now rides with the other loans.
+- ~~`AffordabilityResult` and `StressResult.rate` remain dead.~~ **Deleted.** `rate` had
+  always been a placeholder `iv(0, 0)`.
 - ~~`runs/anita.md` never mentions the `large-expense` question.~~ **Fixed** — third category
   added and all three footers now reconcile to 28.
 - ~~`appLoanOutstanding` is asked by nothing.~~ **Deleted.**
@@ -423,8 +542,13 @@ and reported clean on 2026-09-08; it is recorded as their check, not mine.
 - ~~`clear-app-loans` overstates what clearing app loans frees.~~ **Disclosed**, not fixed —
   the arithmetic is still whole-instalment; only a split question can make it right.
 - **Existing loans are still one number, with no rate and no split.** Correct for both
-  ceilings — FOIR and surplus each count the instalment, not its rate — but it leaves "clear
-  the dearest loan first" as advice the engine cannot check, and leaves `clear-app-loans`
-  clearing the whole instalment. Now disclosed in the option and in RULES.md rather than
-  silent. The real fix is the same shape as `rentOrHomeEmi`: one field standing for two things
-  that behave differently, and a question change to separate them.
+  ceilings — FOIR and surplus each count the instalment, not its rate, and a home loan now
+  belongs in that total. What it still costs is the app-loan share: `clear-app-loans` clears
+  the whole instalment, which overstates the gain for anyone with a bank loan running
+  alongside. Disclosed in the option and in RULES.md rather than silent, and guarded by a copy
+  test that no ordering of loans may be claimed. The real fix is a follow-up question on how
+  much of the total is app or BNPL — which is where the deleted `appLoanOutstanding` field
+  would come back, deliberately.
+- **Phase 5 and 6 both closed before this batch landed**, so these commits sit on top of a
+  finished build rather than inside a phase. If the entry was submitted from `0bc9260`, that
+  commit is still reachable and can be tagged retrospectively; nothing here rewrites it.
