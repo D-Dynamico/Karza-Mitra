@@ -166,9 +166,10 @@ in months, upcoming large expense, co-applicant, quotes received).
 asserts that for at least one persona, answering it changes a declared output. A question
 that fails gets deleted. This policy is stated in RULES.md.
 
-The opening screen is a preview of the answer, not a description of it: the two-number idea
-is drawn in the same `two-up` tiles the results panel uses for the real figures, with one
-sentence above and the CTA below. The three personas sit under it as example cards with a
+The opening screen is a preview of the answer, not a description of it: two bars in the
+answer screen's style, a long one for what a lender may offer and a short one for what you
+can pay. There are no figures and no person on them. There is one sentence above and the
+CTA below. The three personas sit under it as example cards with a
 one-line description each, so a visitor can choose between them.
 
 Progress is counted — "Question 3 of 10" — because the number tells the borrower how long
@@ -180,8 +181,9 @@ Flow rules: one question per screen; skip always visible with a one-line consequ
 ("keeps your rate a wider range"), and skipping one of the ten essentials asks for
 confirmation once, in red, before going through; a "what moved" banner after every answer; a
 confidence meter derived from range width, not question count; a "why are you asking?" line
-on every question; results reachable after the must set, with further questions offered as
-"tighten this" buttons on the panel they affect; a review screen before results showing
+on every question; results reachable after the must set, with further questions offered in one "make this
+answer more exact" block at the foot of the answer (at most two, the pivotal question
+excluded because it has its own box); a review screen before results showing
 every answer, with assumed defaults marked and blanks tap-to-fill. A question whose prompt
 would otherwise have to say "it" names the thing instead, through `promptFor` on the
 question — "Once you have the vehicle, how much more would you earn each month?".
@@ -191,8 +193,11 @@ income supports one person is never asked whether anyone else in the household e
 
 ## 4. Outputs and the Negotiation Card
 
-Each output panel is: headline range, one-sentence why generated *from the trace*, and a
-"show working" drawer. Never hand-write the why per case — it breaks the moment a rule
+The answer opens with one verdict box: the verdict in plain words (`ui/words.ts` — engine
+kinds like `dont` never reach the screen), the headline, the lender and safe amounts as bars
+on one scale with the ask marked, the why, and the next step. The "don't borrow" screen uses
+the same box. Each output panel below it is: headline range, one-sentence why generated
+*from the trace*, and a "show working" drawer. Never hand-write the why per case — it breaks the moment a rule
 changes live.
 
 **The register is the borrower's, not the lender's.** EMI, not instalment. Approve or give,

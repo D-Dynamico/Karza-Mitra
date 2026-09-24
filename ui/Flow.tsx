@@ -39,10 +39,11 @@ import { readOutput, type OutputId } from '../engine/outputs';
 import { mustSet, type Question } from '../engine/questions';
 import { Confidence } from './Confidence';
 import { Field } from './Field';
+import { verdictWord } from './words';
 
 /** How an output reads in the "what moved" banner. */
 const fmt = (id: OutputId, r: Result): string => {
-  if (id === 'O1.verdict') return r.verdict.kind.replace('-', ' ');
+  if (id === 'O1.verdict') return verdictWord(r.verdict.kind);
   const v = readOutput(r, id);
   if (id === 'O3.rate' || id === 'O3.apr') return `${v.lo.toFixed(1)}%–${v.hi.toFixed(1)}%`;
   if (id === 'O4.stress') return `${(v.lo * 100).toFixed(0)}%–${(v.hi * 100).toFixed(0)}%`;

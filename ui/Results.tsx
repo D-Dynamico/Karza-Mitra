@@ -25,14 +25,9 @@ import { approx, inLakh, money, perMonth, rate as rateText, share, tenure as ten
 import { pivotalAssumptions } from '../engine/pivotal';
 import { allQuestions } from '../engine/questions';
 import { QuoteCheck } from './QuoteCheck';
+import { Verdict } from './Verdict';
 import { TightenThis, WorkingDrawer } from './Working';
-
-const VERDICT_CLASS: Record<string, string> = {
-  borrow: 'go',
-  'borrow-less': 'less',
-  dont: 'stop',
-  'need-more-info': 'less',
-};
+import { verdictWord } from './words';
 
 export function Results({
   result,
@@ -53,12 +48,16 @@ export function Results({
 
   return (
     <>
-      <section className={`verdict ${VERDICT_CLASS[result.verdict.kind] ?? 'less'}`}>
-        <div className="kind">{result.verdict.kind.replace('-', ' ')}</div>
-        <h2>{result.verdict.headline}</h2>
-        <p>{result.verdict.why}</p>
-        {result.verdict.nextStep ? <div className="next">{result.verdict.nextStep}</div> : null}
-      </section>
+      <Verdict
+        result={result}
+        caption={result.verdict.kind === 'borrow-less' ? undefined : amounts.whyTheyDiffer}
+      >
+        <WorkingDrawer
+          trace={result.trace}
+          rules={['affordability.', 'amounts.', 'income.', 'expenses.', 'rent.']}
+          summary="How we worked out these two numbers"
+        />
+      </Verdict>
 
       {pivotal.map((p) => {
         const question = allQuestions.find((q) => q.field === p.field);
@@ -68,8 +67,8 @@ export function Results({
             <h2>{question?.promptFor?.(answers) ?? question?.prompt ?? 'One answer decides this'}</h2>
             <p>
               We had to guess this one, and the guess changes the answer. If it is at the low
-              end, the answer is <strong>{p.atLow.verdict.replace('-', ' ')}</strong>. At the
-              high end it is <strong>{p.atHigh.verdict.replace('-', ' ')}</strong>. Nothing else
+              end, the answer is <strong>{verdictWord(p.atLow.verdict).toLowerCase()}</strong>. At the
+              high end it is <strong>{verdictWord(p.atHigh.verdict).toLowerCase()}</strong>. Nothing else
               on this page turns on one fact this much.
             </p>
             <p className="muted">{p.assumption}</p>
@@ -83,33 +82,6 @@ export function Results({
           </section>
         );
       })}
-
-      {/* O2 — the two numbers. The whole point, so it goes first. */}
-      <section className="panel">
-        <span className="label">How much</span>
-        <div className="two-up">
-          <div className="theirs">
-            <div className="muted">A lender would approve</div>
-            <div className="figure small">{money(amounts.lender, { asLender: true })}</div>
-          </div>
-          <div className="yours">
-            <div className="muted">Safe for you</div>
-            <div className="figure small">{money(amounts.safe)}</div>
-          </div>
-        </div>
-        {/* The sentence comes from the engine, because it is a claim about this
-            borrower: the old fixed version blamed rent for someone who paid
-            none. See `amounts.whyTheyDiffer`. */}
-        <p className="muted" style={{ marginTop: 10 }}>
-          {amounts.whyTheyDiffer}
-          {amounts.asked !== undefined ? ` You asked for ${inLakh(amounts.asked)}.` : ''}
-        </p>
-        <WorkingDrawer
-          trace={result.trace}
-          rules={['affordability.', 'amounts.', 'income.', 'expenses.', 'rent.']}
-        />
-        <TightenThis answers={answers} output="O2.safe" onAnswer={onTighten} limit={1} />
-      </section>
 
       {/* O2/O3/O4 — one spec block. These were three panels of prose; the prose
           moved into the drawers and the numbers stayed. */}
@@ -260,8 +232,14 @@ export function Results({
           trace={result.trace}
           rules={['products.', 'pricing.', 'credit.', 'stability.', 'stress.']}
         />
-        <TightenThis answers={answers} output="O3.rate" onAnswer={onTighten} limit={1} />
       </section>
+
+      <TightenThis
+        answers={answers}
+        outputs={['O2.safe', 'O3.rate']}
+        onAnswer={onTighten}
+        exclude={pivotal.map((p) => p.field)}
+      />
 
       <QuoteCheck result={result} />
 

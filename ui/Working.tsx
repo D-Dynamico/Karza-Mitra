@@ -56,27 +56,44 @@ export function WorkingDrawer({
 }
 
 /**
- * "Tighten this" — the questions that would actually narrow this specific
- * output, ranked by the engine rather than by a list written here.
+ * "One more answer would sharpen this" — the questions that would actually
+ * narrow these outputs, ranked by the engine rather than by a list written here.
+ *
+ * This used to appear under every panel as "Tighten this:", which is form
+ * language, and the answer page ended up with two of them asking about
+ * different things in the same voice. One block at the foot of the answer,
+ * drawn from every output it covers and de-duplicated, says the same with less.
  */
 export function TightenThis({
   answers,
-  output,
+  outputs,
   onAnswer,
   limit = 2,
+  exclude = [],
 }: {
   readonly answers: Answers;
-  readonly output: OutputId;
+  readonly outputs: readonly OutputId[];
   readonly onAnswer: (field: keyof Answers) => void;
-  /** One is usually enough. Six of these across a page is noise, not help. */
+  /** Two at most. Six of these across a page is noise, not help. */
   readonly limit?: number;
+  /** Fields already asked elsewhere on the page, such as the pivotal one. */
+  readonly exclude?: readonly (keyof Answers)[];
 }) {
-  const ranked = questionsFor(answers, output, limit);
+  const seen = new Set<string>();
+  const ranked = outputs
+    .flatMap((o) => questionsFor(answers, o, limit))
+    .filter((r) => !exclude.includes(r.question.field))
+    .filter((r) => (seen.has(r.question.id) ? false : (seen.add(r.question.id), true)))
+    .slice(0, limit);
   if (ranked.length === 0) return null;
 
   return (
-    <div className="tighten">
-      <span className="muted">Tighten this:</span>
+    <section className="panel tighten no-print">
+      <span className="label">Make this answer more exact</span>
+      <p className="muted">
+        {ranked.length === 1 ? 'One question' : 'Questions'} we have not asked yet. Answering
+        narrows the numbers above.
+      </p>
       {ranked.map((r) => (
         <button
           type="button"
@@ -88,6 +105,6 @@ export function TightenThis({
           <span className="promise">{r.promise}</span>
         </button>
       ))}
-    </div>
+    </section>
   );
 }

@@ -188,24 +188,55 @@ button {
   border-color: var(--stop-line);
 }
 
-.verdict .kind {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.72rem;
-  font-weight: 700;
-  opacity: 0.75;
-}
-
 .verdict h2 {
-  margin: 2px 0 8px;
-  font-size: 1.15rem;
+  margin: 8px 0 12px;
+  font-size: 1.3rem;
+  line-height: 1.3;
 }
 
+/* What to do, set apart from the why: it is the line people act on. */
 .verdict .next {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line-strong);
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--card);
   font-weight: 500;
+}
+
+.verdict .next-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+
+.verdict details {
+  border-top-color: var(--line-strong);
+}
+
+/* The verdict in two or three words, as a tag rather than a shout. */
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+}
+
+.go .pill {
+  background: var(--go);
+}
+
+.less .pill {
+  background: var(--warn);
+}
+
+.stop .pill {
+  background: var(--stop);
 }
 
 /* Panels: one per output. */
@@ -236,42 +267,6 @@ button {
 
 .figure.small {
   font-size: 1.05rem;
-}
-
-/* The two numbers, side by side where there is room. */
-.two-up {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 560px) {
-  .two-up {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.two-up > div {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px;
-  background: var(--paper);
-}
-
-.two-up .theirs {
-  border-left: 3px solid var(--ink-faint);
-}
-
-.two-up .yours {
-  border-left: 3px solid var(--accent);
-}
-
-.gap-note {
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: var(--accent-soft);
-  border-radius: 8px;
-  font-size: 0.9rem;
 }
 
 /* Drawers: the working, and anything else that folds away. */
@@ -355,9 +350,18 @@ details[open] > summary::before {
   margin-left: 6px;
 }
 
-/* Tighten-this. */
+/* One more answer. On the answer screen it is a panel; on the review
+   screen the same buttons sit inside one. */
 .tighten {
   margin-top: 10px;
+}
+
+.panel.tighten {
+  margin-top: 0;
+}
+
+.panel.tighten > .muted {
+  margin: 2px 0 4px;
 }
 
 .tighten .q {
@@ -1075,12 +1079,11 @@ details[open] > summary::before {
    masthead's rule removed so the title and the promise read as one block, is
    what makes the button look like the only thing to do.
 
-   The card is the argument, not a paragraph about it: the two tiles in the
-   middle are the whole product, and they are drawn in the same `two-up` shapes
-   the answer screen uses for the real figures, so the first thing a visitor
-   sees is a preview of what they are about to get. Everything below the card —
-   the privacy line, the examples — is deliberately outside it and quieter, so
-   the eye lands on the tiles and the button before anything else.
+   The card is the argument, not a paragraph about it: the two bars in the
+   middle are a diagram of the answer, drawn in the same style the answer
+   screen uses, so the first thing a visitor sees is a preview of what
+   they are about to get. The examples sit outside the card and quieter, so the
+   eye lands on the bars and the button before anything else.
    --------------------------------------------------------------------------- */
 
 .wrap.start {
@@ -1126,36 +1129,6 @@ details[open] > summary::before {
 .ask.start > p {
   max-width: 30rem;
   margin-inline: auto;
-}
-
-/* The centrepiece. Left-aligned inside the tiles, because a label above a
-   phrase reads as a pair rather than as two centred fragments. */
-.two-up.preview {
-  text-align: left;
-  margin: 18px 0 16px;
-}
-
-.two-up.preview > div {
-  display: grid;
-  gap: 2px;
-  padding: 12px 14px;
-  background: var(--card);
-}
-
-.two-up.preview .muted {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.two-up.preview strong {
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.two-up.preview .yours strong {
-  color: var(--accent);
 }
 
 /* Sized to its words rather than to the card, so it stops dominating. */
@@ -1310,4 +1283,233 @@ html {
 .choice:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   The two numbers as bars.
+
+   One scale for both, so the lengths can be compared: the lender's figure
+   against the safe one is the point of the whole page. Solid runs to the low
+   end of the range, pale from low to high. The thin mark is the amount asked.
+   --------------------------------------------------------------------------- */
+
+.bars {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+
+.bar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.bar-head strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+.bar.yours .bar-head strong {
+  color: var(--accent);
+  font-size: 1.25rem;
+}
+
+.track {
+  position: relative;
+  height: 14px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(28, 15, 24, 0.07);
+  overflow: visible;
+}
+
+.track .solid,
+.track .spread {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+}
+
+.track .solid {
+  left: 0;
+}
+
+.bar.theirs .solid {
+  background: var(--ink-faint);
+}
+
+.bar.theirs .spread {
+  background: var(--ink-faint);
+  opacity: 0.35;
+}
+
+.bar.yours .solid {
+  background: var(--accent);
+}
+
+.bar.yours .spread {
+  background: var(--accent);
+  opacity: 0.35;
+}
+
+.track .asked {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+
+.bars-key {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.asked-key {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  margin-right: 4px;
+  vertical-align: -1px;
+  background: var(--ink);
+}
+
+.bars-caption {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+/* The same bars on the first screen, as a diagram with no figures. */
+.preview {
+  text-align: left;
+  margin: 18px 0 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.start-note {
+  margin: 10px 0 0;
+}
+
+/* What the ticked options would do, in the colour of the answer they land on. */
+.projected {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-size: 0.92rem;
+  display: grid;
+  gap: 6px;
+}
+
+.projected.stop {
+  background: var(--stop-soft);
+  border-color: var(--stop-line);
+}
+
+.projected.less {
+  background: var(--warn-soft);
+  border-color: var(--warn-line);
+}
+
+.projected.go {
+  background: var(--go-soft);
+  border-color: var(--go-line);
+}
+
+.projected .pill {
+  justify-self: start;
+}
+
+/* A panel that opens on tap. The panel is the border, so the drawer's own
+   rule and spacing are dropped. */
+details.panel.fold {
+  margin-top: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+details.panel.fold > summary {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* The example, kept to its story and one row of links under it. */
+.bio .bio-kind {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--accent-line);
+  vertical-align: 1px;
+}
+
+.bio-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-top: 6px;
+}
+
+.bio-foot details {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.bio-foot summary {
+  font-size: 0.84rem;
+}
+
+.bio-foot .bio-link {
+  margin-top: 0;
+}
+
+.bio-foot details[open] {
+  flex-basis: 100%;
+  order: 2;
+}
+
+/* A drawer that is the whole panel needs no rule above it. */
+.panel > details:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* The ask mark has to read on the dark bar as well as the pale one. */
+.track .asked {
+  box-shadow: 0 0 0 1px var(--card);
+}
+
+/* "Close to nothing at a bank, up to ₹1.3 lakh from an NBFC…" is a sentence,
+   not a figure; it must not crowd its own label onto two lines. */
+.bar-head > span {
+  white-space: nowrap;
+}
+
+.bar.theirs .bar-head strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Held at the foot of the screen while the list scrolls past, so a tick and
+   what it does are always visible together. */
+.projected {
+  position: sticky;
+  bottom: 8px;
+  z-index: 1;
+  box-shadow: 0 4px 16px rgba(28, 15, 24, 0.12);
 }

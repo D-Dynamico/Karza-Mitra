@@ -8,6 +8,10 @@
  * The nudge is one line and never a modal, and "use it anyway" always works.
  * A tool that blocks a borrower from recording the offer in front of them is a
  * tool they close.
+ *
+ * It starts folded. Most people reading the answer have no quote yet, and two
+ * empty number boxes in the middle of the page read as one more form to fill.
+ * The line that opens it says when to use it, which is all they need until then.
  */
 
 import { useState } from 'react';
@@ -41,10 +45,10 @@ export function QuoteCheck({ result }: { readonly result: Result }) {
   const overCeiling = hasQuote && ceiling !== undefined && instalment > ceiling.hi;
 
   return (
-    <div className="panel no-print">
-      <span className="label">Check an offer</span>
-      <p className="muted" style={{ marginTop: 4 }}>
-        Type the rate a lender has quoted you. The fair band for your profile is{' '}
+    <details className="panel fold no-print">
+      <summary>Got a rate from a lender? Check it here</summary>
+      <p className="muted" style={{ marginTop: 8 }}>
+        Type the rate they quoted. A fair rate for you is{' '}
         <strong>{rateText(pricing.rateBand)}</strong>.
       </p>
 
@@ -92,7 +96,7 @@ export function QuoteCheck({ result }: { readonly result: Result }) {
 
           {above && !overridden ? (
             <div className="nudge bad">
-              That is above the top of your band ({rateText(pricing.rateBand)}). Ask what in
+              That is more than a fair rate for you ({rateText(pricing.rateBand)}). Ask what in
               your file justifies the difference, and get the answer in writing.{' '}
               <button type="button" onClick={() => setOverridden(true)}>
                 Use it anyway
@@ -114,12 +118,12 @@ export function QuoteCheck({ result }: { readonly result: Result }) {
           {!above && !overCeiling ? (
             <div className="nudge ok">
               {below
-                ? 'That is below the band we expected — a good offer. Check there is no bundled insurance making up the difference.'
-                : 'That sits inside the fair band for your profile.'}
+                ? 'That is lower than we expected — a good offer. Check there is no insurance added to the loan making up the difference.'
+                : 'That is a fair rate for you.'}
             </div>
           ) : null}
         </>
       ) : null}
-    </div>
+    </details>
   );
 }

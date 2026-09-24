@@ -15,21 +15,32 @@
  * afford — and an earlier version stated that idea in four lines of prose above
  * a button, where it read as throat-clearing. It is now the two tiles in the
  * middle of the card, drawn in the same shapes as the answer screen's own
- * `two-up` panel, so the first thing a visitor sees is a preview of the thing
+ * two-number panel, so the first thing a visitor sees is a preview of the thing
  * they are about to be given. Everything else on the screen was cut back to
  * make room for it.
+ *
+ * Those tiles then held labels, not numbers — "What they will approve", "What
+ * you can actually pay" — which is a description of a comparison rather than
+ * one. They are now two bars in the same style as the answer screen: a long
+ * one for what a lender may offer, a short one for what you can pay. They carry
+ * no figures and no person. Leading with an example's numbers was tried and
+ * rejected: the first screen should be about the visitor, not about someone
+ * else. The bars are a diagram, so their lengths are fixed and do not come
+ * from the engine.
  */
 
 import { useMemo, useState } from 'react';
 import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
 import { personas, type Persona } from '../engine/personas';
+import { mustSet } from '../engine/questions';
 import { Card } from './Card';
 import { DontScreen } from './DontScreen';
 import { ErrorBoundary } from './ErrorBoundary';
 import { ExampleBio } from './ExampleBio';
 import { Flow } from './Flow';
 import { Results } from './Results';
+import { Verdict } from './Verdict';
 import './styles.css';
 
 type View = 'start' | 'flow' | 'review' | 'results' | 'card';
@@ -61,11 +72,10 @@ export function App() {
     <main className={view === 'start' ? 'wrap start' : 'wrap'}>
       <header className="masthead no-print">
         <h1>Karza Mitra</h1>
-        <div className="tag">What a lender offers is not always what you can afford.</div>
-        {/* The brief stresses no login and nothing stored. Saying it out loud on
-            the first screen is trust, and it costs a line. */}
-        {view === 'start' ? (
-          <div className="privacy">Nothing you type leaves this phone.</div>
+        {/* On the start screen the card below says this in full, so the tag
+            would be the same sentence twice. */}
+        {view !== 'start' ? (
+          <div className="tag">What a lender offers is not always what you can afford.</div>
         ) : null}
         {view !== 'start' ? (
           <div className="pickers">
@@ -91,29 +101,34 @@ export function App() {
             {/* Centred by `.wrap.start`; see the note at the foot of styles.css. */}
             <section className="ask start">
               <h2>How much can you actually afford to borrow?</h2>
-              <p>Answer a few questions and you get two numbers.</p>
+              <p>A lender tells you the most they will give. We tell you the most you can pay back.</p>
 
-              {/* The same shapes the answer screen uses for the real figures, so
-                  this reads as a preview rather than an illustration. */}
-              <div className="two-up preview">
-                <div className="theirs">
-                  <span className="muted">A lender may offer</span>
-                  <strong>What they will approve</strong>
+              {/* A diagram, not an answer. See the note at the top. */}
+              <div className="preview bars" aria-hidden="true">
+                <div className="bar theirs">
+                  <div className="bar-head">
+                    <span>What a lender may offer</span>
+                  </div>
+                  <div className="track">
+                    <span className="solid" style={{ width: '88%' }} />
+                  </div>
                 </div>
-                <div className="yours">
-                  <span className="muted">Safe for you</span>
-                  <strong>What you can actually pay</strong>
+                <div className="bar yours">
+                  <div className="bar-head">
+                    <span>What you can actually pay</span>
+                  </div>
+                  <div className="track">
+                    <span className="solid" style={{ width: '42%' }} />
+                  </div>
                 </div>
               </div>
 
-              <p className="muted">
-                Then it shows how it got there — and says so plainly when the honest answer
-                is not to borrow at all.
-              </p>
-
               <button type="button" className="btn primary go" onClick={restart}>
-                Start assessment &rarr;
+                Find my safe amount &rarr;
               </button>
+              {/* The brief stresses no login and nothing stored. Saying it out
+                  loud on the first screen is trust, and it costs a line. */}
+              <p className="muted start-note">About {mustSet.length} questions. Nothing you type leaves this phone.</p>
             </section>
 
             {/* One tap away, because a reviewer will reach for these within ten
@@ -162,14 +177,10 @@ export function App() {
             {example ? (
               <ExampleBio persona={example} onSeeAnswers={() => setView('review')} />
             ) : null}
-            <section className="verdict stop">
-              <div className="kind">{result.verdict.kind}</div>
-              <h2>{result.verdict.headline}</h2>
-              <p>{result.verdict.why}</p>
-              {result.verdict.nextStep ? (
-                <div className="next">{result.verdict.nextStep}</div>
-              ) : null}
-            </section>
+            <Verdict
+              result={result}
+              caption="Someone will lend you this money today. That does not make it a good idea."
+            />
             <DontScreen answers={answers} />
             <button type="button" className="btn wide no-print" onClick={() => setView('card')}>
               If you borrow anyway, take this with you →

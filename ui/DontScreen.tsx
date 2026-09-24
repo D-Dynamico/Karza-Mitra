@@ -7,6 +7,13 @@
  * money, and a set of toggles that re-run the engine and show what the answer
  * would become.
  *
+ * Two panels were cut from it. "Clear these first, in this order" printed the
+ * verdict's next step a second time and then the "do today" toggles a second
+ * time, so the same sentence about app loans appeared three times on one
+ * screen. And "What a lender would still give you" is now the first bar in the
+ * verdict box above, where it sits beside the safe amount it has to be read
+ * against.
+ *
  * The toggles are the honest part. Each one is a real change to the answers, fed
  * back through `compute`, so the number that appears is the number the engine
  * would actually give — not an illustration.
@@ -16,13 +23,32 @@ import { useMemo, useState } from 'react';
 import type { Answers } from '../engine/answers';
 import { compute } from '../engine/compute';
 import { approx, money, perMonth, rupees } from '../engine/format';
-import { iv } from '../engine/interval';
+import { iv, type Interval } from '../engine/interval';
 import {
   nothingUnlocksIt,
   options as allOptions,
   pathToYes,
   smallestUnlockingCombination,
 } from '../engine/path-to-yes';
+import { VERDICT_TONE, verdictWord } from './words';
+
+/** The engine's option kinds, as a borrower would say them. */
+const KIND_WORD: Record<string, string> = {
+  'do today': 'You can do this now',
+  'takes time': 'Takes a few months',
+  'if it is true': 'Only if it is true for you',
+};
+
+/**
+ * "At most ₹0 to ₹3,000 a month" is what the limit read as when its bottom end
+ * is nothing. A range from zero is a ceiling, so it is said as one.
+ */
+const emiLimit = (x: Interval): string =>
+  x.lo < 1000 ? `an EMI of up to ${perMonth(iv(x.hi, x.hi))}` : `an EMI of at most ${perMonth(x)}`;
+
+/** "A, and b" — the labels are written to open a sentence, so only the first keeps its capital. */
+const sentenceList = (labels: readonly string[]): string =>
+  labels.map((l, i) => (i === 0 ? l : l.charAt(0).toLowerCase() + l.slice(1))).join(', and ');
 
 export function DontScreen({ answers }: { readonly answers: Answers }) {
   const [on, setOn] = useState<readonly string[]>([]);
@@ -86,37 +112,15 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
       </section>
 
       <section className="panel">
-        <span className="label">Clear these first, in this order</span>
-        <p className="muted">
-          Highest rate first, because that frees the most money per rupee repaid.
-        </p>
-        <ol className="ordered">
-          {base.verdict.nextStep ? <li>{base.verdict.nextStep}</li> : null}
-          {ranked
-            .filter((r) => r.option.kind === 'do today')
-            .map((r) => (
-              <li key={r.option.id}>
-                {r.option.label}
-                {r.delta > 0 ? (
-                  <span className="effect up"> — worth {approx(r.delta)} more you could borrow</span>
-                ) : null}
-              </li>
-            ))}
-        </ol>
-      </section>
-
-      <section className="panel">
         <span className="label">What would change the answer</span>
         <p className="muted">
-          Tick anything you could actually do. The number below is what this works out
-          afterwards. It is calculated again, not an example.
+          Tick what you could really do. We work the answer out again each time you tick.
         </p>
 
         {nothingUnlocksIt(ranked) ? (
           <div className="nudge bad">
-            Nothing on this list, on its own, turns this into a yes. Better to say that plainly
-            than to show you a list of near misses.
-            {combo ? ' Two of them together would — see below.' : ''}
+            None of these on its own turns this into a yes.
+            {combo ? ' Two together would — see below.' : ''}
           </div>
         ) : null}
 
@@ -130,7 +134,7 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
                   onChange={() => toggle(r.option.id)}
                 />
                 <span>
-                  <span className="kind">{r.option.kind}</span>
+                  <span className="kind">{KIND_WORD[r.option.kind]}</span>
                   <br />
                   {r.option.label}
                   <br />
@@ -154,25 +158,31 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
           ))}
         </ul>
 
-        <div className="gap-note">
-          <strong>With what you have ticked: {projected.verdict.kind}.</strong>{' '}
-          {projected.verdict.headline}
-          <br />
-          {projected.verdict.kind === 'dont' ? (
-            // While the answer is still "don't", the safe amount is held at zero
-            // on purpose. Printing an instalment ceiling beside it would read as
-            // "you can carry nothing, and also ₹4,000 a month" — two true
-            // sentences that contradict each other in front of a borrower.
-            <>Still not enough to change the answer: safe for you {money(projected.amounts.safe)}.</>
-          ) : (
-            <>
-              Safe for you {money(projected.amounts.safe)}
-              {projected.repayment
-                ? `, at most ${perMonth(projected.repayment.emiCeiling)}`
-                : ''}
-              .
-            </>
-          )}
+        {/* The projection is drawn in the colour of the verdict it lands on,
+            so ticking the right pair visibly turns the box from red to amber. */}
+        <div className={`projected ${VERDICT_TONE[projected.verdict.kind]}`} role="status">
+          <span className="pill">
+            {on.length === 0 ? 'Right now' : 'If you did this'}: {verdictWord(projected.verdict.kind)}
+          </span>
+          <div>
+            {projected.verdict.kind === 'dont' ? (
+              // While the answer is still "don't", the safe amount is held at zero
+              // on purpose. Printing an EMI limit beside it would read as "you
+              // can carry nothing, and also ₹4,000 a month" — two true sentences
+              // that contradict each other in front of a borrower.
+              on.length === 0 ? (
+                <>Tick something above to see what it would change.</>
+              ) : (
+                <>Not enough yet. {projected.verdict.headline}</>
+              )
+            ) : (
+              <>
+                Safe for you: <strong>{money(projected.amounts.safe)}</strong>
+                {projected.repayment ? `, ${emiLimit(projected.repayment.emiCeiling)}` : ''}
+                .
+              </>
+            )}
+          </div>
         </div>
       </section>
 
@@ -180,7 +190,7 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
         <section className="panel">
           <span className="label">The smallest set that works</span>
           <p>
-            {combo.options.map((o) => o.label).join(', and ')} — together, that gets you to{' '}
+            {sentenceList(combo.options.map((o) => o.label))}. Together, that gets you to{' '}
             <strong>{money(combo.safeAmount)}</strong>.
           </p>
           {combo.stillShortBy > 0 ? (
@@ -199,15 +209,6 @@ export function DontScreen({ answers }: { readonly answers: Answers }) {
         </section>
       ) : null}
 
-      <section className="panel">
-        <span className="label">What a lender would still give you</span>
-        <div className="figure small">{money(base.amounts.lender, { asLender: true })}</div>
-        <p className="muted">
-          Someone will lend you this money today. That does not make it a good idea. This number
-          exists here because it is what you are up against: the offer that arrives at exactly
-          the wrong moment.
-        </p>
-      </section>
     </>
   );
 }

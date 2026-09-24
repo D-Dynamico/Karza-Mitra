@@ -8,6 +8,12 @@
  *
  * It is only ever shown for an example. `App` drops it the moment an answer is
  * edited, because once one field changes the answers are no longer hers.
+ *
+ * It was pushing the answer below the fold: a labelled box, the story, a
+ * bulleted list of what was filled in, then a link. The story stays, since
+ * it is what makes the verdict checkable. The filled-in list folds away behind
+ * a count, because it matters to someone checking the example and not to
+ * someone reading it.
  */
 
 import type { Persona } from '../engine/personas';
@@ -21,24 +27,29 @@ export function ExampleBio({
 }) {
   return (
     <section className="bio no-print" aria-label={`About ${persona.name}`}>
-      <div className="bio-kind">Example</div>
       <p>
+        <span className="bio-kind">Example</span>
         <strong>{persona.name}, </strong>
         {persona.story}
       </p>
-      {persona.filledIn.length > 0 ? (
-        <div className="bio-filled">
-          <span className="muted">Not given, so we filled in:</span>
-          <ul>
-            {persona.filledIn.map((f) => (
-              <li key={f}>{f}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      <button type="button" className="bio-link" onClick={onSeeAnswers}>
-        See or change {persona.name}&rsquo;s answers →
-      </button>
+      <div className="bio-foot">
+        {persona.filledIn.length > 0 ? (
+          <details className="bio-filled">
+            <summary>
+              {persona.filledIn.length} thing{persona.filledIn.length === 1 ? '' : 's'} we
+              filled in for {persona.name}
+            </summary>
+            <ul>
+              {persona.filledIn.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+        <button type="button" className="bio-link" onClick={onSeeAnswers}>
+          Change {persona.name}&rsquo;s answers →
+        </button>
+      </div>
     </section>
   );
 }

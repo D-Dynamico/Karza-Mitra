@@ -109,7 +109,7 @@ export const options: readonly Option[] = [
   },
   {
     id: 'count-the-earnings',
-    label: 'Counting what it would earn you',
+    label: 'Counting what the loan would earn you',
     kind: 'if it is true',
     change: {},
     applies: (a) => has(a, 'expectedMonthlyEarnings'),
@@ -132,7 +132,7 @@ export const options: readonly Option[] = [
   },
   {
     id: 'evidence-income',
-    label: 'You can evidence your income — bank statements, a filed return',
+    label: 'You can show your income on paper — bank statements, a filed return',
     kind: 'takes time',
     change: { incomeType: 'self-employed-itr' },
     applies: (a) => a.incomeType === 'informal' || a.incomeType === 'self-employed-cash',
