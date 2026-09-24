@@ -30,6 +30,26 @@ function echo(n: number): string {
 }
 
 /**
+ * The line under a box: the lakh echo while typing, or — once Continue has been
+ * tapped with nothing usable in the box — what to do instead.
+ *
+ * Continue used to be disabled until the answer was valid, so tapping it on an
+ * empty box did nothing at all. A button that ignores a tap reads as broken, and
+ * a greyed-out one does not say what is missing. Continue now always takes the
+ * tap, and an empty or impossible answer gets one line saying what to type and
+ * that skipping is allowed. It clears on the next keystroke.
+ */
+function Line({ prompt, children }: { readonly prompt?: string; readonly children?: string }) {
+  return (
+    <div className={prompt ? 'echo missing' : 'echo'} role="status">
+      {prompt ?? (children || '\u00a0')}
+    </div>
+  );
+}
+
+const TYPE_OR_SKIP = 'Type an amount to continue, or skip below if you are not sure.';
+
+/**
  * One callback, not a change/submit pair.
  *
  * The first version had `onChange` then `onSubmit`, and a choice button called
@@ -118,6 +138,7 @@ export function Field({
 
 function MoneyField({ onCommit }: { readonly onCommit: (v: Value) => void }) {
   const [text, setText] = useState('');
+  const [tried, setTried] = useState(false);
   const n = Number.parseFloat(text);
   const ok = Number.isFinite(n) && n >= 0;
 
@@ -126,6 +147,7 @@ function MoneyField({ onCommit }: { readonly onCommit: (v: Value) => void }) {
       onSubmit={(e) => {
         e.preventDefault();
         if (ok) onCommit(n as Value);
+        else setTried(true);
       }}
     >
       <div className="money-input">
@@ -136,12 +158,15 @@ function MoneyField({ onCommit }: { readonly onCommit: (v: Value) => void }) {
           autoComplete="off"
           placeholder="0"
           value={text}
-          onChange={(e) => setText(e.target.value.replace(/[^0-9.]/g, ''))}
+          onChange={(e) => {
+            setText(e.target.value.replace(/[^0-9.]/g, ''));
+            setTried(false);
+          }}
           aria-label="Amount in rupees"
         />
       </div>
-      <div className="echo">{ok ? echo(n) : ' '}</div>
-      <button type="submit" className="btn primary wide" disabled={!ok}>
+      <Line prompt={tried && !ok ? TYPE_OR_SKIP : undefined}>{ok ? echo(n) : ''}</Line>
+      <button type="submit" className="btn primary wide">
         Continue
       </button>
     </form>
@@ -172,6 +197,7 @@ function RangeField({
   const [varies, setVaries] = useState(initial);
   const [lo, setLo] = useState('');
   const [hi, setHi] = useState('');
+  const [tried, setTried] = useState(false);
   const a = Number.parseFloat(lo);
   const b = Number.parseFloat(hi);
   const top = !varies || hi.trim() === '' ? a : b;
@@ -182,6 +208,7 @@ function RangeField({
       onSubmit={(e) => {
         e.preventDefault();
         if (ok) onCommit({ lo: a, hi: top } as Value);
+        else setTried(true);
       }}
     >
       <div className={varies ? 'range-input' : ''}>
@@ -194,7 +221,10 @@ function RangeField({
               inputMode="numeric"
               placeholder="0"
               value={lo}
-              onChange={(e) => setLo(e.target.value.replace(/[^0-9.]/g, ''))}
+              onChange={(e) => {
+                setLo(e.target.value.replace(/[^0-9.]/g, ''));
+                setTried(false);
+              }}
               aria-label={varies ? 'Lowest monthly amount' : 'Monthly amount'}
             />
           </div>
@@ -209,21 +239,32 @@ function RangeField({
               inputMode="numeric"
               placeholder="same"
               value={hi}
-              onChange={(e) => setHi(e.target.value.replace(/[^0-9.]/g, ''))}
+              onChange={(e) => {
+                setHi(e.target.value.replace(/[^0-9.]/g, ''));
+                setTried(false);
+              }}
               aria-label="Highest monthly amount"
             />
           </div>
           </label>
         ) : null}
       </div>
-      <div className="echo">
-        {ok ? (a === top ? echo(a) : `${echo(a)} to ${echo(top)}`) : ' '}
-      </div>
+      <Line
+        prompt={
+          !tried || ok
+            ? undefined
+            : Number.isFinite(a) && Number.isFinite(top) && top < a
+              ? 'The good month cannot be less than the slow month.'
+              : TYPE_OR_SKIP
+        }
+      >
+        {ok ? (a === top ? echo(a) : `${echo(a)} to ${echo(top)}`) : ''}
+      </Line>
       <label className="tick">
         <input type="checkbox" checked={varies} onChange={() => setVaries((v) => !v)} />
         <span>It changes from month to month</span>
       </label>
-      <button type="submit" className="btn primary wide" disabled={!ok}>
+      <button type="submit" className="btn primary wide">
         Continue
       </button>
     </form>
@@ -251,6 +292,7 @@ function NumberField({
   readonly onCommit: (v: Value) => void;
 }) {
   const [text, setText] = useState('');
+  const [tried, setTried] = useState(false);
   const n = Number.parseFloat(text);
   const floor = min ?? 0;
   const typed = text.trim() !== '';
@@ -263,6 +305,7 @@ function NumberField({
       onSubmit={(e) => {
         e.preventDefault();
         if (ok) onCommit(n as Value);
+        else setTried(true);
       }}
     >
       <div className="money-input">
@@ -271,19 +314,26 @@ function NumberField({
           inputMode="numeric"
           placeholder="0"
           value={text}
-          onChange={(e) => setText(e.target.value.replace(/[^0-9.]/g, ''))}
+          onChange={(e) => {
+            setText(e.target.value.replace(/[^0-9.]/g, ''));
+            setTried(false);
+          }}
           aria-label={unit}
         />
         <span className="unit">{unit}</span>
       </div>
-      <div className="echo">
-        {tooLow
-          ? `That has to be at least ${floor} ${unit}.`
-          : tooHigh
-            ? `That cannot be more than ${max} ${unit}.`
-            : ' '}
-      </div>
-      <button type="submit" className="btn primary wide" disabled={!ok}>
+      <Line
+        prompt={
+          tooLow
+            ? `That has to be at least ${floor} ${unit}.`
+            : tooHigh
+              ? `That cannot be more than ${max} ${unit}.`
+              : tried && !ok
+                ? 'Type a number to continue, or skip below if you are not sure.'
+                : undefined
+        }
+      />
+      <button type="submit" className="btn primary wide">
         Continue
       </button>
     </form>
@@ -297,6 +347,7 @@ function NumberField({
  */
 function CreditField({ onCommit }: { readonly onCommit: (v: Value) => void }) {
   const [text, setText] = useState('');
+  const [tried, setTried] = useState(false);
   const n = Number.parseInt(text, 10);
   const ok = Number.isFinite(n) && n >= 300 && n <= 900;
 
@@ -308,6 +359,7 @@ function CreditField({ onCommit }: { readonly onCommit: (v: Value) => void }) {
         onSubmit={(e) => {
           e.preventDefault();
           if (ok) onCommit({ known: true, score: n } as Value);
+          else setTried(true);
         }}
       >
         <div className="money-input">
@@ -316,11 +368,23 @@ function CreditField({ onCommit }: { readonly onCommit: (v: Value) => void }) {
             inputMode="numeric"
             placeholder="e.g. 780"
             value={text}
-            onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, ''))}
+            onChange={(e) => {
+              setText(e.target.value.replace(/[^0-9]/g, ''));
+              setTried(false);
+            }}
             aria-label="Credit score between 300 and 900"
           />
         </div>
-        <button type="submit" className="btn primary wide" disabled={!ok}>
+        <Line
+          prompt={
+            !tried || ok
+              ? undefined
+              : text.trim() === ''
+                ? 'Type your score, or pick one of the answers below.'
+                : 'A credit score is between 300 and 900.'
+          }
+        />
+        <button type="submit" className="btn primary wide">
           Continue
         </button>
       </form>
@@ -367,6 +431,7 @@ function OptionalMoneyField({
 }) {
   const [yes, setYes] = useState(false);
   const [text, setText] = useState('');
+  const [tried, setTried] = useState(false);
   const n = Number.parseFloat(text);
   const ok = Number.isFinite(n) && n > 0;
 
@@ -388,6 +453,7 @@ function OptionalMoneyField({
       onSubmit={(e) => {
         e.preventDefault();
         if (ok) onCommit(n as Value);
+        else setTried(true);
       }}
     >
       <label>
@@ -400,13 +466,20 @@ function OptionalMoneyField({
             autoFocus
             placeholder="0"
             value={text}
-            onChange={(e) => setText(e.target.value.replace(/[^0-9.]/g, ''))}
+            onChange={(e) => {
+              setText(e.target.value.replace(/[^0-9.]/g, ''));
+              setTried(false);
+            }}
             aria-label="Their monthly take-home"
           />
         </div>
       </label>
-      <div className="echo">{ok ? echo(n) : ' '}</div>
-      <button type="submit" className="btn primary wide" disabled={!ok}>
+      <Line
+        prompt={tried && !ok ? `Type an amount to continue, or tap “${noLabel}” below.` : undefined}
+      >
+        {ok ? echo(n) : ''}
+      </Line>
+      <button type="submit" className="btn primary wide">
         Continue
       </button>
       {/* Written as "Actually, no one else earns" when this field served one

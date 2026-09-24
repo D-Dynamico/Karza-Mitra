@@ -129,6 +129,23 @@ examples through as page text. What I found:
 - **Would be wrong if:** the tool is used mostly at the counter with a quote in hand. Then
   open it by default.
 
+### Continue always takes the tap, and says what is missing
+
+- **Choice:** Continue buttons in `ui/Field.tsx` are no longer disabled. Tapping one with
+  an empty or impossible answer puts one amber line where the lakh echo goes, for example
+  "Type an amount to continue, or skip below if you are not sure." The line clears on the
+  next keystroke. The credit score box says "Type your score, or pick one of the answers
+  below", or "A credit score is between 300 and 900". The income range says so when the
+  good month is below the slow month.
+- **Why:** the user reported that tapping Continue on an empty box did nothing. A disabled
+  button looks broken and does not say what is missing. The line points to the skip,
+  because skipping is always allowed.
+- **Rejected:** keeping the button disabled with a note under it (the note would show
+  before anyone did anything wrong); a red error style (this is a prompt, not a mistake);
+  submitting an empty box as a skip (that would skip without the one confirmation that
+  essential questions get).
+- **Source:** user feedback, 2026-09-24.
+
 ## Files touched
 
 - `ui/Verdict.tsx`: new. Verdict box and `AmountBars`.
@@ -144,6 +161,8 @@ examples through as page text. What I found:
 - `ui/QuoteCheck.tsx`: folded, "band" removed.
 - `ui/ExampleBio.tsx`: compact layout.
 - `ui/Flow.tsx`: verdict word in "what moved".
+- `ui/Field.tsx`: Continue always enabled, and a `Line` helper shows the echo or the
+  type-or-skip prompt.
 - `ui/styles.css`: dead `.two-up` and `.gap-note` rules removed. Added the pill, bars,
   projection, fold panel and compact bio.
 - `engine/path-to-yes.ts`: two option labels.

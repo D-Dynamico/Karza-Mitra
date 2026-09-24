@@ -1513,3 +1513,10 @@ details.panel.fold > summary {
   z-index: 1;
   box-shadow: 0 4px 16px rgba(28, 15, 24, 0.12);
 }
+
+/* Continue tapped with nothing usable in the box. Warm rather than red: it is
+   a prompt, not an error. */
+.echo.missing {
+  color: var(--warn);
+  font-weight: 500;
+}
