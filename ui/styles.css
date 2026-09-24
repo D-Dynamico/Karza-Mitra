@@ -1216,6 +1216,53 @@ details[open] > summary::before {
   line-height: 1.3;
 }
 
+/* Who the loaded example is, above the answer. Accent-tinted rather than a
+   verdict colour, so it reads as context about the person and never as part of
+   the answer. */
+.bio {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: var(--gap);
+  font-size: 0.9rem;
+}
+
+.bio-kind {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.bio p {
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+.bio-filled {
+  margin-top: 8px;
+  font-size: 0.84rem;
+}
+
+.bio-filled ul {
+  margin: 2px 0 0;
+  padding-left: 18px;
+}
+
+.bio-link {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* Under the tagline on the first screen, and hidden everywhere else. */
 .masthead .privacy {
   font-size: 0.82rem;

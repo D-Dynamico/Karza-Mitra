@@ -279,7 +279,16 @@ describe('the borrower is written to in her own words', () => {
     const whatIfs = everyone.flatMap(({ answers }) =>
       pathToYes(answers).flatMap((r) => [r.option.label, r.option.assumes ?? '']),
     );
-    for (const s of [...registry, ...Object.values(OUTPUT_LABELS), ...promises, ...whatIfs]) {
+    // The example's own story sits directly above the verdict, so it is held
+    // to the same words.
+    const examples = [priya, ravi, anita].flatMap((p) => [p.blurb, p.story, ...p.filledIn]);
+    for (const s of [
+      ...registry,
+      ...Object.values(OUTPUT_LABELS),
+      ...promises,
+      ...whatIfs,
+      ...examples,
+    ]) {
       if (s.length === 0) continue;
       for (const { word, replacement } of BANNED) {
         expect(s, `"${s}" — say ${replacement} instead`).not.toMatch(word);

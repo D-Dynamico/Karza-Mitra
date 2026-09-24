@@ -26,6 +26,18 @@ export interface Persona {
    * borrowers from the brief" told them nothing about which one to press.
    */
   readonly blurb: string;
+  /**
+   * Who this is, in two or three plain sentences, shown above the answer when
+   * the example is loaded. A visitor who pressed "Anita" has not read the brief;
+   * without this, "don't borrow" lands on a stranger and reads as arbitrary.
+   * Numbers first, borrower's words — the same standard as the verdict.
+   */
+  readonly story: string;
+  /**
+   * What the brief did not say and we filled in, in the visitor's words. The
+   * reviewer-facing version, with the reasoning, is `derived`.
+   */
+  readonly filledIn: readonly string[];
   /** What this persona is in the set to catch. */
   readonly tests: string;
   readonly answers: Answers;
@@ -41,6 +53,9 @@ export const priya: Persona = {
   id: 'priya',
   name: 'Priya',
   blurb: 'Salaried, has a car loan',
+  story:
+    '29, lives in Bengaluru. Works at a large company for 5 years and earns ₹1.1 lakh a month. Pays ₹28,000 rent and a ₹14,000 car loan EMI with 2 years left. Credit score 780. Wants ₹8 lakh for her wedding.',
+  filledIn: ['Savings: about two months of expenses, kept low to be careful.'],
   tests:
     'Two numbers, not one. A lender would sanction her ask several times over; what she can carry is far less, because her rent does not appear in their arithmetic.',
   answers: {
@@ -74,6 +89,13 @@ export const ravi: Persona = {
   id: 'ravi',
   name: 'Ravi',
   blurb: 'Shopkeeper, owns his shop',
+  story:
+    '42, runs a shop in Mysuru for 14 years. Earns ₹40,000 to ₹80,000 a month, but his tax return shows only ₹35,000. Owns the shop, worth ₹45 lakh, with no loan on it. His wife earns ₹18,000. Has never taken a loan, so no credit score. Wants ₹15 lakh for shop stock.',
+  filledIn: [
+    'His wife’s income is counted with his.',
+    'Savings: about three months of expenses.',
+    'Rent: none, since he owns his shop.',
+  ],
   tests:
     'Product routing. On his filed return alone he is a thin-file borrower facing an expensive unsecured loan. He owns an unencumbered shop, and the engine has to reach that on its own.',
   answers: {
@@ -115,6 +137,13 @@ export const anita: Persona = {
   id: 'anita',
   name: 'Anita',
   blurb: 'Missed a payment recently',
+  story:
+    '35, lives in Hubballi. Earns ₹26,000 to ₹30,000 a month, part of it from delivery work. Her husband has been out of work for 8 months; they have two children. Owes ₹35,000 on three app loans at over 30% a year, and missed a payment last month. No savings. Wants ₹1.5 lakh for a vehicle to double her delivery runs.',
+  filledIn: [
+    'App loan EMIs: about ₹6,000 a month in total.',
+    'The vehicle adds about ₹12,000 a month to her earnings. This is on the generous side.',
+    'Rent: a usual range for her city.',
+  ],
   tests:
     'Whether "don\'t borrow" fires. A bounce last month, app loans above 30%, and a household that depends on her. Any answer that ends in "borrow ₹1.5L" is a failure.',
   answers: {
@@ -185,6 +214,9 @@ export const mohan: Persona = {
   id: 'mohan',
   name: 'Mohan',
   blurb: 'High earner, big home loan',
+  story:
+    '59, lives in a metro city and earns ₹2.2 lakh a month. Owns his home, worth ₹60 lakh, and pays no rent. Has a ₹25,000 EMI with 18 months left. Family of four. Wants ₹75 lakh for education.',
+  filledIn: [],
   tests:
     'The lifecycle holes the three from the brief leave open: a term that outruns working life, a loan-to-value cap doing the binding instead of income, and a borrower who pays no rent at all.',
   answers: {

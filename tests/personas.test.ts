@@ -351,3 +351,18 @@ describe("Mohan — the lifecycle cases the brief's three do not reach", () => {
     expect(r.verdict.nextStep ?? '').not.toMatch(/alone changes this answer/i);
   });
 });
+
+/**
+ * The story shown above an example's answer is hand-written, so it can drift
+ * from the answers it describes. Hold the two figures a visitor checks first:
+ * the age it opens with, and the amount asked.
+ */
+describe('example stories match their answers', () => {
+  const lakh = (n: number): string => `₹${n / 100000} lakh`;
+  for (const p of [priya, ravi, anita, mohan]) {
+    it(p.name, () => {
+      expect(p.story.startsWith(`${p.answers.age},`)).toBe(true);
+      expect(p.story).toContain(`Wants ${lakh(p.answers.amountAsked!)}`);
+    });
+  }
+});

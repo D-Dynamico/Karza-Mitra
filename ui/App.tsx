@@ -27,6 +27,7 @@ import { personas, type Persona } from '../engine/personas';
 import { Card } from './Card';
 import { DontScreen } from './DontScreen';
 import { ErrorBoundary } from './ErrorBoundary';
+import { ExampleBio } from './ExampleBio';
 import { Flow } from './Flow';
 import { Results } from './Results';
 import './styles.css';
@@ -36,6 +37,8 @@ type View = 'start' | 'flow' | 'review' | 'results' | 'card';
 export function App() {
   const [view, setView] = useState<View>('start');
   const [answers, setAnswers] = useState<Answers>({});
+  /** The example whose answers are loaded, untouched. Null once anything is edited. */
+  const [example, setExample] = useState<Persona | null>(null);
 
   const result = useMemo(() => compute(answers), [answers]);
   const isDont = result.verdict.kind === 'dont';
@@ -44,11 +47,13 @@ export function App() {
 
   const loadPersona = (p: Persona): void => {
     setAnswers(p.answers);
+    setExample(p);
     setView('results');
   };
 
   const restart = (): void => {
     setAnswers({});
+    setExample(null);
     setView('flow');
   };
 
@@ -138,7 +143,10 @@ export function App() {
         ) : view === 'flow' || view === 'review' ? (
           <Flow
             answers={answers}
-            setAnswers={setAnswers}
+            setAnswers={(next) => {
+              setAnswers(next);
+              setExample(null);
+            }}
             onDone={() => setView('results')}
             startOnReview={view === 'review'}
           />
@@ -151,6 +159,9 @@ export function App() {
           </>
         ) : isDont ? (
           <>
+            {example ? (
+              <ExampleBio persona={example} onSeeAnswers={() => setView('review')} />
+            ) : null}
             <section className="verdict stop">
               <div className="kind">{result.verdict.kind}</div>
               <h2>{result.verdict.headline}</h2>
@@ -169,6 +180,9 @@ export function App() {
           </>
         ) : (
           <>
+            {example ? (
+              <ExampleBio persona={example} onSeeAnswers={() => setView('review')} />
+            ) : null}
             <Results
               result={result}
               answers={answers}
